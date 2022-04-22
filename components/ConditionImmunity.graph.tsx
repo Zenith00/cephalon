@@ -11,8 +11,9 @@ const ConditionImmunityGraph = (
     width,
     height,
     datapack,
-    setSelection
-  }: { width: number, height: number, datapack: Datapack, setSelection: Dispatch<SetStateAction<[number?, number?]>> }
+    setSelection,
+    setListVisible
+  }: { width: number, height: number, datapack: Datapack, setSelection: Dispatch<SetStateAction<[number?, number?]>>, setListVisible: Dispatch<SetStateAction<boolean>> }
 ) => {
 
   const margin = { top: 10, left: 80, right: 5, bottom: 160 };
@@ -69,6 +70,8 @@ const ConditionImmunityGraph = (
                   fillOpacity={bin.opacity}
                   onClick={() => {
                     setSelection([bin.row, bin.column]);
+                    setListVisible(true);
+
                   }}
                 />
 
@@ -83,6 +86,7 @@ const ConditionImmunityGraph = (
                       fill={(bin.count || 0) < 50 ? 'black' : 'white'}
                       onClick={() => {
                         setSelection([bin.row, bin.column]);
+                        setListVisible(true);
                       }}
                 >{bin.count}%
                 </text>

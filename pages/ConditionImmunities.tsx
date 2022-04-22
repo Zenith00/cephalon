@@ -8,7 +8,7 @@ import ConditionImmunityGraph from '../components/ConditionImmunity.graph';
 import { AppShell, Navbar, Header, Text, Footer, Burger, MediaQuery, Title } from '@mantine/core';
 import BestiaryFilter from '../components/BestiaryFilter';
 import { useCallback, useEffect, useState } from 'react';
-
+import { useViewportSize } from '@mantine/hooks';
 
 const queryString = require('query-string');
 import { useDebouncedCallback } from 'use-debounce';
@@ -33,11 +33,12 @@ export interface Datapack {
 }
 
 const ConditionImmunities: NextPage = () => {
-  const [opened, setOpened] = useState(false);
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [listVisible, setListVisible] = useState(false);
   const [filters, setFilters] = useState<Filters>({ crInclude: [0, 30], creatureTypeInclude: CREATURE_TYPES, sources: SOURCES });
   const [datapack, setDatapack] = useState<Datapack>({ column_labels: [], row_labels: [], data: [], typeCounts: {}, names: [[]] });
   const [selection, setSelection] = useState<[number?, number?]>([undefined, undefined]);
-
+  const { height, width } = useViewportSize();
   useEffect(() => {
     return () => {
       console.log(selection);
@@ -72,20 +73,29 @@ const ConditionImmunities: NextPage = () => {
       <AppShell
         fixed
         padding='sm'
-        navbar={<BestiaryFilter hidden={!opened} setFilters={setFilters} filters={filters}
+        navbar={<BestiaryFilter hidden={!filterVisible} setFilters={setFilters} filters={filters}
                                 counts={datapack.typeCounts} />}
-        aside={<CreatureList creatures={datapack.names?.[selection[0]!]?.[selection[1]!] || []}/>}
+        aside={<CreatureList creatures={datapack.names?.[selection[0]!]?.[selection[1]!] || []} hidden={!listVisible}/>}
         header={<Header height={60} p='xs'>
           <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
             <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
               <Burger
-                opened={opened}
-                onClick={() => setOpened((o) => !o)}
+                opened={filterVisible}
+                onClick={() => setFilterVisible((o) => !o)}
                 size='sm'
                 mr='xl'
               />
             </MediaQuery>
-            <Title style={{ fontSize: '3vh' }}>Condition Immunity by Creature Type</Title></div>
+            <Title style={{ fontSize: width > 768 ? '3vh' : '1.5vh' }}>Condition Immunity by Creature Type</Title>
+            <Burger
+              opened={listVisible}
+              onClick={() => setListVisible((o) => !o)}
+              size='sm'
+              ml={'auto'}
+              mr={'sm'}
+            />
+          </div>
+
         </Header>
 
         }
@@ -98,7 +108,7 @@ const ConditionImmunities: NextPage = () => {
         })}
       >
         <ParentSize>{({ width, height }) =>
-          <ConditionImmunityGraph width={width} height={height} datapack={datapack} setSelection={setSelection} />
+          <ConditionImmunityGraph width={width} height={height} datapack={datapack} setSelection={setSelection} setListVisible={setListVisible}/>
         }</ParentSize>
       </AppShell>
     </div>

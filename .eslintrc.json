@@ -1,6 +1,8 @@
 {
   "extends": "next/core-web-vitals",
   "rules": {
-    "semi": [2, "always"]
+    "semi": [2, "always"],
+    "curly": "error",
+    "dot-notation": "error"
   }
 }
