@@ -1,83 +1,109 @@
-import type { NextPage } from 'next'
+import type { NextPage } from 'next';
 
 
-import Head from 'next/head'
-import Image from 'next/image'
-import { ParentSize } from '@visx/responsive'
-import ConditionImmunityGraph from '../components/ConditionImmunity.graph'
-import { AppShell, Navbar, Header, Text, Footer, Burger, MediaQuery, Title } from '@mantine/core'
-import BestiaryFilter from '../components/BestiaryFilter'
-import { useCallback, useEffect, useState } from 'react'
+import Head from 'next/head';
+import Image from 'next/image';
+import { ParentSize } from '@visx/responsive';
+import ConditionImmunityGraph from '../components/ConditionImmunity.graph';
+import { AppShell, Navbar, Header, Text, Footer, Burger, MediaQuery, Title } from '@mantine/core';
+import BestiaryFilter from '../components/BestiaryFilter';
+import { useCallback, useEffect, useState } from 'react';
 
 
-const queryString = require('query-string')
-import { useDebouncedCallback } from 'use-debounce'
+const queryString = require('query-string');
+import { useDebouncedCallback } from 'use-debounce';
+import { StringifiableRecord } from 'query-string';
+import CreatureList from '../components/CreatureList';
 
-export const CREATURE_TYPES = ['Aberration', 'Beast', 'Celestial', 'Construct', 'Dragon', 'Elemental', 'Fey', 'Fiend', 'Giant', 'Humanoid', 'Monstrosity', 'Ooze', 'Plant', 'Undead']
+export const CREATURE_TYPES = ['aberration', 'beast', 'celestial', 'construct', 'dragon', 'elemental', 'fey', 'fiend', 'giant', 'humanoid', 'monstrosity', 'ooze', 'plant', 'undead'] as const;
+export const SOURCES = ['AI', 'AitFR-ISF', 'AitFR-THP', 'AitFR-DN', 'AitFR-FCD', 'BGDIA', 'CM', 'CoS', 'DC', 'DIP', 'DMG', 'DoD', 'EGW', 'ERLW', 'ESK', 'FTD', 'GGR', 'GoS', 'HftT', 'HoL', 'HotDQ', 'IDRotF', 'IMR', 'KKW', 'LLK', 'LMoP', 'LR', 'MaBJoV', 'MFF', 'MM', 'MPMM', 'MOT', 'MTF', 'NRH-TCMC', 'NRH-AVitW', 'NRH-ASS', 'NRH-CoI', 'NRH-TLT', 'NRH-AWoL', 'NRH-AT', 'OotA', 'OoW', 'PSA', 'PSD', 'PSI', 'PSK', 'PSX', 'PSZ', 'PHB', 'PotA', 'RMBRE', 'RoT', 'RtG', 'SADS', 'SCC', 'SDW', 'SKT', 'SLW', 'TCE', 'TTP', 'TftYP', 'ToA', 'VGM', 'VRGR', 'XGE', 'UA2020SubclassesPt2', 'UA2020SubclassesPt5', 'UA2020SpellsAndMagicTattoos', 'UA2021DraconicOptions', 'UA2021MagesOfStrixhaven', 'UAArtificerRevisited', 'UAClassFeatureVariants', 'UAClericDruidWizard', 'WBtW', 'WDH', 'WDMM'] as const;
 
-export interface Filters {
+export interface Filters extends StringifiableRecord {
   crInclude: [number, number]
-  creatureTypeInclude: string[]
+  creatureTypeInclude: Partial<typeof CREATURE_TYPES>
+  sources: Partial<typeof SOURCES>
 }
 
 export interface Datapack {
   column_labels: string[]
   row_labels: string[]
   data: any[]
+  typeCounts: { [key in typeof CREATURE_TYPES[number] | 'all']?: number }
+  names: string[][][]
 }
 
 const ConditionImmunities: NextPage = () => {
-  const [opened, setOpened] = useState(false)
-  const [filters, setFilters] = useState<Filters>({ crInclude: [0, 30], creatureTypeInclude: CREATURE_TYPES })
-  const [datapack, setDatapack] = useState<Datapack>({ column_labels: [], row_labels: [], data: [] })
+  const [opened, setOpened] = useState(false);
+  const [filters, setFilters] = useState<Filters>({ crInclude: [0, 30], creatureTypeInclude: CREATURE_TYPES, sources: SOURCES });
+  const [datapack, setDatapack] = useState<Datapack>({ column_labels: [], row_labels: [], data: [], typeCounts: {}, names: [[]] });
+  const [selection, setSelection] = useState<[number?, number?]>([undefined, undefined]);
+
+  useEffect(() => {
+    return () => {
+      console.log(selection);
+      // console.log(datapack.names);
+      console.log(datapack.names?.[selection[0]!]?.[selection[1]!]);
+    };
+  }, [selection]);
 
   const debounced = useDebouncedCallback(
     () => {
       fetch(queryString.stringifyUrl({
         url: 'https://arcane.cephalon.xyz/conditions',
-        query: filters as object
+        query: filters
       }, { arrayFormat: 'comma' }))
         .then((res) => res.json())
         .then((d) => {
-          setDatapack(d)
-        })
+          setDatapack(d);
+        });
     },
     500
-  )
+  );
 
   useEffect(() => {
-    debounced()
-  }, [filters])
+    debounced();
+  }, [filters]);
 
   return (
-    <AppShell
-      fixed
-      padding='sm'
-      navbar={<BestiaryFilter hidden={!opened} setFilters={setFilters} filters={filters} />}
-      header={<Header height={60} p='xs'>
-        <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
-          <Burger
-            opened={opened}
-            onClick={() => setOpened((o) => !o)}
-            size='sm'
-            mr='xl'
-          />
-        </MediaQuery>
-        <Title>Condition Immunity by Creature Type</Title></Header>
-      }
-      footer={<Footer height={60} p='md'>🔮</Footer>}
-      styles={(theme) => ({
-        main: {
-          backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0],
-          height: '100vh'
-        }
-      })}
-    >
-      <ParentSize>{({ width, height }) =>
-        <ConditionImmunityGraph width={width} height={height} datapack={datapack} />
-      }</ParentSize>
-    </AppShell>
-  )
-}
+    <div>
+      <Head>
+        <title>Condition Immunity by Creature Type</title>
+      </Head>
+      <AppShell
+        fixed
+        padding='sm'
+        navbar={<BestiaryFilter hidden={!opened} setFilters={setFilters} filters={filters}
+                                counts={datapack.typeCounts} />}
+        aside={<CreatureList creatures={datapack.names?.[selection[0]!]?.[selection[1]!] || []}/>}
+        header={<Header height={60} p='xs'>
+          <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <MediaQuery largerThan='sm' styles={{ display: 'none' }}>
+              <Burger
+                opened={opened}
+                onClick={() => setOpened((o) => !o)}
+                size='sm'
+                mr='xl'
+              />
+            </MediaQuery>
+            <Title style={{ fontSize: '3vh' }}>Condition Immunity by Creature Type</Title></div>
+        </Header>
 
-export default ConditionImmunities
+        }
+        footer={<Footer height={60} p='md'>🔮</Footer>}
+        styles={(theme) => ({
+          main: {
+            backgroundColor: theme.colorScheme === 'dark' ? theme.colors.dark[8] : theme.colors.gray[0],
+            height: '100vh'
+          }
+        })}
+      >
+        <ParentSize>{({ width, height }) =>
+          <ConditionImmunityGraph width={width} height={height} datapack={datapack} setSelection={setSelection} />
+        }</ParentSize>
+      </AppShell>
+    </div>
+
+  );
+};
+
+export default ConditionImmunities;
