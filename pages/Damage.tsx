@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   AppShell,
   Box,
@@ -24,9 +24,22 @@ import {
 import { useForm, formList } from "@mantine/form";
 import { DragDropContext, Droppable, Draggable } from "react-beautiful-dnd";
 import { GripVertical, Trash } from "tabler-icons-react";
-import DamagerCard from "../components/DamagerCard/DamagerCard";
-import DamageGraphs from "../components/DamageGraphs";
-import PlayerCard, { Player } from "../components/DamagerCard/PlayerCard";
+import DamagerCard from "../components/damage/DamagerCard/DamagerCard";
+import DamageGraphs from "../components/damage/DamageGraphs";
+import throttle from "lodash.throttle";
+
+import PlayerCard, {
+  Player,
+} from "../components/damage/DamagerCard/PlayerCard";
+import TargetNavbar from "../components/damage/Target.navbar";
+
+export interface Target {
+  ac: number;
+}
+
+const MemoDamageGraphs = React.memo(DamageGraphs);
+
+const MemoPlayerCard = React.memo(PlayerCard);
 
 const Damage = () => {
   const form = useForm({
@@ -40,7 +53,6 @@ const Damage = () => {
       ]),
     },
   });
-
   const [playerList, setPlayerList] = useState<{ [key: number]: Player }>({
     0: {
       attackBonus: 7,
@@ -48,9 +60,21 @@ const Damage = () => {
       id: 0,
       elvenAccuracy: false,
       battleMaster: false,
+      damagers: [
+        {
+          key: 0,
+          name: "Eldritch Blast",
+          damage: "1d8+20",
+          disabled: false,
+          modifiers: [],
+        },
+      ],
     },
   });
 
+  const [graphedPlayer, setGraphedPlayer] = useState<Player>(playerList[0]);
+
+  const [target, setTarget] = useState<Target>({ ac: 14 });
   // const fields = form.values.attacks.map((_, index) => (
   // <Draggable key={index} index={index} draggableId={index.toString()}>
   //   {(provided) => (
@@ -77,29 +101,21 @@ const Damage = () => {
   //   )}
   // </Draggable>
   // ));
+
+  const throttledSetGraphedPlayer = useMemo(
+    () => throttle(setGraphedPlayer, 2000, { trailing: true }),
+    []
+  );
+
+  useEffect(() => {
+    throttledSetGraphedPlayer(playerList[0]);
+  }, [playerList]);
+
   return (
     <AppShell
       padding="md"
-      navbar={
-        <Navbar width={{ base: 300 }} height={500} p="xs">
-          <Box px={"2px"}>
-            Basic Information
-            <Navbar.Section>
-              {/*<Title order={4}>PC Info</Title>*/}
-              {/*<NumberInput label={'Attack Bonus'} step={1} />*/}
-              {/*<NumberInput label={'Spell Save'} step={1} />*/}
-            </Navbar.Section>
-            <Space h={"md"} />
-            {/*<Divider pt={"3px"} size={"sm"}/>*/}3
-            <Navbar.Section>
-              <Title order={4}>Special</Title>
-              <Checkbox label={"Elven Accuracy"} />
-              <Checkbox label={"Lucky"} />
-            </Navbar.Section>
-          </Box>
-        </Navbar>
-      }
-      aside={<DamageGraphs />}
+      navbar={<TargetNavbar target={target} setTarget={setTarget} />}
+      aside={<MemoDamageGraphs player={graphedPlayer} target={target} />}
       header={
         <Header height={60} p="xs">
           <Title> Damage Calcs :)</Title>
@@ -111,12 +127,13 @@ const Damage = () => {
         <Title order={3}>Attacks</Title>
         <Space h={3} />
         {Object.entries(playerList).map((p, index) => (
-          <PlayerCard
+          <MemoPlayerCard
             key={index}
             player={playerList[index]}
             setPlayer={(p) => setPlayerList({ ...playerList, [index]: p })}
           />
         ))}
+
         {/*<Box sx={{ maxWidth: 700 }}  mx={'md'}>*/}
         {/*  {fields.length > 0 ? (*/}
         {/*    <Group mb='xs'>*/}
