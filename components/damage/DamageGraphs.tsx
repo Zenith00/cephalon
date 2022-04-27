@@ -12,7 +12,19 @@ import { Target } from "../../pages/Damage";
 import { Damager, Player } from "./DamagerCard/PlayerCard";
 import { useDebouncedCallback } from "use-debounce";
 import queryString from "query-string";
-import { DiceRoller } from "dice-roller-parser";
+import {
+  DiceRoll,
+  DiceRoller,
+  DiceRollResult,
+  InlineExpression,
+  MathExpression,
+  MathFunctionExpression,
+  ModGroupedRoll,
+  NumberType,
+  RollExpressionType,
+  RollOrExpression,
+  RootType,
+} from "dice-roller-parser";
 import { Line, LinePath } from "@visx/shape";
 import { Scale, Legend } from "@visx/visx";
 import { schemeSet2 } from "d3-scale-chromatic";
@@ -21,7 +33,9 @@ import { LegendItem, LegendLabel, LegendOrdinal } from "@visx/legend";
 import { ScaleOrdinal } from "d3-scale";
 import { lightTheme } from "@visx/xychart";
 import debounce from "lodash.debounce";
-import { make_pmf } from "../../utils/math";
+import { convolve_pmfs, make_pmf, PMF, boundProb } from "../../utils/math";
+import { AnyRoll } from "dice-roller-parser/dist/parsedRollTypes";
+import { root } from "postcss";
 
 const data1 = [
   { x: "2020-01-01", y: 50 },
@@ -46,30 +60,93 @@ const H = (mod: number, ac: number): number => {
 
 const diceRoller = new DiceRoller();
 
-const getMean = (obj: any) => {
+const cumSum = (pmf: PMF) => {
+  let acc = 0;
+  return new Map(
+    [...pmf.entries()].sort((x) => x[0]).map(([val, p]) => [val, (acc += p)])
+  );
+};
+
+interface diceNode {
+  head: object;
+  ops: object[];
+  root: boolean;
+  type: string;
+  mods: object[];
+  count: number;
+  die: {
+    type: "number";
+    value: number;
+  };
+}
+
+// interface dice
+
+const getMean = (obj: diceNode) => {
+  console.log("Getting mean of ");
+  console.log(obj);
   if (obj.type === "die" && !obj.mods?.length) {
-    return obj.count.value * (obj.dice.value / 2 + 0.5);
+    return obj.count.value * (obj.die.value / 2 + 0.5);
   } else if (obj.type === "number") {
     return obj.value;
   }
 };
 
-const simpleProcess = (damage: string): number | undefined => {
-  let parsedDamage = diceRoller.parse(damage) as {
-    head: object;
-    ops: object[];
-    root: boolean;
-    type: string;
+const diceToPMF = (dice: string) => {
+  let [count, face] = dice.split("d");
+  if (face) {
+    return [...Array(parseInt(count) || 1).keys()].map((_) =>
+      make_pmf(parseInt(face))
+    );
+  } else {
+    return [new Map([[parseInt(count), 1]])];
+  }
+};
+
+const simpleProcess = (damage: string): PMF | void => {
+  let state: "pos" | "neg" = "pos";
+  let clean = damage.replaceAll(/\s/g, "");
+  if (!new RegExp(/^[\dd+-]+$/).test(clean)) {
+    return;
+  }
+
+  let dice = {
+    pos: [],
+    neg: [],
+  } as {
+    pos: string[];
+    neg: string[];
   };
-  let mean = 0;
-  if (!["die", "number"].includes((parsedDamage as any).head.type)) {
-    return;
-  }
-  let headDmg = getMean(parsedDamage.head);
-  if (!headDmg) {
-    return;
-  }
-  mean += headDmg;
+
+  let dice_acc = "";
+
+  [...clean].forEach((c) => {
+    if (c === "-" || c === "+") {
+      // if (dice_acc) {
+      dice[state].push(dice_acc);
+      dice_acc = "";
+      // }
+      state = c === "-" ? "neg" : "pos";
+    } else {
+      dice_acc += c;
+    }
+  });
+  dice[state].push(dice_acc);
+
+  let pmf = dice.pos
+    .filter((x) => x)
+    .map(diceToPMF)
+    .flat()
+    .map((x: PMF) => x)
+    .reduce((acc, c) => convolve_pmfs(acc, c, true), new Map([[0, 1]]));
+  pmf = dice.neg
+    .filter((x) => x)
+    .map(diceToPMF)
+    .flat()
+    .map((x: PMF) => x)
+    .reduce((acc, c) => convolve_pmfs(acc, c, false), pmf);
+
+  return pmf;
 };
 
 // const target_ac = 16;
@@ -93,6 +170,8 @@ const DamageGraphs = ({
   }>({});
   const workersRef = useRef<Worker[]>([]);
   const [legendScale, setLegendScale] = useState();
+  const [workerPlayerCount, setWorkerPlayerCount] = useState(0);
+
   // scaleOrdinal({
   //   domain: ["a"],
   //   range: ["blue"],
@@ -105,12 +184,10 @@ const DamageGraphs = ({
   //   );
   // }, []);
 
-  console.log(make_pmf(8));
-
   useEffect(() => {
     let r = workersRef.current;
 
-    console.log("booting up workers");
+    // console.log("booting up workers");
     let damageMeanCalcs = {} as { [key: keyof Player["damagers"]]: number };
     let messagesReceived = 0;
     [...Array(NUM_WORKERS).keys()].map((i) => {
@@ -121,13 +198,13 @@ const DamageGraphs = ({
         // );
         damageMeanCalcs[event.data[0]] = event.data[1];
 
-        if (++messagesReceived == Object.keys(player.damagers).length) {
-          console.log("SETTING DAMAGE MEANS :) new:");
-          console.log({ damageMeanCalcs });
+        if (++messagesReceived == workerPlayerCount) {
+          // console.log("SETTING DAMAGE MEANS :) new:");
+          // console.log({ damageMeanCalcs });
           setDamageMeans({ ...damageMeanCalcs });
           messagesReceived = 0;
         }
-        console.log(`Setting data ${messagesReceived}`);
+        // console.log(`Setting data ${messagesReceived}`);
       };
     });
 
@@ -139,35 +216,31 @@ const DamageGraphs = ({
   }, []);
 
   useEffect(() => {
-    console.log("Damage means changed :)");
-    const v = Object.entries(player.damagers).map(
-      ([key, damager]) =>
-        [...Array(30).keys()].map((ac) => ({
-          x: ac,
-          y: H(player.attackBonus, ac) * damageMeans[parseInt(key)],
-        }))
-      // Array.from({ length: 30 }, (x, i) => i).map((ac) => ({
-      //   x: ac,
-      //   y: H(player.attackBonus, ac) * damageMeans[parseInt(key)],
-      // }))
+    // console.log("Damage means changed :)");
+
+    const v = Object.entries(player.damagers).map(([key, damager]) =>
+      [...Array(30).keys()].map((ac) => ({
+        x: ac,
+        y: H(player.attackBonus, ac) * damageMeans[parseInt(key)],
+      }))
     );
-    console.log("processing :)");
+    // console.log("processing :)");
     Object.entries(player.damagers).map(([key, damager]) =>
       [...Array(30).keys()].map((ac) => {
         let x = {
           x: ac,
           y: H(player.attackBonus, ac) * damageMeans[parseInt(key)],
         };
-        console.log(x);
-        console.log(damageMeans);
+        // console.log(x);
+        // console.log(damageMeans);
       })
     );
-    console.log("Setting data sets !!!: :O");
-    console.log(player.damagers);
+    // console.log("Setting data sets !!!: :O");
+    // console.log(player.damagers);
 
-    console.log(damageMeans);
-    console.log({ v });
-    console.log("DONE!");
+    // console.log(damageMeans);
+    // console.log({ v });
+    // console.log("DONE!");
     setDataSets(v);
   }, [player, damageMeans]);
 
@@ -196,47 +269,70 @@ const DamageGraphs = ({
       //         d20 == 20) as any as number
       //   );
       // });
-      console.log(table);
+      // console.log(table);
       let improvementFactors = [...Array(20).keys()].map((threshold_gte) => {
         const improvedCases = s(
           table.slice(0, threshold_gte).map((pa_cases) => s(pa_cases))
         );
         return improvedCases * (20 - threshold_gte);
       });
-      console.log(improvementFactors);
+      // console.log(improvementFactors);
     };
   }, [target.ac, player.attackBonus]);
+
+  const pmfToDataset = (pmf: PMF) => {};
 
   const debouncedUpdateGraphs = useDebouncedCallback(
     () => {
       Object.entries(player.damagers).map(([key, damager]) => {
-        // Array.from({ length: 30 }, (x, i) => i).map((ac) => {
-        const r = workersRef.current;
-        if (r) {
-          // r.map((w) => {
-          console.log(damager.damage);
-          console.log(`processing ${key}`);
-          r[parseInt(key) % NUM_WORKERS].postMessage({
-            index: key,
-            damage: damager.damage,
+        // const d =;
+        let atkbonus =
+          player.attackBonus >= 0
+            ? `+${player.attackBonus}`
+            : `${player.attackBonus}`;
+        let simpleDamagePMF = simpleProcess(damager.damage || "0");
+        let simpleAttackPMF = simpleProcess(`1d20 + ${atkbonus}`);
+
+        if (simpleDamagePMF && simpleAttackPMF) {
+          let simpleDamage = [...simpleDamagePMF.entries()].reduce(
+            (acc, [d, p]) => (acc += d * p),
+            0
+          );
+          let cumsum = cumSum(simpleAttackPMF);
+          let seen = false;
+          setDataSets({
+            ...dataSets,
+            [key]: [...Array(30).keys()].map((ac) => {
+              let p = cumsum.get(ac);
+              if (p) {
+                seen = true;
+              }
+
+              return {
+                x: ac,
+                y:
+                  (1 - boundProb(cumsum.get(ac) || (seen ? 1 : 0))) *
+                  simpleDamage,
+              };
+            }),
           });
-          // });
+        } else {
+          // Array.from({ length: 30 }, (x, i) => i).map((ac) => {
+          const r = workersRef.current;
+          if (r) {
+            // r.map((w) => {
+            console.log(damager.damage);
+            console.log(`processing ${key}`);
+            r[parseInt(key) % NUM_WORKERS].postMessage({
+              index: key,
+              damage: damager.damage ?? 0,
+            });
+            // });
+          }
         }
+
         // });
       });
-
-      // Array.from({ length: 30 }, (x, i) => i + 1).map((ac) => ({
-      //     }));
-      // let workers = [];
-      // for (let i = 0; i < 30; i++) {
-      //   workers[i] =
-      // }
-      // const v = Object.entries(player.damagers).map(([key, damager]) => {
-      //   Array.from({ length: 30 }, (x, i) => i + 1).map((ac) => ({
-      //     x: ac,
-      //     y: H(player.attackBonus, target.ac) * E(damager.damage)
-      //   }));
-      // });
     },
     1000,
     { leading: true }
