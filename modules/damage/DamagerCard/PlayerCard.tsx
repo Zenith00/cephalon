@@ -17,6 +17,7 @@ import {
   Navbar,
   Title,
   Space,
+  SelectItem,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
 import { useToggle } from "@mantine/hooks";
@@ -37,6 +38,7 @@ export interface Player {
   damagers: { [key: number]: Damager };
   critThreshold: number;
 }
+
 //
 // ["advantage", "2d20kh"],
 //   ["normal", "1d20"],
@@ -63,7 +65,8 @@ export class Damager {
   damageMean?: number;
   advantageShow: Map<AdvantageType, boolean>;
   modifiers: string[];
-  modifierOptionExtras?: { label: string; value: string }[];
+  modifierOptions: SelectItem[];
+  modifierRaws: string[];
   atkBase: string;
   name: string;
   disabled?: boolean;
@@ -71,14 +74,20 @@ export class Damager {
 
   constructor(key: number) {
     this.damage = "";
-    this.advantageShow = new Map();
+    this.advantageShow = new Map([["normal", true]]);
     this.modifiers = [];
     this.atkBase = "0";
     this.name = "";
     this.disabled = false;
     this.key = key;
+    this.modifierOptions = [
+      { label: "Bless [+1d4]", value: "0" },
+      { label: "Bane [-1d4]", value: "1" },
+    ];
+    this.modifierRaws = [];
   }
 }
+
 const MemoDamagerCard = React.memo(DamagerCard);
 
 const PlayerCard = ({
@@ -103,11 +112,6 @@ const PlayerCard = ({
 
   const dispatchPlayerList = useContext(DispatchPlayerList)!;
   const player = useContext(PlayerContext)!;
-
-  const [value, toggle] = useToggle("Attack", ["Attack", "Save"]);
-  const [data, setData] = useState(["Bless [+1d4]", "Bane [-1d4]"]);
-  const nextDamagerIndex = () =>
-    Math.max(...Object.keys(player.damagers).map((i) => parseInt(i))) + 1;
 
   // useEffect(() => {
   //   setPlayer(player);

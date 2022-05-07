@@ -136,6 +136,12 @@ const DamageGraphs = ({
   // });
 
   useEffect(() => {
+    console.log("Selected player context update");
+    console.log(damageContext.get(selectedPlayerContext)?.get(0));
+    console.log(player.damagers);
+  }, [selectedPlayerContext, damageContext]);
+
+  useEffect(() => {
     let r = workersRef.current;
 
     //
@@ -428,50 +434,19 @@ const DamageGraphs = ({
             ([damagerDex, damager], damagerIndex) =>
               AdvantageTypes.filter((x) => damager.advantageShow.get(x)).map(
                 (advantageType, i) => {
-                  // console.log("DATA KEY OF");
-                  // console.log(damager);
-                  //
-                  // console.log(
-                  //   damagerIndex * AdvantageTypes.length +
-                  //     AdvantageTypes.indexOf(advantageType)
-                  // );
-
-                  // console.log(
-                  //   ordinalColorScale(
-                  //     damagerIndex * AdvantageTypes.length +
-                  //       AdvantageTypes.indexOf(advantageType)
-                  //   )
-                  // );
-                  let t = (
-                    <AnimatedLineSeries
-                      key={
-                        damagerIndex * AdvantageTypes.length +
-                        AdvantageTypes.indexOf(advantageType)
-                      }
-                      dataKey={(
-                        damagerIndex * AdvantageTypes.length +
-                        AdvantageTypes.indexOf(advantageType)
-                      ).toString()}
-                      data={[
-                        ...(damageContext
-                          ?.get(selectedPlayerContext)
-                          ?.get(damager.key)
-                          ?.get(advantageType)
-                          ?.entries() || []),
-                      ].map(([ac, dmg]) => ({
-                        x: ac,
-                        y: dmg,
-                      }))}
-                      // color={ordinalColorScale(index)}
-                      {...accessors}
-                    />
+                  console.log("GRAPHED DATA:");
+                  console.log(
+                    [
+                      ...(damageContext
+                        ?.get(selectedPlayerContext)
+                        ?.get(damager.key)
+                        ?.get(advantageType)
+                        ?.entries() || []),
+                    ].map(([ac, dmg]) => ({
+                      x: ac,
+                      y: dmg,
+                    }))
                   );
-
-                  console.log("DATA KEY:");
-                  console.log(t.props.dataKey);
-
-                  // console.log("\n\nn\n\n\n\n\n\n\n\n");
-                  console.log(damageContext);
                   return (
                     <AnimatedLineSeries
                       key={

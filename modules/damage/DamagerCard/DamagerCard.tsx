@@ -19,6 +19,7 @@ import { useDebouncedCallback } from "use-debounce";
 import {
   DamageDataContext,
   DispatchPlayerList,
+  InitialPlayerListContext,
   PlayerContext,
   Target,
 } from "../../../pages/Damage";
@@ -53,12 +54,7 @@ const DamagerCard = ({
   // setDamager: (damager: Damager) => void;
 }) => {
   const [value, toggle] = useToggle("Attack", ["Attack", "Save"]);
-  const [attackModOptions, setAttackModOptions] = useState<SelectItem[]>(
-    [
-      { label: "Bless [+1d4]", value: "0" },
-      { label: "Bane [-1d4]", value: "1" },
-    ].concat(damager.modifierOptionExtras || [])
-  );
+
   // const [attackModLabelToValue, setAttackModLabelToValue] = useState<{
   //   [s: string]: string;
   // }>(
@@ -89,15 +85,20 @@ const DamagerCard = ({
   const dispatchPlayerList = useContext(DispatchPlayerList)!;
   const damageContext = useContext(DamageDataContext)!;
 
+  const initialPlayerList = useContext(InitialPlayerListContext)!;
+
+  //region [[Form Meta]]
+  const [settingsPopover, setSettingsPopover] = useState(false);
+  const [attackModPlaceholder, setAttackModPlaceholder] = useState("");
+  const [attackModError, setAttackModError] = useState(false);
+  const [attackModOptions, setAttackModOptions] = useState<SelectItem[]>([]);
+  //endregion
+
+  //region [[FormState]]
   const [attackModSelected, setAttackModSelected] = useState<string[]>([]);
   const [attackModParsed, setAttackModParsed] = useState<string[]>([]);
   const [damagerName, setDamagerName] = useState(damager.name);
   const [damagerDamage, setDamagerDamage] = useState(damager.damage);
-  const [settingsPopover, setSettingsPopover] = useState(false);
-
-  //region [[FormState]]
-  const [attackModError, setAttackModError] = useState(false);
-  const [attackModPlaceholder, setAttackModPlaceholder] = useState("");
   const [showAdvantage, setShowAdvantage] = useState(false);
   const [showNeutral, setShowNeutral] = useState(true);
   const [showDisadvantage, setShowDisadvantage] = useState(false);
@@ -122,16 +123,6 @@ const DamagerCard = ({
 
   useEffect(() => {
     console.log("got update  :)");
-    // setDamager({
-    //    ...damager,
-    //    name: damagerName,
-    //    damage: damagerDamage,
-    //    advantageShow: new Map([
-    //       ["advantage", showAdvantage],
-    //       ["normal", showNeutral],
-    //       ["disadvantage", showDisadvantage],
-    //    ]),
-    // });
 
     debouncedDispatchPlayerList({
       field: "UPDATE_DAMAGER",
@@ -142,6 +133,8 @@ const DamagerCard = ({
         name: damagerName,
         damage: damagerDamage,
         modifiers: attackModParsed,
+        modifierOptions: attackModOptions,
+        modifierRaws: attackModSelected,
         advantageShow: new Map([
           ["advantage", showAdvantage],
           ["normal", showNeutral],
@@ -156,9 +149,9 @@ const DamagerCard = ({
     showDisadvantage,
     showNeutral,
     attackModParsed,
+    attackModSelected,
+    attackModOptions,
   ]);
-
-  //endregion
 
   useEffect(() => {
     setAttackModParsed(
@@ -246,6 +239,108 @@ const DamagerCard = ({
   //     //   .filter((x) => x) as string[],
   //   });
   // }, [debouncedSetDamager, damagerName, damagerDamage, attackModSelected]);
+
+  useEffect(() => {
+    if (!initialPlayerList?.[playerKey]?.damagers?.[damager.key]) {
+      return;
+    }
+    setShowAdvantage(
+      initialPlayerList[playerKey].damagers[damager.key].advantageShow.get(
+        "advantage"
+      )!
+    );
+    setShowDisadvantage(
+      initialPlayerList[playerKey].damagers[damager.key].advantageShow.get(
+        "disadvantage"
+      )!
+    );
+    setShowNeutral(
+      initialPlayerList[playerKey].damagers[damager.key].advantageShow.get(
+        "normal"
+      )!
+    );
+    setDamagerDamage(initialPlayerList[playerKey].damagers[damager.key].damage);
+    setDamagerName(initialPlayerList[playerKey].damagers[damager.key].name);
+    setAttackModOptions(
+      initialPlayerList[playerKey].damagers[damager.key].modifierOptions
+    );
+    setAttackModSelected(
+      initialPlayerList[playerKey].damagers[damager.key].modifierRaws
+    );
+    onUpdateAttackMods(
+      initialPlayerList[playerKey].damagers[damager.key].modifierRaws,
+      initialPlayerList[playerKey].damagers[damager.key].modifierOptions
+    );
+  }, [initialPlayerList]);
+
+  const onUpdateAttackMods = (
+    v: string[],
+    overrideAttackOptions?: SelectItem[]
+  ) => {
+    console.log("UPDATING ATTACK MODS");
+    console.log(v);
+    // console.log(attackModOptions);
+
+    let originalAttackOptions = overrideAttackOptions || attackModOptions;
+    let newAttackOptions = [...originalAttackOptions];
+    console.log(newAttackOptions);
+
+    const n = v
+      .map((mod) => {
+        if (!mod.match(modRegex)) {
+          return;
+        }
+        if (originalAttackOptions.map((x) => x.value).includes(mod)) {
+          return mod;
+        } else {
+          const newId = getAtkModID();
+          let newOption = {
+            label: mod,
+            value: newId,
+          };
+
+          // setAttackModOptions();
+          newAttackOptions = [...originalAttackOptions, newOption];
+          return newId;
+          // return attackModOptions.find(
+          //   (x) =>
+          //     x.label === mod && !attackModSelected.includes(x.value)
+          // );
+        }
+        return mod;
+        // if (!attackModOptions.map((x) => x.label).includes(mod)) {
+        //   setAttackModOptions([
+        //     ...attackModOptions,
+        //     { label: mod, value: (attackModID++).toString() },
+        //   ]);
+        // }
+
+        return mod;
+      })
+      .filter((x) => x) as string[];
+
+    console.log({ n });
+    let seenLabels = new Set();
+    let filterPoss = newAttackOptions.filter((v) => {
+      if (n.includes(v.value)) {
+        return true;
+      } else {
+        if (!seenLabels.has(v.label)) {
+          seenLabels.add(v.label);
+          return true;
+        }
+        return false;
+      }
+    });
+
+    console.log("SETTING ATTACK MOD OPTIONS");
+    console.log(filterPoss);
+    setAttackModOptions(
+      filterPoss.sort((a, b) => a.label!.localeCompare(b.label!))
+    );
+
+    setAttackModSelected(n);
+  };
 
   return (
     <Paper shadow={"xs"} p={"md"} mt={"md"} sx={{ maxWidth: 320 }} withBorder>
@@ -338,66 +433,7 @@ const DamagerCard = ({
               }, 1500);
             }
           }}
-          onChange={(v) => {
-            // setData(v);
-            //
-            // let atkOptionsNew = [] as string[];
-            //
-            let newAttackOptions = [...attackModOptions];
-
-            const n = v
-              .map((mod) => {
-                if (!mod.match(modRegex)) {
-                  return;
-                }
-                if (attackModOptions.map((x) => x.value).includes(mod)) {
-                  return mod;
-                } else {
-                  const newId = getAtkModID();
-                  let newOption = {
-                    label: mod,
-                    value: newId,
-                  };
-
-                  // setAttackModOptions();
-                  newAttackOptions = [...attackModOptions, newOption];
-                  return newId;
-                  // return attackModOptions.find(
-                  //   (x) =>
-                  //     x.label === mod && !attackModSelected.includes(x.value)
-                  // );
-                }
-                return mod;
-                // if (!attackModOptions.map((x) => x.label).includes(mod)) {
-                //   setAttackModOptions([
-                //     ...attackModOptions,
-                //     { label: mod, value: (attackModID++).toString() },
-                //   ]);
-                // }
-
-                return mod;
-              })
-              .filter((x) => x) as string[];
-
-            let seenLabels = new Set();
-            let filterPoss = newAttackOptions.filter((v) => {
-              if (n.includes(v.value)) {
-                return true;
-              } else {
-                if (!seenLabels.has(v.label)) {
-                  seenLabels.add(v.label);
-                  return true;
-                }
-                return false;
-              }
-            });
-
-            setAttackModOptions(
-              filterPoss.sort((a, b) => a.label!.localeCompare(b.label!))
-            );
-
-            setAttackModSelected(n);
-          }}
+          onChange={onUpdateAttackMods}
           value={attackModSelected}
           // filter={(value, selected, item) =>
           //   !selected &&

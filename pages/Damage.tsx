@@ -19,6 +19,37 @@ export interface Target {
   ac: number;
 }
 
+const PLAYER_SHORT_TO_FIELD = new Map<String, keyof Player>([
+  ["k", "key"],
+  ["a", "attackBonus"],
+  ["s", "spellSaveDC"],
+  ["e", "elvenAccuracy"],
+  ["b", "battleMaster"],
+  ["d", "damagers"],
+  ["c", "critThreshold"],
+]);
+
+const PLAYER_FIELD_TO_SHORT = new Map(
+  [...PLAYER_SHORT_TO_FIELD.entries()].map(([k, v]) => [v, k])
+);
+
+const DAMAGER_SHORT_TO_FIELD = new Map<String, keyof Damager>([
+  ["dmg", "damage"],
+  ["dm", "damageMean"],
+  ["as", "advantageShow"],
+  ["m", "modifiers"],
+  ["mo", "modifierOptions"],
+  ["mr", "modifierRaws"],
+  ["a", "atkBase"],
+  ["n", "name"],
+  ["di", "disabled"],
+  ["k", "key"],
+]);
+
+const DAMAGER_FIELD_TO_SHORT = new Map(
+  [...DAMAGER_SHORT_TO_FIELD.entries()].map(([k, v]) => [v, k])
+);
+
 function replacer(key: string, value: any) {
   if (value instanceof Map) {
     return {
@@ -47,25 +78,17 @@ export const DispatchPlayerList =
 
 export const SelectedPlayerContext = React.createContext<number>(0);
 export const PlayerContext = React.createContext<Player | null>(null);
+export const InitialPlayerListContext = React.createContext<PlayerList>({});
 
 const MemoDamageGraphs = React.memo(DamageGraphs);
 
 const MemoPlayerCard = React.memo(PlayerCard);
-
-// export interface DamageData {
-//
-//   [playerKey: number]: {
-//     [damagerKey: number]: Map<AdvantageType, Map<number, number>>;
-//   };
-// }
 
 export type PlayerList = { [key: number]: Player };
 export type DamageData = Map<
   number,
   Map<number, Map<AdvantageType, Map<number, number>>>
 >;
-
-type playerListReducerActionSupertype = {};
 
 export type playerListReducerFieldSet = (
   | {
@@ -121,6 +144,47 @@ export type playerListReducerAction =
   | { field: "DELETE_DAMAGER"; playerKey: number; damagerKey: number }
   | playerListReducerFieldSet;
 
+const transformPlayerList = (p: PlayerList, inflate: boolean) => {
+  const PLAYER_MAP = inflate ? PLAYER_SHORT_TO_FIELD : PLAYER_FIELD_TO_SHORT;
+  const DAMAGER_MAP = inflate ? DAMAGER_SHORT_TO_FIELD : DAMAGER_FIELD_TO_SHORT;
+  const DAMAGERS_KEY = inflate ? "damagers" : "d";
+  return Object.fromEntries(
+    [...Object.entries(p)].map(([playerIndex, player]) => [
+      playerIndex,
+      Object.fromEntries(
+        Object.entries(player).map(([playerField, playerValue]) => {
+          if (["damagers", "d"].includes(playerField)) {
+            return [
+              DAMAGERS_KEY,
+              Object.fromEntries(
+                Object.entries(playerValue as { [key: number]: Damager }).map(
+                  ([damagerIndex, damager]) => [
+                    damagerIndex,
+                    Object.fromEntries(
+                      Object.entries(damager).map(
+                        ([damagerKey, damagerVal]) => [
+                          DAMAGER_MAP.get(damagerKey as keyof Damager),
+                          damagerVal,
+                        ]
+                      )
+                    ),
+                  ]
+                )
+              ),
+            ];
+          } else {
+            console.log([
+              PLAYER_MAP.get(playerField as keyof Player),
+              playerValue,
+            ]);
+            return [PLAYER_MAP.get(playerField as keyof Player), playerValue];
+          }
+        })
+      ),
+    ])
+  );
+};
+
 const Damage = () => {
   const router = useRouter();
 
@@ -150,7 +214,8 @@ const Damage = () => {
         Math.max(
           ...Object.keys(state[action.playerKey].damagers).map((i) =>
             parseInt(i)
-          )
+          ),
+          -1
         ) + 1;
       const newDamagers = {
         ...state[action.playerKey].damagers,
@@ -168,7 +233,8 @@ const Damage = () => {
         Math.max(
           ...Object.keys(state[action.playerKey].damagers).map((i) =>
             parseInt(i)
-          )
+          ),
+          -1
         ) + 1;
       console.log({ nextDamagerIndex });
       const newDamagers = {
@@ -216,6 +282,8 @@ const Damage = () => {
     },
   } as { [key: number]: Player });
 
+  const [initialPlayerList, setInitialPlayerList] = useState<PlayerList>({});
+
   useEffect(() => {
     console.log("=======PLAYER LIST UPDATED=========");
     console.log({ ...playerList });
@@ -237,24 +305,41 @@ const Damage = () => {
 
   const [target, setTarget] = useState<Target>({ ac: 14 });
 
-  // const throttledSetGraphedPlayer = useMemo(
-  //   () => throttle(setGraphedPlayer, 2000, { trailing: true }),
-  //   []
-  // );
-
   const debouncedUpdateURI = useDebouncedCallback(() => {
-    console.log({ ...playerList });
-    console.log(playerList);
-    console.log("<" + JSON.stringify(playerList, replacer).toString() + ">");
+    // console.log({ ...playerList });
+    // console.log(playerList);
+    // console.log("QQQQQQQQQQQ");
+    //
+    // console.log(
+    //   JSON.stringify(
+    //     transformPlayerList(transformPlayerList(playerList, false), true),
+    //     replacer
+    //   ) === JSON.stringify(playerList, replacer)
+    // );
+    // console.log((transformPlayerList(playerList, false), replacer));
+    //
+    // console.log(
+    //   transformPlayerList(transformPlayerList(playerList, false), true)
+    // );
+    // console.log(
+    //   JSON.stringify(
+    //     transformPlayerList(transformPlayerList(playerList, false), true),
+    //     replacer
+    //   )
+    // );
+
+    console.log(JSON.stringify(playerList, replacer));
+
     router.replace({
       query: {
-        d: Buffer.from(JSON.stringify(playerList, replacer)).toString("base64"),
+        d: Buffer.from(
+          JSON.stringify(transformPlayerList(playerList, false), replacer)
+        ).toString("base64"),
       },
     });
   }, 1000);
 
   useEffect(() => {
-    // throttledSetGraphedPlayer(playerList[0]);
     debouncedUpdateURI();
   }, [playerList]);
 
@@ -264,13 +349,17 @@ const Damage = () => {
     );
     if (data) {
       let d = Buffer.from(data, "base64").toString();
-      console.log(Buffer.from(data, "base64").toString()); /**/
-      // console.log(Buffer.from(data, "base64").toString());
-      // console.log(JSON.parse(d, reviver));
-      // dispatchPlayerList({
-      //   field: "OVERWRITE",
-      //   val: JSON.parse(d, reviver),
-      // });
+      let newPlayerList = transformPlayerList(
+        JSON.parse(d, reviver),
+        true
+      ) as PlayerList;
+      dispatchPlayerList({
+        field: "OVERWRITE",
+        val: newPlayerList,
+      });
+      setInitialPlayerList(newPlayerList);
+    } else {
+      setInitialPlayerList(playerList);
     }
   }, []);
 
@@ -298,15 +387,18 @@ const Damage = () => {
         {/*<Paper>*/}
         <Title order={3}>Attacks</Title>
         <Space h={3} />
-        <DispatchPlayerList.Provider value={dispatchPlayerList}>
-          <SelectedPlayerContext.Provider value={selectedPlayerKey}>
-            {Object.entries(playerList).map(([index, player]) => (
-              <PlayerContext.Provider value={player} key={index}>
-                <MemoPlayerCard key={index} target={target} />
-              </PlayerContext.Provider>
-            ))}
-          </SelectedPlayerContext.Provider>
-        </DispatchPlayerList.Provider>
+        <InitialPlayerListContext.Provider value={initialPlayerList}>
+          <DispatchPlayerList.Provider value={dispatchPlayerList}>
+            <SelectedPlayerContext.Provider value={selectedPlayerKey}>
+              {Object.entries(initialPlayerList).length &&
+                Object.entries(playerList).map(([index, player]) => (
+                  <PlayerContext.Provider value={player} key={index}>
+                    <MemoPlayerCard key={index} target={target} />
+                  </PlayerContext.Provider>
+                ))}
+            </SelectedPlayerContext.Provider>
+          </DispatchPlayerList.Provider>
+        </InitialPlayerListContext.Provider>
       </Container>
     </AppShell>
   );
