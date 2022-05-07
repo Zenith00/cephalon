@@ -11,10 +11,19 @@ let variance = (array, m) => {
 };
 
 addEventListener("message", (event) => {
-  const rolls = Array.from({ length: SIMS }, (x, i) => i + 1).map(() =>
-    roller.rollValue(event.data.damage)
-  );
+  let { damage } = event.data;
 
-  const m = mean(rolls);
-  postMessage([event.data.index, m(rolls), variance(m)]);
+  const rolls = [...Array(SIMS).keys()]
+    .map((x) => roller.rollValue(damage))
+    .reduce((acc, curr) => acc.set(curr, (acc.get(curr) || 0) + 1), new Map());
+
+  // const rolls = Array.from({ length: SIMS }, (x, i) => i + 1).map(() =>
+  //   roller.rollValue(event.data.damage)
+  // );
+
+  // const m = mean(rolls);
+  postMessage([
+    event.data.index,
+    new Map([...rolls.entries()].map((k, v) => [k, v / SIMS])),
+  ]);
 });

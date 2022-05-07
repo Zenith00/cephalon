@@ -30,12 +30,12 @@ const Target = ({
           />
         </Navbar.Section>
         <Space h={"md"} />
-        {/*<Divider pt={"3px"} size={"sm"}/>*/}3
-        <Navbar.Section>
-          <Title order={4}>Special</Title>
-          <Checkbox label={"Elven Accuracy"} />
-          <Checkbox label={"Lucky"} />
-        </Navbar.Section>
+        {/*<Divider pt={"3px"} size={"sm"}/>*/}
+        {/*<Navbar.Section>*/}
+        {/*  <Title order={4}>Special</Title>*/}
+        {/*  <Checkbox label={"Elven Accuracy"} />*/}
+        {/*  <Checkbox label={"Lucky"} />*/}
+        {/*</Navbar.Section>*/}
       </Box>
     </Navbar>
   );

@@ -3,7 +3,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
 import { ParentSize } from "@visx/responsive";
-import ConditionImmunityGraph from "../components/condition/ConditionImmunity.graph";
+import ConditionImmunityGraph from "../modules/condition/ConditionImmunity.graph";
 import {
   AppShell,
   Navbar,
@@ -154,9 +154,7 @@ const ConditionImmunities: NextPage = () => {
   const { height, width } = useViewportSize();
   useEffect(() => {
     return () => {
-      console.log(selection);
-      // console.log(datapack.names);
-      console.log(datapack.names?.[selection[0]!]?.[selection[1]!]);
+      //
     };
   }, [selection]);
 

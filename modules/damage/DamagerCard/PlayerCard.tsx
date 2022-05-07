@@ -1,4 +1,10 @@
-import React, { Dispatch, SetStateAction, useEffect, useState } from "react";
+import React, {
+  Dispatch,
+  SetStateAction,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import {
   TextInput,
   Checkbox,
@@ -15,32 +21,74 @@ import {
 import { useForm } from "@mantine/form";
 import { useToggle } from "@mantine/hooks";
 import DamagerCard from "./DamagerCard";
+import {
+  DispatchPlayerList,
+  PlayerContext,
+  playerListReducerAction,
+  Target,
+} from "../../../pages/Damage";
 
 export interface Player {
-  id: number;
+  key: number;
   attackBonus: number;
   spellSaveDC: number;
   elvenAccuracy?: boolean;
   battleMaster?: boolean;
   damagers: { [key: number]: Damager };
+  critThreshold: number;
 }
+//
+// ["advantage", "2d20kh"],
+//   ["normal", "1d20"],
+//   ["disadvantage", "2d20kl"],
+//   ["elvenaccuracy", "3d20kh"],
 
-export interface Damager {
+export type AdvantageType =
+  | "superadvantage"
+  | "advantage"
+  | "normal"
+  | "disadvantage"
+  | "superdisadvantage";
+
+export const AdvantageTypes = [
+  "superadvantage",
+  "advantage",
+  "normal",
+  "disadvantage",
+  "superdisadvantage",
+] as AdvantageType[];
+
+export class Damager {
   damage: string;
   damageMean?: number;
+  advantageShow: Map<AdvantageType, boolean>;
   modifiers: string[];
+  modifierOptionExtras?: { label: string; value: string }[];
+  atkBase: string;
   name: string;
   disabled?: boolean;
   key: keyof Player["damagers"];
+
+  constructor(key: number) {
+    this.damage = "";
+    this.advantageShow = new Map();
+    this.modifiers = [];
+    this.atkBase = "0";
+    this.name = "";
+    this.disabled = false;
+    this.key = key;
+  }
 }
 const MemoDamagerCard = React.memo(DamagerCard);
 
 const PlayerCard = ({
-  player,
-  setPlayer,
+  // player,
+  // setPlayer,
+  target,
 }: {
-  player: Player;
-  setPlayer: (p: Player) => void;
+  // player: Player;
+  // setPlayer: React.Dispatch<playerListReducerAction>;
+  target: Target;
 }) => {
   const form = useForm({
     initialValues: {
@@ -53,14 +101,17 @@ const PlayerCard = ({
     },
   });
 
+  const dispatchPlayerList = useContext(DispatchPlayerList)!;
+  const player = useContext(PlayerContext)!;
+
   const [value, toggle] = useToggle("Attack", ["Attack", "Save"]);
   const [data, setData] = useState(["Bless [+1d4]", "Bane [-1d4]"]);
   const nextDamagerIndex = () =>
     Math.max(...Object.keys(player.damagers).map((i) => parseInt(i))) + 1;
 
-  useEffect(() => {
-    console.log(player.damagers);
-  }, [player.damagers]);
+  // useEffect(() => {
+  //   setPlayer(player);
+  // }, [player]);
 
   return (
     <Paper shadow={"xs"} p={"md"} mt={"md"} sx={{ maxWidth: 400 }} withBorder>
@@ -77,7 +128,13 @@ const PlayerCard = ({
             label={"Attack Bonus"}
             step={1}
             value={player.attackBonus}
-            onChange={(val) => setPlayer({ ...player, attackBonus: val || 0 })}
+            onChange={(val) =>
+              dispatchPlayerList({
+                field: "attackBonus",
+                val: val || 0,
+                playerKey: player.key,
+              })
+            }
             formatter={(value) => {
               if (value) {
                 let v = value.replace(/^\+/gi, "");
@@ -90,7 +147,13 @@ const PlayerCard = ({
             label={"Spell Save"}
             step={1}
             value={player.spellSaveDC}
-            onChange={(val) => setPlayer({ ...player, spellSaveDC: val || 0 })}
+            onChange={(val) =>
+              dispatchPlayerList({
+                field: "spellSaveDC",
+                val: val || 0,
+                playerKey: player.key,
+              })
+            }
           />
         </div>
         <Title order={4} py={"sm"}>
@@ -105,54 +168,14 @@ const PlayerCard = ({
         {Object.entries(player.damagers).map(([i, damager]) => (
           <MemoDamagerCard
             key={parseInt(i)}
+            playerKey={player.key}
             damager={damager}
-            setDamager={(d) =>
-              setPlayer({
-                ...player,
-                damagers: { ...player.damagers, [i]: d },
-              })
-            }
-            copy={(d) => {
-              setPlayer({
-                ...player,
-                damagers: {
-                  ...player.damagers,
-                  [nextDamagerIndex()]: { ...d, key: nextDamagerIndex() },
-                },
-              });
-            }}
-            del={(d) => {
-              console.log("DELETEING ");
-              console.log(d);
-              const { [d.key]: _, ...otherDamagers } = player.damagers;
-              const newDamagers = {} as typeof player.damagers;
-              Object.entries(otherDamagers).map(([k, d], index) => {
-                newDamagers[index] = {
-                  ...d,
-                  key: index,
-                } as Damager;
-              });
-              setPlayer({
-                ...player,
-                damagers: newDamagers,
-              });
-            }}
+            target={target}
           />
         ))}
         <Button
           onClick={() => {
-            setPlayer({
-              ...player,
-              damagers: {
-                ...player.damagers,
-                [nextDamagerIndex()]: {
-                  damage: "",
-                  modifiers: [],
-                  name: "",
-                  key: nextDamagerIndex(),
-                },
-              },
-            });
+            dispatchPlayerList({ field: "NEW_DAMAGER", playerKey: player.key });
           }}
         >
           New Attack

@@ -1,0 +1,8 @@
+
+.visx-tooltip-glyph {
+    overflow-x: hidden;
+}
+body {
+    overscroll-behavior: contain;
+    overflow-x: hidden;
+}
