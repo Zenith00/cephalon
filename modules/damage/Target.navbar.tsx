@@ -18,7 +18,7 @@ const Target = ({
   setTarget: React.Dispatch<React.SetStateAction<Target>>;
 }) => {
   return (
-    <Navbar width={{ base: 300 }} height={500} p="xs">
+    <Navbar width={{ base: 200 }} height={500} p="xs">
       <Box px={"2px"}>
         <Navbar.Section>
           <Title order={4}>Target Info</Title>

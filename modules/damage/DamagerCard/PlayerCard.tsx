@@ -1,33 +1,19 @@
-import React, {
-  Dispatch,
-  SetStateAction,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { useContext, useState } from "react";
 import {
-  TextInput,
-  Checkbox,
-  Button,
-  Group,
   Box,
-  Paper,
+  Button,
+  Checkbox,
   NumberInput,
-  MultiSelect,
-  Navbar,
-  Title,
-  Space,
+  Paper,
+  Popover,
+  Select,
   SelectItem,
+  Title,
 } from "@mantine/core";
 import { useForm } from "@mantine/form";
-import { useToggle } from "@mantine/hooks";
 import DamagerCard from "./DamagerCard";
-import {
-  DispatchPlayerList,
-  PlayerContext,
-  playerListReducerAction,
-  Target,
-} from "../../../pages/Damage";
+import { DispatchPlayerList, PlayerContext, Target } from "@pages/Damage";
+import { defaultModifierOptions } from "@damage/constants";
 
 export interface Player {
   key: number;
@@ -38,12 +24,6 @@ export interface Player {
   damagers: { [key: number]: Damager };
   critThreshold: number;
 }
-
-//
-// ["advantage", "2d20kh"],
-//   ["normal", "1d20"],
-//   ["disadvantage", "2d20kl"],
-//   ["elvenaccuracy", "3d20kh"],
 
 export type AdvantageType =
   | "superadvantage"
@@ -80,10 +60,7 @@ export class Damager {
     this.name = "";
     this.disabled = false;
     this.key = key;
-    this.modifierOptions = [
-      { label: "Bless [+1d4]", value: "0" },
-      { label: "Bane [-1d4]", value: "1" },
-    ];
+    this.modifierOptions = defaultModifierOptions;
     this.modifierRaws = [];
   }
 }
@@ -112,13 +89,15 @@ const PlayerCard = ({
 
   const dispatchPlayerList = useContext(DispatchPlayerList)!;
   const player = useContext(PlayerContext)!;
-
-  // useEffect(() => {
-  //   setPlayer(player);
-  // }, [player]);
-
+  const [showPresetPicker, setShowPresetPicker] = useState(false);
   return (
-    <Paper shadow={"xs"} p={"md"} mt={"md"} sx={{ maxWidth: 400 }} withBorder>
+    <Paper
+      shadow={"xs"}
+      p={"md"}
+      mt={"md"}
+      sx={{ maxWidth: 400, minWidth: 300 }}
+      withBorder
+    >
       <Box mx="auto">
         <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Title order={4}>PC Info</Title>
@@ -178,12 +157,29 @@ const PlayerCard = ({
           />
         ))}
         <Button
+          mt={10}
           onClick={() => {
             dispatchPlayerList({ field: "NEW_DAMAGER", playerKey: player.key });
           }}
         >
           New Attack
         </Button>
+        <Popover
+          opened={showPresetPicker}
+          onClose={() => setShowPresetPicker(false)}
+          target={
+            <Button
+              mt={10}
+              ml={5}
+              color={"cyan"}
+              onClick={(_: any) => setShowPresetPicker(true)}
+            >
+              Preset
+            </Button>
+          }
+        >
+          <Select data={[]} searchable />
+        </Popover>
       </Box>
     </Paper>
   );

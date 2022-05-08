@@ -1,8 +1,13 @@
-import React, { useEffect, useMemo, useReducer, useState } from "react";
-import { AppShell, Container, Header, Space, Title } from "@mantine/core";
-import { formList, useForm } from "@mantine/form";
+import React, { useEffect, useReducer, useState } from "react";
+import {
+  AppShell,
+  Burger,
+  Container,
+  Header,
+  Space,
+  Title,
+} from "@mantine/core";
 import DamageGraphs from "@damage/DamageGraphs";
-import throttle from "lodash.throttle";
 import { useRouter } from "next/router";
 
 import PlayerCard, {
@@ -11,7 +16,6 @@ import PlayerCard, {
   Player,
 } from "@/damage/DamagerCard/PlayerCard";
 import TargetNavbar from "@/damage/Target.navbar";
-import debounce from "lodash.debounce";
 import { dummyDamageData, useHandleDamageData } from "@/damage/damageData.hook";
 import { useDebouncedCallback } from "use-debounce";
 
@@ -187,6 +191,7 @@ const transformPlayerList = (p: PlayerList, inflate: boolean) => {
 
 const Damage = () => {
   const router = useRouter();
+  const [hideGraphs, setHideGraphs] = useState(false);
 
   const playerListReducer = (
     state: { [key: number]: Player },
@@ -365,6 +370,7 @@ const Damage = () => {
 
   return (
     <AppShell
+      fixed
       padding="md"
       navbar={<TargetNavbar target={target} setTarget={setTarget} />}
       aside={
@@ -372,6 +378,7 @@ const Damage = () => {
           <MemoDamageGraphs
             player={playerList[selectedPlayerKey]}
             target={target}
+            hidden={hideGraphs}
           />
         </DamageDataContext.Provider>
       }
@@ -379,24 +386,37 @@ const Damage = () => {
       style={{ isolation: "isolate" }}
       header={
         <Header height={60} p="xs">
-          <Title> Damage Calcs :)</Title>
+          <div
+            style={{ display: "flex", alignItems: "center", height: "100%" }}
+          >
+            <Title> Damage Calcs :)</Title>
+            <Burger
+              opened={!hideGraphs}
+              onClick={() => setHideGraphs((o) => !o)}
+              size="sm"
+              ml={"auto"}
+              mr={"sm"}
+            />
+          </div>
         </Header>
       }
     >
-      <Container px={"md"}>
+      <Container pl={"md"} ml={"sm"}>
         {/*<Paper>*/}
         <Title order={3}>Attacks</Title>
         <Space h={3} />
         <InitialPlayerListContext.Provider value={initialPlayerList}>
           <DispatchPlayerList.Provider value={dispatchPlayerList}>
-            <SelectedPlayerContext.Provider value={selectedPlayerKey}>
-              {Object.entries(initialPlayerList).length &&
-                Object.entries(playerList).map(([index, player]) => (
-                  <PlayerContext.Provider value={player} key={index}>
-                    <MemoPlayerCard key={index} target={target} />
-                  </PlayerContext.Provider>
-                ))}
-            </SelectedPlayerContext.Provider>
+            <DamageDataContext.Provider value={damageData}>
+              <SelectedPlayerContext.Provider value={selectedPlayerKey}>
+                {Object.entries(initialPlayerList).length &&
+                  Object.entries(playerList).map(([index, player]) => (
+                    <PlayerContext.Provider value={player} key={index}>
+                      <MemoPlayerCard key={index} target={target} />
+                    </PlayerContext.Provider>
+                  ))}
+              </SelectedPlayerContext.Provider>
+            </DamageDataContext.Provider>
           </DispatchPlayerList.Provider>
         </InitialPlayerListContext.Provider>
       </Container>
