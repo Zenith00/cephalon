@@ -79,12 +79,12 @@ export const convolve_pmfs_sum = (pmfX: PMF, pmfY: PMF, add: boolean) => {
   const diagSign = add ? 1 : -1;
 
   const xLowerBound = Math.min(...pmfX.keys());
-  const yLowerBound = Math.min(...pmfY.keys());
+  const yLowerBound = add
+    ? Math.min(...pmfY.keys())
+    : -Math.max(...pmfY.keys());
 
   const diagExtra = add ? 0 : pmfY.size - 1;
-
-  const bound = (x: number) =>
-    x + (add ? xLowerBound + yLowerBound : xLowerBound - pmfY.size);
+  const bound = (x: number) => x + xLowerBound + yLowerBound;
 
   return [...Array(pmfX.size + pmfY.size - 1).keys()].reduce(
     (acc, diagDex) =>
@@ -153,6 +153,9 @@ export const d20ToFailRate = (dice: string) => {
   return 1 / 20;
 };
 
+export const isSimpleProcessable = (damage: string) =>
+  Boolean(new RegExp(/^[\dd+\-khl]+$/).test(damage.replaceAll(/\s/g, "")));
+
 export const simpleProcess = (
   damage: string,
   crit: critType = "none"
@@ -204,6 +207,7 @@ export const simpleProcess = (
       neg: string[];
     };
   }
+  console.log(dice);
 
   let pmf = (dice.pos || [])
     .filter((x) => x)
@@ -241,33 +245,3 @@ const subtractPMFs = (pmfL: PMF, pmfR: PMF) => {
       .map((i) => [i, (pmfL.get(i) || 0) - (pmfR.get(i) || 0)])
   );
 };
-
-const atkbonus = 0;
-[...Array(20).keys()].map((ac) => {
-  console.log("\niteration :)");
-  const table = [...Array(20).keys()]
-    .map((i) => i + 1)
-    .map((d20) =>
-      [...Array(8).keys()]
-        .map((i) => i + 1)
-        .map(
-          (d8) =>
-            (d20 != 1 &&
-              d20 + d8 + atkbonus >= ac &&
-              d20 < ac &&
-              d20 != 20) as any as number
-        )
-    );
-  const s = (l: number[]) => l.reduce((a, b) => a + b, 0);
-
-  let improvementFactors = [...Array(20).keys()].map((threshold_gte) => {
-    const improvedCases = s(
-      table.slice(0, threshold_gte).map((pa_cases) => s(pa_cases))
-    );
-    return improvedCases * (20 - threshold_gte);
-  });
-  console.log("AC: " + ac);
-  console.log({ table });
-  console.log({ improvementFactors });
-  console.log(improvementFactors.indexOf(Math.max(...improvementFactors)) + 1);
-});
