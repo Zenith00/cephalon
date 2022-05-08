@@ -18,7 +18,7 @@ import PlayerCard, {
 import TargetNavbar from "@/damage/Target.navbar";
 import { dummyDamageData, useHandleDamageData } from "@/damage/damageData.hook";
 import { useDebouncedCallback } from "use-debounce";
-
+import { PRESET_DAMAGERS } from "@/damage/constants";
 export interface Target {
   ac: number;
 }
@@ -135,6 +135,11 @@ export type playerListReducerAction =
       playerKey: number;
     }
   | {
+      field: "PRESET_DAMAGER";
+      playerKey: number;
+      newDamagerName: keyof typeof PRESET_DAMAGERS;
+    }
+  | {
       field: "COPY_DAMAGER";
       playerKey: number;
       newDamager: Damager;
@@ -200,11 +205,17 @@ const Damage = () => {
     console.log("===DISPATCHING PLAYER LIST===");
     console.log({ ...state });
     console.log({ ...action });
+    const getNextDamagerIndex = (playerKey: number) =>
+      Math.max(
+        ...Object.keys(state[playerKey].damagers).map((i) => parseInt(i)),
+        -1
+      ) + 1;
+
     if (action.field === "OVERWRITE") {
       return action.val;
     } else if (action.field === "UPDATE_DAMAGER") {
       const newDamagers = {
-        ...state[action.playerKey].damagers,
+        ...state[acion.playerKey].damagers,
         [action.damagerKey]: action.newDamager,
       };
       return {
@@ -215,43 +226,49 @@ const Damage = () => {
         },
       };
     } else if (action.field === "NEW_DAMAGER") {
-      const nextDamagerIndex =
-        Math.max(
-          ...Object.keys(state[action.playerKey].damagers).map((i) =>
-            parseInt(i)
-          ),
-          -1
-        ) + 1;
+      const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
       const newDamagers = {
         ...state[action.playerKey].damagers,
-        [nextDamagerIndex]: new Damager(nextDamagerIndex),
+        [nextDamagerIndex]: new Damager(nextDamagerIndex)
       };
       return {
         ...state,
         [action.playerKey]: {
           ...state[action.playerKey],
-          damagers: newDamagers,
-        },
+          damagers: newDamagers
+        }
+      };
+    } else if (action.field === "PRESET_DAMAGER") {
+      const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
+      console.log("================= PRESET DAMAGER");
+      console.log(PRESET_DAMAGERS[action.newDamagerName](nextDamagerIndex));
+      const newDamagers = {
+        ...state[action.playerKey].damagers,
+        [nextDamagerIndex]:
+          PRESET_DAMAGERS[action.newDamagerName](nextDamagerIndex)
+      };
+      return {
+        ...state,
+        [action.playerKey]: {
+          ...state[action.playerKey],
+          damagers: newDamagers
+        }
       };
     } else if (action.field === "COPY_DAMAGER") {
-      const nextDamagerIndex =
-        Math.max(
-          ...Object.keys(state[action.playerKey].damagers).map((i) =>
-            parseInt(i)
-          ),
-          -1
-        ) + 1;
-      console.log({ nextDamagerIndex });
+      const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
+
+      console.log("================= COPYING DAMAGER");
+      console.log(action.newDamager);
       const newDamagers = {
         ...state[action.playerKey].damagers,
-        [nextDamagerIndex]: { ...action.newDamager, key: nextDamagerIndex },
+        [nextDamagerIndex]: { ...action.newDamager, key: nextDamagerIndex }
       };
       return {
         ...state,
         [action.playerKey]: {
           ...state[action.playerKey],
-          damagers: newDamagers,
-        },
+          damagers: newDamagers
+        }
       };
     } else if (action.field === "DELETE_DAMAGER") {
       return {

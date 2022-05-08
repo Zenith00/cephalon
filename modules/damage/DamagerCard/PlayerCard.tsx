@@ -13,7 +13,7 @@ import {
 import { useForm } from "@mantine/form";
 import DamagerCard from "./DamagerCard";
 import { DispatchPlayerList, PlayerContext, Target } from "@pages/Damage";
-import { defaultModifierOptions } from "@damage/constants";
+import { defaultModifierOptions, PRESET_DAMAGERS } from "@damage/constants";
 
 export interface Player {
   key: number;
@@ -50,18 +50,30 @@ export class Damager {
   atkBase: string;
   name: string;
   disabled?: boolean;
+  count: number;
   key: keyof Player["damagers"];
 
-  constructor(key: number) {
-    this.damage = "";
+  constructor(
+    key: number,
+    damage?: string,
+    count?: number,
+    name?: string,
+    modifierOptions?: SelectItem[],
+    modifiers?: string[]
+  ) {
+    this.damage = damage ?? "";
     this.advantageShow = new Map([["normal", true]]);
     this.modifiers = [];
     this.atkBase = "0";
-    this.name = "";
+    this.name = name ?? "";
     this.disabled = false;
     this.key = key;
-    this.modifierOptions = defaultModifierOptions;
-    this.modifierRaws = [];
+    this.count = count || 1;
+    this.modifierOptions = (defaultModifierOptions as SelectItem[]).concat(
+      ...(modifierOptions || [])
+    );
+
+    this.modifierRaws = modifiers ?? [];
   }
 }
 
@@ -95,7 +107,7 @@ const PlayerCard = ({
       shadow={"xs"}
       p={"md"}
       mt={"md"}
-      sx={{ maxWidth: 400, minWidth: 300 }}
+      sx={{ maxWidth: 600, minWidth: 300 }}
       withBorder
     >
       <Box mx="auto">
@@ -106,11 +118,19 @@ const PlayerCard = ({
           </Box>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            height: "100%",
+            width: "100%",
+          }}
+        >
           <NumberInput
             label={"Attack Bonus"}
             step={1}
             value={player.attackBonus}
+            style={{ width: "50%" }}
             onChange={(val) =>
               dispatchPlayerList({
                 field: "attackBonus",
@@ -130,11 +150,12 @@ const PlayerCard = ({
             label={"Spell Save"}
             step={1}
             value={player.spellSaveDC}
+            style={{ width: "50%" }}
             onChange={(val) =>
               dispatchPlayerList({
                 field: "spellSaveDC",
                 val: val || 0,
-                playerKey: player.key,
+                playerKey: player.ky,
               })
             }
           />
@@ -178,7 +199,18 @@ const PlayerCard = ({
             </Button>
           }
         >
-          <Select data={[]} searchable />
+          <Select
+            data={Object.keys(PRESET_DAMAGERS)}
+            searchable
+            onChange={(x) =>
+              x &&
+              dispatchPlayerList({
+                field: "PRESET_DAMAGER",
+                playerKey: player.key,
+                newDamagerName: x as keyof typeof PRESET_DAMAGERS,
+              })
+            }
+          />
         </Popover>
       </Box>
     </Paper>
