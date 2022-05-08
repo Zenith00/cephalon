@@ -2,7 +2,9 @@ import React, { useContext, useEffect, useState } from "react";
 import {
   Box,
   Button,
+  Container,
   MultiSelect,
+  NumberInput,
   Paper,
   Popover,
   SelectItem,
@@ -56,11 +58,15 @@ const DamagerCard = ({
   const [settingsPopover, setSettingsPopover] = useState(false);
   const [attackModPlaceholder, setAttackModPlaceholder] = useState("");
   const [attackModError, setAttackModError] = useState(false);
-  const [attackModOptions, setAttackModOptions] = useState<SelectItem[]>([]);
   //endregion
 
   //region [[FormState]]
-  const [attackModSelected, setAttackModSelected] = useState<string[]>([]);
+  const [attackModOptions, setAttackModOptions] = useState<SelectItem[]>(
+    damager.modifierOptions
+  );
+  const [attackModSelected, setAttackModSelected] = useState<string[]>(
+    damager.modifierRaws
+  );
   const [attackModParsed, setAttackModParsed] = useState<string[]>([]);
   const [damagerName, setDamagerName] = useState(damager.name);
   const [damagerDamage, setDamagerDamage] = useState(damager.damage);
@@ -69,7 +75,7 @@ const DamagerCard = ({
   const [showDisadvantage, setShowDisadvantage] = useState(false);
   //endregion
 
-  const modRegex = /^[\w ]*\[?(([+-]?((\d+d)?\d+))]?)$/;
+  const modRegex = /^[^\[]*\[?(([+-]?((\d+d)?\d+))]?)$/;
 
   const debouncedDispatchPlayerList = useDebouncedCallback(
     dispatchPlayerList,
@@ -118,39 +124,39 @@ const DamagerCard = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attackModSelected]);
 
-  useEffect(() => {
-    if (!initialPlayerList?.[playerKey]?.damagers?.[damager.key]) {
-      return;
-    }
-    setShowAdvantage(
-      initialPlayerList[playerKey].damagers[damager.key].advantageShow.get(
-        "advantage"
-      )!
-    );
-    setShowDisadvantage(
-      initialPlayerList[playerKey].damagers[damager.key].advantageShow.get(
-        "disadvantage"
-      )!
-    );
-    setShowNeutral(
-      initialPlayerList[playerKey].damagers[damager.key].advantageShow.get(
-        "normal"
-      )!
-    );
-    setDamagerDamage(initialPlayerList[playerKey].damagers[damager.key].damage);
-    setDamagerName(initialPlayerList[playerKey].damagers[damager.key].name);
-    setAttackModOptions(
-      initialPlayerList[playerKey].damagers[damager.key].modifierOptions
-    );
-    setAttackModSelected(
-      initialPlayerList[playerKey].damagers[damager.key].modifierRaws
-    );
-    onUpdateAttackMods(
-      initialPlayerList[playerKey].damagers[damager.key].modifierRaws,
-      initialPlayerList[playerKey].damagers[damager.key].modifierOptions
-    );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [initialPlayerList]);
+  // useEffect(() => {
+  //   if (!initialPlayerList?.[playerKey]?.damagers?.[damager.key]) {
+  //     return;
+  //   }
+  //   setShowAdvantage(
+  //     initialPlayerList[playerKey].damagers[damager.key].advantageShow.get(
+  //       "advantage"
+  //     )!
+  //   );
+  //   setShowDisadvantage(
+  //     initialPlayerList[playerKey].damagers[damager.key].advantageShow.get(
+  //       "disadvantage"
+  //     )!
+  //   );
+  //   setShowNeutral(
+  //     initialPlayerList[playerKey].damagers[damager.key].advantageShow.get(
+  //       "normal"
+  //     )!
+  //   );
+  //   setDamagerDamage(initialPlayerList[playerKey].damagers[damager.key].damage);
+  //   setDamagerName(initialPlayerList[playerKey].damagers[damager.key].name);
+  //   setAttackModOptions(
+  //     initialPlayerList[playerKey].damagers[damager.key].modifierOptions
+  //   );
+  //   setAttackModSelected(
+  //     initialPlayerList[playerKey].damagers[damager.key].modifierRaws
+  //   );
+  //   onUpdateAttackMods(
+  //     initialPlayerList[playerKey].damagers[damager.key].modifierRaws,
+  //     initialPlayerList[playerKey].damagers[damager.key].modifierOptions
+  //   );
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [initialPlayerList]);
 
   const onUpdateAttackMods = (
     newAttackModRawVals: string[],
@@ -198,13 +204,15 @@ const DamagerCard = ({
   };
 
   return (
-    <Paper shadow={"xs"} p={"md"} mt={"md"} sx={{ maxWidth: 320 }} withBorder>
+    // sx={{ maxWidth: 320 }}
+    <Paper shadow={"xs"} p={"md"} mt={"md"} withBorder>
       <Box mx="auto">
         <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
           <TextInput
             label={`Name: ${damager.key}`}
             placeholder="Eldritch Blast"
             value={damagerName}
+            style={{ width: "100%" }}
             onChange={(ev) => setDamagerName(ev.currentTarget.value)}
           />
           <Popover
@@ -217,6 +225,7 @@ const DamagerCard = ({
                 color={value}
                 onClick={() => setSettingsPopover(true)}
                 ml={"md"}
+                mr={"sm"}
                 mt={27}
               >
                 <Settings></Settings>
@@ -240,13 +249,23 @@ const DamagerCard = ({
             />
           </Popover>
         </div>
-        <TextInput
-          mt={"sm"}
-          label={"Damage"}
-          value={damagerDamage}
-          placeholder={"1d10+5"}
-          onChange={(ev) => setDamagerDamage(ev.currentTarget.value)}
-        ></TextInput>
+        <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
+          <TextInput
+            mt={"sm"}
+            label={"Damage"}
+            value={damagerDamage}
+            placeholder={"1d10+5"}
+            onChange={(ev) => setDamagerDamage(ev.currentTarget.value)}
+            style={{ width: "80%" }}
+          ></TextInput>
+          <NumberInput
+            label={"Attack Count"}
+            mt={"sm"}
+            ml={"sm"}
+            style={{ width: "30%" }}
+            mr={"xs"}
+          ></NumberInput>
+        </div>
         <MultiSelect
           data={attackModOptions}
           creatable
@@ -306,7 +325,13 @@ const DamagerCard = ({
                     ?.get(damager.key)
                     ?.get("disadvantage")
                     ?.get(target.ac)
-                    ?.toFixed(2)}
+                    ?.toFixed(2) ||
+                    (damageContext
+                      ?.get(playerKey)
+                      ?.get(damager.key)
+                      ?.get("disadvantage")
+                      ?.get(0) || 0) *
+                      (1 / 19)}
                 </td>
               </tr>
             ) : (
