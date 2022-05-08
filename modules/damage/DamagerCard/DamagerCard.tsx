@@ -13,65 +13,29 @@ import {
   Tooltip,
 } from "@mantine/core";
 import { useToggle } from "@mantine/hooks";
-import { AdvantageType, AdvantageTypes, Damager } from "./PlayerCard";
+import { Damager } from "./PlayerCard";
 import { Copy, InfoCircle, Settings, Trash } from "tabler-icons-react";
 import { useDebouncedCallback } from "use-debounce";
 import {
   DamageDataContext,
   DispatchPlayerList,
   InitialPlayerListContext,
-  PlayerContext,
   Target,
-} from "../../../pages/Damage";
-import {
-  boundProb,
-  cumSum,
-  d20ToCritrate,
-  d20ToFailRate,
-  diceToPMF,
-  PMF,
-  simpleProcess,
-} from "../../../utils/math";
+} from "@pages/Damage";
 
 export type critType = "none" | "normal" | "maximized";
-
-const attackModDefaults = [
-  ["Bless [+1d4]", "0"],
-  ["Bane [-1d4]", "1"],
-] as [string, string][];
 
 const DamagerCard = ({
   target,
   damager,
-  playerKey,
-}: // setDamager,
-
-{
-  // key: keyof Player["damagers"];
+  playerKe,
+}: {
   target: Target;
   damager: Damager;
   playerKey: number;
-  // setDamager: (damager: Damager) => void;
 }) => {
   const [value, toggle] = useToggle("Attack", ["Attack", "Save"]);
 
-  // const [attackModLabelToValue, setAttackModLabelToValue] = useState<{
-  //   [s: string]: string;
-  // }>(
-  //   attackModDefaults.reduce((acc, [label, value]) => {
-  //     acc[label] = value;
-  //     return acc;
-  //   }, {} as { [k: string]: string })
-  // );
-
-  // const [attackModValueToLabel, setAttackModValueToLabel] = useState<{
-  //   [s: string]: string;
-  // }>(
-  //   attackModDefaults.reduce((acc, [label, value]) => {
-  //     acc[value] = label;
-  //     return acc;
-  //   }, {} as { [k: string]: string })
-  // );
   const [atkModId, setAtkModId] = useState(3);
 
   const getAtkModID = () => {
@@ -80,12 +44,13 @@ const DamagerCard = ({
     return (i + 1).toString();
   };
 
-  useEffect(() => {}, [target]);
-
   const dispatchPlayerList = useContext(DispatchPlayerList)!;
   const damageContext = useContext(DamageDataContext)!;
-
   const initialPlayerList = useContext(InitialPlayerListContext)!;
+
+  useEffect(() => {
+    console.log({ damageContext });
+  }, [damageContext]);
 
   //region [[Form Meta]]
   const [settingsPopover, setSettingsPopover] = useState(false);
@@ -106,24 +71,12 @@ const DamagerCard = ({
 
   const modRegex = /^[\w ]*\[?(([+-]?((\d+d)?\d+))]?)$/;
 
-  // const [attackModID, setAttackModID] = useState(attackModOptions.length);
-
-  // const ref = useRef<HTMLInputElement>();
-
-  // const debouncedSetDamager = useDebouncedCallback((damager: Damager) => {
-  //    setDamager(damager);
-  // }, 500);
-
-  //region [[FormState to DamagerState]]
-
   const debouncedDispatchPlayerList = useDebouncedCallback(
     dispatchPlayerList,
     500
   );
 
   useEffect(() => {
-    console.log("got update  :)");
-
     debouncedDispatchPlayerList({
       field: "UPDATE_DAMAGER",
       playerKey,
@@ -162,83 +115,8 @@ const DamagerCard = ({
             .label!.match(modRegex)![2]
       )
     );
-    // setDamager({
-    //    ...damager,
-    //    modifiers: attackModSelected.map(
-    //       (modV) =>
-    //          attackModOptions
-    //             .find((option) => option.value! === modV)!
-    //             .label!.match(modRegex)![2]
-    //    ),
-    // });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attackModSelected]);
-
-  // const debouncedUpdateGraphs = useDebouncedCallback(
-  //   () => {
-  //     // Object.entries(damager).map(([key, damager]) => {
-  //     // const d =;
-  //     let atkbonus =
-  //       playerAtkBonus >= 0
-  //         ? `+${playerAtkBonus}`
-  //         : `${playerAtkBonus}`;
-  //     let simpleDamagePMF = simpleProcess(damager.damage || "0");
-  //     let simpleAttackPMF = simpleProcess(`1d20 + ${atkbonus}`);
-  //
-  //     if (simpleDamagePMF && simpleAttackPMF) {
-  //       let simpleDamage = [...simpleDamagePMF.entries()].reduce(
-  //         (acc, [d, p]) => (acc += d * p),
-  //         0
-  //       );
-  //       let cumsum = cumSum(simpleAttackPMF);
-  //       let seen = false;
-  //
-  //       setDamager({
-  //         ...damager, damageByAC:
-  //           [...Array(30).keys()].reduce((acc, c) => {
-  //             acc.set(c, (1 - boundProb(cumsum.get(c) || (seen ? 1 : 0))) * simpleDamage);
-  //             return acc;
-  //           }, new Map<number, number>())
-  //       });
-  //
-  //
-  //       // } else {
-  //       //   // Array.from({ length: 30 }, (x, i) => i).map((ac) => {
-  //       //   const r = workersRef.current;
-  //       //   if (r) {
-  //       //     // r.map((w) => {
-  //       //
-  //       //
-  //       //     r[parseInt(key) % NUM_WORKERS].postMessage({
-  //       //       index: key,
-  //       //       damage: damager.damage ?? 0,
-  //       //     });
-  //       //     // });
-  //       //   }
-  //       // }
-  //
-  //       // });
-  //     }
-  //   )
-  //     ;
-  //   },
-  //   1000,
-  //   { leading: true }
-  // );
-
-  // useEffect(() => {
-  //
-  //
-  //
-
-  //   debouncedSetDamager({
-  //     ...damager,
-  //     name: damagerName,
-  //     damage: damagerDamage
-  //     // modifiers: attackModSelected
-  //     //   .map((s) => attackModValueToLabel[s].match(modRegex)?.[2])
-  //     //   .filter((x) => x) as string[],
-  //   });
-  // }, [debouncedSetDamager, damagerName, damagerDamage, attackModSelected]);
 
   useEffect(() => {
     if (!initialPlayerList?.[playerKey]?.damagers?.[damager.key]) {
@@ -271,21 +149,17 @@ const DamagerCard = ({
       initialPlayerList[playerKey].damagers[damager.key].modifierRaws,
       initialPlayerList[playerKey].damagers[damager.key].modifierOptions
     );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialPlayerList]);
 
   const onUpdateAttackMods = (
-    v: string[],
+    newAttackModRawVals: string[],
     overrideAttackOptions?: SelectItem[]
   ) => {
-    console.log("UPDATING ATTACK MODS");
-    console.log(v);
-    // console.log(attackModOptions);
-
     let originalAttackOptions = overrideAttackOptions || attackModOptions;
     let newAttackOptions = [...originalAttackOptions];
-    console.log(newAttackOptions);
 
-    const n = v
+    const newAttackModIDs = newAttackModRawVals
       .map((mod) => {
         if (!mod.match(modRegex)) {
           return;
@@ -298,31 +172,15 @@ const DamagerCard = ({
             label: mod,
             value: newId,
           };
-
-          // setAttackModOptions();
           newAttackOptions = [...originalAttackOptions, newOption];
           return newId;
-          // return attackModOptions.find(
-          //   (x) =>
-          //     x.label === mod && !attackModSelected.includes(x.value)
-          // );
         }
-        return mod;
-        // if (!attackModOptions.map((x) => x.label).includes(mod)) {
-        //   setAttackModOptions([
-        //     ...attackModOptions,
-        //     { label: mod, value: (attackModID++).toString() },
-        //   ]);
-        // }
-
-        return mod;
       })
       .filter((x) => x) as string[];
 
-    console.log({ n });
     let seenLabels = new Set();
-    let filterPoss = newAttackOptions.filter((v) => {
-      if (n.includes(v.value)) {
+    let attackModOptionsDeduped = newAttackOptions.filter((v) => {
+      if (newAttackModIDs.includes(v.value)) {
         return true;
       } else {
         if (!seenLabels.has(v.label)) {
@@ -333,13 +191,10 @@ const DamagerCard = ({
       }
     });
 
-    console.log("SETTING ATTACK MOD OPTIONS");
-    console.log(filterPoss);
     setAttackModOptions(
-      filterPoss.sort((a, b) => a.label!.localeCompare(b.label!))
+      attackModOptionsDeduped.sort((a, b) => a.label!.localeCompare(b.label!))
     );
-
-    setAttackModSelected(n);
+    setAttackModSelected(newAttackModIDs);
   };
 
   return (
@@ -435,21 +290,11 @@ const DamagerCard = ({
           }}
           onChange={onUpdateAttackMods}
           value={attackModSelected}
-          // filter={(value, selected, item) =>
-          //   !selected &&
-          //   (item.label!.toLowerCase().includes(value.toLowerCase().trim()) ||
-          //     item.description
-          //       .toLowerCase()
-          //       .includes(value.toLowerCase().trim()))
-          // }
         />
         <Switch label={"Disabled"} pt={"sm"} />
-        {/*<Text pt={"sm"}>*/}
         <Text weight={"bold"} mt={"sm"}>
           Expected Damage
         </Text>
-        {/*</Text>*/}
-
         <Table>
           <tbody>
             {showDisadvantage ? (
@@ -482,7 +327,7 @@ const DamagerCard = ({
             ) : (
               <></>
             )}
-            {showAdvantage ? (
+            {showAdvantage && (
               <tr key={"advantage"}>
                 <td>Advantage</td>
                 <td>
@@ -494,15 +339,10 @@ const DamagerCard = ({
                     ?.toFixed(2)}
                 </td>
               </tr>
-            ) : (
-              <></>
             )}
           </tbody>
         </Table>
-        {/*<Group position='right' mt='md'>*/}
-        {/*  <Button type='submit'>Submit</Button>*/}
-        {/*</Group>*/}
-        {/*</form>*/}
+
         <div style={{ display: "flex", alignItems: "center", height: "100%" }}>
           <Button
             mt={"md"}

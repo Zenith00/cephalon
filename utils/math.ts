@@ -1,5 +1,4 @@
 import { critType } from "@/damage/DamagerCard/DamagerCard";
-import { AdvantageType } from "@/damage/DamagerCard/PlayerCard";
 
 export type PMF = Map<number, number>;
 
@@ -25,53 +24,52 @@ export const make_pmf = (diceFace: number, advantage = 0) => {
       .map((x) => x + 1)
       .map((x) => [x, (x ** A - (x - 1) ** A) / diceFace ** A]);
 
-    let r = new Map(
+    return new Map(
       [...x.map(([k, v]) => [advantage > 0 ? k : diceFace - k + 1, v])].sort(
         ([kl, vl], [kr, vr]) => (kl < kr ? -1 : 1)
       ) as [number, number][]
     );
-
-    return r;
   }
 };
 
-export const pmf_min = (pmfX: PMF, pmfY: PMF) => {
-  const lowerBound = Math.min(...pmfX.keys(), ...pmfY.keys());
-  const upperBound = Math.max(...pmfX.keys(), ...pmfY.keys());
-
-  const width = upperBound - lowerBound + 1;
-  return [...Array(width).keys()]
-    .map((x) => x + lowerBound)
-    .map((n) => {
-      let l = [...Array(width - n).keys()]
-        .map((x) => x + n + 1)
-        .map((x) => (pmfX.get(n) || 0) * (pmfY.get(x) || 0));
-      // .reduce((acc, c) => acc + c, 0);
-      let r = [...Array(width - n).keys()]
-        .map((x) => x + n + 1)
-        .map((x) => (pmfX.get(x) || 0) * (pmfY.get(n) || 0));
-      // .reduce((acc, c) => acc + c, 0);
-      return [n, [...l, ...r]];
-    });
-};
-
-export const pmf_max = (pmfX: PMF, pmfY: PMF) => {
-  //
-  // const width = upperBound - lowerBound + 1;
-  // return [...Array(width).keys()]
-  //   .map((x) => x + lowerBound)
-  //   .map((n) => {
-  //     let l = [...Array(n).keys()]
-  //       .map((x) => x + 1)
-  //       .map((x) => (pmfX.get(x) || 0) * (pmfY.get(n) || 0));
-  //     // .reduce((acc, c) => acc + c, 0);
-  //     let r = [...Array(n).keys()]
-  //       .map((x) => x + 1)
-  //       .map((x) => (pmfX.get(n) || 0) * (pmfY.get(x) || 0));
-  //     // .reduce((acc, c) => acc + c, 0);
-  //     return [n, [...l, ...r], [...l, ...r].reduce((acc, c) => acc + c, 0)];
-  //   });
-};
+//
+// export const pmf_min = (pmfX: PMF, pmfY: PMF) => {
+//   const lowerBound = Math.min(...pmfX.keys(), ...pmfY.keys());
+//   const upperBound = Math.max(...pmfX.keys(), ...pmfY.keys());
+//
+//   const width = upperBound - lowerBound + 1;
+//   return [...Array(width).keys()]
+//     .map((x) => x + lowerBound)
+//     .map((n) => {
+//       let l = [...Array(width - n).keys()]
+//         .map((x) => x + n + 1)
+//         .map((x) => (pmfX.get(n) || 0) * (pmfY.get(x) || 0));
+//       // .reduce((acc, c) => acc + c, 0);
+//       let r = [...Array(width - n).keys()]
+//         .map((x) => x + n + 1)
+//         .map((x) => (pmfX.get(x) || 0) * (pmfY.get(n) || 0));
+//       // .reduce((acc, c) => acc + c, 0);
+//       return [n, [...l, ...r]];
+//     });
+// };
+//
+// export const pmf_max = (pmfX: PMF, pmfY: PMF) => {
+//   //
+//   // const width = upperBound - lowerBound + 1;
+//   // return [...Array(width).keys()]
+//   //   .map((x) => x + lowerBound)
+//   //   .map((n) => {
+//   //     let l = [...Array(n).keys()]
+//   //       .map((x) => x + 1)
+//   //       .map((x) => (pmfX.get(x) || 0) * (pmfY.get(n) || 0));
+//   //     // .reduce((acc, c) => acc + c, 0);
+//   //     let r = [...Array(n).keys()]
+//   //       .map((x) => x + 1)
+//   //       .map((x) => (pmfX.get(n) || 0) * (pmfY.get(x) || 0));
+//   //     // .reduce((acc, c) => acc + c, 0);
+//   //     return [n, [...l, ...r], [...l, ...r].reduce((acc, c) => acc + c, 0)];
+//   //   });
+// };
 
 export const convolve_pmfs_sum = (pmfX: PMF, pmfY: PMF, add: boolean) => {
   const jointProb = [...pmfX.entries()].map(([k, x]) =>
@@ -225,3 +223,51 @@ export const simpleProcess = (
 
   return pmf;
 };
+
+const base = convolve_pmfs_sum(make_pmf(20), make_pmf(6), true);
+const withbonus = convolve_pmfs_sum(
+  convolve_pmfs_sum(make_pmf(20), make_pmf(6), true),
+  make_pmf(4),
+  true
+);
+
+const subtractPMFs = (pmfL: PMF, pmfR: PMF) => {
+  const lowerBound = Math.min(...pmfL.keys(), ...pmfR.keys());
+  const upperBound = Math.max(...pmfL.keys(), ...pmfR.keys());
+
+  return new Map(
+    [...Array(upperBound - lowerBound + 1).keys()]
+      .map((i) => i + lowerBound)
+      .map((i) => [i, (pmfL.get(i) || 0) - (pmfR.get(i) || 0)])
+  );
+};
+
+const atkbonus = 0;
+[...Array(20).keys()].map((ac) => {
+  console.log("\niteration :)");
+  const table = [...Array(20).keys()]
+    .map((i) => i + 1)
+    .map((d20) =>
+      [...Array(8).keys()]
+        .map((i) => i + 1)
+        .map(
+          (d8) =>
+            (d20 != 1 &&
+              d20 + d8 + atkbonus >= ac &&
+              d20 < ac &&
+              d20 != 20) as any as number
+        )
+    );
+  const s = (l: number[]) => l.reduce((a, b) => a + b, 0);
+
+  let improvementFactors = [...Array(20).keys()].map((threshold_gte) => {
+    const improvedCases = s(
+      table.slice(0, threshold_gte).map((pa_cases) => s(pa_cases))
+    );
+    return improvedCases * (20 - threshold_gte);
+  });
+  console.log("AC: " + ac);
+  console.log({ table });
+  console.log({ improvementFactors });
+  console.log(improvementFactors.indexOf(Math.max(...improvementFactors)) + 1);
+});

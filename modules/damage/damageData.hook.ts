@@ -25,9 +25,6 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
   const [debouncedPlayerList] = useDebouncedValue(playerList, 500);
 
   useEffect(() => {
-    console.log("PlayerList:");
-    console.log(playerList);
-
     let x = new Map(
       Object.entries(debouncedPlayerList).map(([playerKey, player]) => {
         return [
@@ -129,8 +126,6 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
         ];
       })
     );
-    console.log("DAMAGE DATA COMPUTED");
-    console.log(x);
     setDamageData(x);
   }, [debouncedPlayerList]);
 
