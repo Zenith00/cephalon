@@ -1,8 +1,11 @@
 import React, { useEffect, useReducer, useState } from "react";
 import {
   AppShell,
+  Badge,
   Burger,
   Container,
+  Footer,
+  Group,
   Header,
   Space,
   Title,
@@ -215,7 +218,7 @@ const Damage = () => {
       return action.val;
     } else if (action.field === "UPDATE_DAMAGER") {
       const newDamagers = {
-        ...state[acion.playerKey].damagers,
+        ...state[action.playerKey].damagers,
         [action.damagerKey]: action.newDamager,
       };
       return {
@@ -229,14 +232,14 @@ const Damage = () => {
       const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
       const newDamagers = {
         ...state[action.playerKey].damagers,
-        [nextDamagerIndex]: new Damager(nextDamagerIndex)
+        [nextDamagerIndex]: new Damager(nextDamagerIndex),
       };
       return {
         ...state,
         [action.playerKey]: {
           ...state[action.playerKey],
-          damagers: newDamagers
-        }
+          damagers: newDamagers,
+        },
       };
     } else if (action.field === "PRESET_DAMAGER") {
       const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
@@ -245,14 +248,14 @@ const Damage = () => {
       const newDamagers = {
         ...state[action.playerKey].damagers,
         [nextDamagerIndex]:
-          PRESET_DAMAGERS[action.newDamagerName](nextDamagerIndex)
+          PRESET_DAMAGERS[action.newDamagerName](nextDamagerIndex),
       };
       return {
         ...state,
         [action.playerKey]: {
           ...state[action.playerKey],
-          damagers: newDamagers
-        }
+          damagers: newDamagers,
+        },
       };
     } else if (action.field === "COPY_DAMAGER") {
       const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
@@ -261,14 +264,14 @@ const Damage = () => {
       console.log(action.newDamager);
       const newDamagers = {
         ...state[action.playerKey].damagers,
-        [nextDamagerIndex]: { ...action.newDamager, key: nextDamagerIndex }
+        [nextDamagerIndex]: { ...action.newDamager, key: nextDamagerIndex },
       };
       return {
         ...state,
         [action.playerKey]: {
           ...state[action.playerKey],
-          damagers: newDamagers
-        }
+          damagers: newDamagers,
+        },
       };
     } else if (action.field === "DELETE_DAMAGER") {
       return {
@@ -416,6 +419,25 @@ const Damage = () => {
             />
           </div>
         </Header>
+      }
+      footer={
+        <Footer height={30}>
+          {/*<UnstyledButton>*/}
+          <Group style={{ alignItems: "center", height: "100%" }}>
+            <div style={{ width: "auto" }}></div>
+            <Badge
+              mr={"sm"}
+              style={{ marginLeft: "auto", cursor: "pointer" }}
+              component={"a"}
+              href={"https://discord.com/invite/dndnext"}
+              variant={"outline"}
+            >
+              Made with &lt;3
+            </Badge>
+          </Group>
+
+          {/*</UnstyledButton>*/}
+        </Footer>
       }
     >
       <Container pl={"md"} ml={"sm"}>
