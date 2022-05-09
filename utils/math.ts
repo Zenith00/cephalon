@@ -227,21 +227,3 @@ export const simpleProcess = (
 
   return pmf;
 };
-
-const base = convolve_pmfs_sum(make_pmf(20), make_pmf(6), true);
-const withbonus = convolve_pmfs_sum(
-  convolve_pmfs_sum(make_pmf(20), make_pmf(6), true),
-  make_pmf(4),
-  true
-);
-
-const subtractPMFs = (pmfL: PMF, pmfR: PMF) => {
-  const lowerBound = Math.min(...pmfL.keys(), ...pmfR.keys());
-  const upperBound = Math.max(...pmfL.keys(), ...pmfR.keys());
-
-  return new Map(
-    [...Array(upperBound - lowerBound + 1).keys()]
-      .map((i) => i + lowerBound)
-      .map((i) => [i, (pmfL.get(i) || 0) - (pmfR.get(i) || 0)])
-  );
-};
