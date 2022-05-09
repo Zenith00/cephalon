@@ -41,16 +41,24 @@ const MODS_2_DATA = (rawModifiers: string[]) => {
   return { modifierOptions, modifiers };
 };
 
+const make_preset =
+  (name: string, rawModifiers: string[], damage: string, count: number) =>
+  (key: number) => {
+    let { modifierOptions, modifiers } = MODS_2_DATA(rawModifiers);
+    return new Damager(key, damage, count, name, modifierOptions, modifiers);
+  };
+
 export const PRESET_DAMAGERS = {
-  "Crossbow Expert+Sharpshooter Hand Crossbow": (key: number) => {
-    let { modifierOptions, modifiers } = MODS_2_DATA(["Sharpshooter [-5]"]);
-    return new Damager(
-      key,
-      "1d6+5+10",
-      1,
-      "CBE/SS + Hand Crossbow",
-      modifierOptions,
-      modifiers
-    );
-  ,
+  "Crossbow Expert+Sharpshooter Hand Crossbow": make_preset(
+    "CBE/SS + Hand Crossbow",
+    ["Sharpshooter [-5]"],
+    "1d6+5+10",
+    1
+  ),
+  "Eldritch Blast + Agonizing Blast": make_preset(
+    "EB + Agonizing Blast",
+    [],
+    "1d10+5",
+    1
+  ),
 };
