@@ -30,7 +30,7 @@ export type critType = "none" | "normal" | "maximized";
 const DamagerCard = ({
   target,
   damager,
-  playerKe,
+  playerKey,
 }: {
   target: Target;
   damager: Damager;
@@ -70,6 +70,7 @@ const DamagerCard = ({
   const [attackModParsed, setAttackModParsed] = useState<string[]>([]);
   const [damagerName, setDamagerName] = useState(damager.name);
   const [damagerDamage, setDamagerDamage] = useState(damager.damage);
+  const [damagerCount, setDamagerCount] = useState(damager.count);
   const [showAdvantage, setShowAdvantage] = useState(false);
   const [showNeutral, setShowNeutral] = useState(true);
   const [showDisadvantage, setShowDisadvantage] = useState(false);
@@ -91,6 +92,7 @@ const DamagerCard = ({
         ...damager,
         name: damagerName,
         damage: damagerDamage,
+        count: damagerCount,
         modifiers: attackModParsed,
         modifierOptions: attackModOptions,
         modifierRaws: attackModSelected,
@@ -104,6 +106,7 @@ const DamagerCard = ({
   }, [
     damagerDamage,
     damagerName,
+    damagerCount,
     showAdvantage,
     showDisadvantage,
     showNeutral,
@@ -260,6 +263,8 @@ const DamagerCard = ({
           ></TextInput>
           <NumberInput
             label={"Attack Count"}
+            onChange={(c) => setDamagerCount(c || 1)}
+            value={damagerCount}
             mt={"sm"}
             ml={"sm"}
             style={{ width: "30%" }}

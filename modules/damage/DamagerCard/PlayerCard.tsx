@@ -155,7 +155,7 @@ const PlayerCard = ({
               dispatchPlayerList({
                 field: "spellSaveDC",
                 val: val || 0,
-                playerKey: player.ky,
+                playerKey: player.key,
               })
             }
           />
