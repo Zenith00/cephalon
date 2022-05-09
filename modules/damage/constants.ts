@@ -19,12 +19,12 @@ export const defaultModifierOptions = [
   },
   {
     label: "C:PC Emboldening Bond [+1d4]",
-    value: (modifierIndex++).toString(,
+    value: (modifierIndex++).toString(),
   },
   {
     label: "D:S Cosmic Omen (Weal) [+1d4]",
-    value: (modifierIndex++).toString(,
-  ,
+    value: (modifierIndex++).toString(),
+  },
 ];
 
 const MODS_2_DATA = (rawModifiers: string[]) => {
@@ -34,7 +34,7 @@ const MODS_2_DATA = (rawModifiers: string[]) => {
   rawModifiers.forEach((modifier) => {
     modifierOptions.push({
       label: modifier,
-      value: (++index).toString(,
+      value: (++index).toString(),
     });
     modifiers.push(index.toString());
   });
