@@ -4,9 +4,10 @@ import {
   AdvantageTypes,
   Player,
 } from "@/damage/DamagerCard/PlayerCard";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   boundProb,
+  convolve_pmfs_sum,
   cumSum,
   d20ToCritrate,
   d20ToFailRate,
@@ -36,9 +37,9 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
                 player.attackBonus >= 0
                   ? `+${player.attackBonus}`
                   : `${player.attackBonus}`;
-              let simpleDamagePMF = simpleProcess(damager.damage || "0");
+              let simpleDamagePMF = simpleProcess(damager.damage || "1");
               let simpleCritPMF = simpleProcess(
-                damager.damage || "0",
+                damager.damage || "1",
                 "normal"
               );
 
@@ -61,6 +62,7 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
                 simpleCritPMF &&
                 [...simpleAttackPMFs.values()].every((x) => x)
               ) {
+                //region [[Simple Processing]]
                 let simpleDamage = [...simpleDamagePMF.entries()].reduce(
                   (acc, [d, p]) => (acc += d * p),
                   0
@@ -98,6 +100,7 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
                   new Map(
                     AdvantageTypes.map((advType) => {
                       let seen = false;
+
                       return [
                         advType,
                         [...Array(30).keys()].reduce((damageMap, ac) => {
@@ -107,7 +110,8 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
                           }
                           damageMap.set(
                             ac + 1,
-                            critawareEV(advType, 1 - (d || (seen ? 1 : 0)))
+                            critawareEV(advType, 1 - (d || (seen ? 1 : 0))) *
+                              damager.count
                           );
                           return damageMap;
                         }, new Map<number, number>()),
@@ -115,6 +119,7 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
                     })
                   ),
                 ];
+                //endregion
               } else {
                 return [
                   parseInt(damagerKey),
