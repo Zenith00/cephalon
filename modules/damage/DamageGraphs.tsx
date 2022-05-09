@@ -41,7 +41,7 @@ import debounce from "lodash.debounce";
 import { convolve_pmfs_sum, make_pmf, PMF, boundProb } from "../../utils/math";
 import { AnyRoll } from "dice-roller-parser/dist/parsedRollTypes";
 import { root } from "postcss";
-import { useTooltipInPortal, Portal } from "@visx/tooltip";
+// import { useTooltipInPortal, Portal } from "@visx/tooltip";
 import { useViewportSize } from "@mantine/hooks";
 
 const data1 = [
@@ -102,7 +102,6 @@ const DamageGraphs = ({
   // const [damageMeans, setDamageMeans] = useState<{
   //   [key: keyof Player["damagers"]]: number;
   // }>({});
-  // const workersRef = useRef<Worker[]>([]);
   const damageContext = useContext(DamageDataContext)!;
   const selectedPlayerContext = useContext(SelectedPlayerContext)!;
 
@@ -111,12 +110,6 @@ const DamageGraphs = ({
   //   range: ["blue"],
   // }) as any as ScaleOrdinal<any, any, never>
   // const [setMaxDamage, setSetMaxDamage] = useState(0);
-  // useEffect(() => {
-  //   // let w = workerRef.current;
-  //   workerRef.current = new Worker(
-  //     new URL("/public/diceRollWorker.js", import.meta.url)
-  //   );
-  // }, []);
 
   // const { containerRef, TooltipInPortal } = useTooltipInPortal({
   //   // use TooltipWithBounds
@@ -130,33 +123,6 @@ const DamageGraphs = ({
   //   console.log(damageContext.get(selectedPlayerContext)?.get(0));
   //   console.log(player.damagers);
   // }, [selectedPlayerContext, damageContext]);
-
-  // useEffect(() => {
-  //   let r = workersRef.current;
-  //
-  //   //
-  //   let damageMeanCalcs = {} as { [key: keyof Player["damagers"]]: number };
-  //   let messagesReceived = 0;
-  //   [...Array(NUM_WORKERS).keys()].map((i) => {
-  //     r[i] = new Worker(new URL("/public/diceRollWorker.js", import.meta.url));
-  //     r[i].onmessage = (event) => {
-  //       //
-  //       //   `Setting x:${i} y: ${event.data[1]} ${H(player.attackBonus, i)} ${i}`
-  //       // );
-  //       damageMeanCalcs[event.data[0]] = event.data[1];
-  //       if (++messagesReceived == workerPlayerCount) {
-  //         messagesReceived = 0;
-  //       }
-  //       //
-  //     };
-  //   });
-  //
-  //   return () => {
-  //     if (r) {
-  //       r.map((w) => w.terminate());
-  //     }
-  //   };
-  // }, []);
 
   useEffect(() => {
     return () => {
@@ -374,11 +340,11 @@ const DamageGraphs = ({
             )}
           </XYChart>
 
-          <XYChart>
-            {/*<AnimatedLineSeries dataKey={"0"} data={*/}
-            {/*  damageContext?.get(selectedPlayerContext)?.get(player.damagers[0].key)?.get("normal")?.get(target.ac)*/}
-            {/*} {...accessors} />*/}
-          </XYChart>
+          {/*<XYChart>*/}
+          {/*  /!*<AnimatedLineSeries dataKey={"0"} data={*!/*/}
+          {/*  /!*  damageContext?.get(selectedPlayerContext)?.get(player.damagers[0].key)?.get("normal")?.get(target.ac)*!/*/}
+          {/*  /!*} {...accessors} />*!/*/}
+          {/*</XYChart>*/}
         </div>
       </Aside.Section>
     </Aside>
