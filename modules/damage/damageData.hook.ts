@@ -52,6 +52,9 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
   const [damageData, setDamageData] = useState<DamageData>(dummyDamageData);
   const [debouncedPlayerList] = useDebouncedValue(playerList, 500);
 
+  const workerAttack = useRef<Worker>();
+  const workerDamage = useRef<Worker>();
+
   useEffect(() => {
     let x = new Map(
       Object.entries(debouncedPlayerList).map(([playerKey, player]) => {
