@@ -21,6 +21,33 @@ export const dummyDamageData = new Map([
   [0, new Map([[0, new Map([["normal" as AdvantageType, new Map()]])]])],
 ]);
 
+// useEffect(() => {
+//   let r = workersRef.current;
+//
+//   //
+//   let damageMeanCalcs = {} as { [key: keyof Player["damagers"]]: number };
+//   let messagesReceived = 0;
+//   [...Array(NUM_WORKERS).keys()].map((i) => {
+//     r[i] = new Worker(new URL("/public/diceRollWorker.js", import.meta.url));
+//     r[i].onmessage = (event) => {
+//       //
+//       //   `Setting x:${i} y: ${event.data[1]} ${H(player.attackBonus, i)} ${i}`
+//       // );
+//       damageMeanCalcs[event.data[0]] = event.data[1];
+//       if (++messagesReceived == workerPlayerCount) {
+//         messagesReceived = 0;
+//       }
+//       //
+//     };
+//   });
+//
+//   return () => {
+//     if (r) {
+//       r.map((w) => w.terminate());
+//     }
+//   };
+// }, []);
+
 export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
   const [damageData, setDamageData] = useState<DamageData>(dummyDamageData);
   const [debouncedPlayerList] = useDebouncedValue(playerList, 500);
