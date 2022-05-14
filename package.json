@@ -11,6 +11,7 @@
     "@mantine/next": "^4.1.4",
     "@visx/heatmap": "^2.1.2",
     "@visx/visx": "^2.9.0",
+    "color-convert": "^2.0.1",
     "d3-scale-chromatic": "^3.0.0",
     "dice-roller-parser": "^0.1.8",
     "lodash.debounce": "^4.0.8",
@@ -24,6 +25,7 @@
     "use-debounce": "^7.0.1"
   },
   "devDependencies": {
+    "@types/color-convert": "^2.0.0",
     "@types/d3-scale-chromatic": "^3.0.0",
     "@types/lodash.debounce": "^4.0.7",
     "@types/lodash.throttle": "^4.1.7",

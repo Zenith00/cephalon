@@ -50,10 +50,6 @@ const DamagerCard = ({
   const damageContext = useContext(DamageDataContext)!;
   const initialPlayerList = useContext(InitialPlayerListContext)!;
 
-  useEffect(() => {
-    console.log({ damageContext });
-  }, [damageContext]);
-
   //region [[Form Meta]]
   const [settingsPopover, setSettingsPopover] = useState(false);
   const [attackModPlaceholder, setAttackModPlaceholder] = useState("");
