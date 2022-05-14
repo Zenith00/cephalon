@@ -185,10 +185,6 @@ const transformPlayerList = (p: PlayerList, inflate: boolean) => {
               ),
             ];
           } else {
-            console.log([
-              PLAYER_MAP.get(playerField as keyof Player),
-              playerValue,
-            ]);
             return [PLAYER_MAP.get(playerField as keyof Player), playerValue];
           }
         })
@@ -205,9 +201,6 @@ const Damage = () => {
     state: { [key: number]: Player },
     action: playerListReducerAction
   ): PlayerList => {
-    console.log("===DISPATCHING PLAYER LIST===");
-    console.log({ ...state });
-    console.log({ ...action });
     const getNextDamagerIndex = (playerKey: number) =>
       Math.max(
         ...Object.keys(state[playerKey].damagers).map((i) => parseInt(i)),
@@ -243,8 +236,6 @@ const Damage = () => {
       };
     } else if (action.field === "PRESET_DAMAGER") {
       const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
-      console.log("================= PRESET DAMAGER");
-      console.log(PRESET_DAMAGERS[action.newDamagerName](nextDamagerIndex));
       const newDamagers = {
         ...state[action.playerKey].damagers,
         [nextDamagerIndex]:
@@ -260,8 +251,6 @@ const Damage = () => {
     } else if (action.field === "COPY_DAMAGER") {
       const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
 
-      console.log("================= COPYING DAMAGER");
-      console.log(action.newDamager);
       const newDamagers = {
         ...state[action.playerKey].damagers,
         [nextDamagerIndex]: { ...action.newDamager, key: nextDamagerIndex },
@@ -309,10 +298,6 @@ const Damage = () => {
 
   const [initialPlayerList, setInitialPlayerList] = useState<PlayerList>({});
 
-  useEffect(() => {
-    console.log("=======PLAYER LIST UPDATED=========");
-    console.log({ ...playerList });
-  }, [playerList]);
 
   const damageData = useHandleDamageData(playerList);
 
@@ -353,7 +338,6 @@ const Damage = () => {
     //   )
     // );
 
-    console.log(JSON.stringify(playerList, replacer));
 
     router.replace({
       query: {
