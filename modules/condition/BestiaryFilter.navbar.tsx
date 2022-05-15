@@ -1,22 +1,22 @@
 import React, { Dispatch, SetStateAction, useState } from "react";
 import {
   Box,
+  Button,
   Chip,
   Chips,
+  Collapse,
+  MultiSelect,
   Navbar,
   RangeSlider,
   ScrollArea,
   Title,
-  Collapse,
-  Button,
-  MultiSelect,
 } from "@mantine/core";
 import {
   CREATURE_TYPES,
-  SOURCES,
-  Filters,
   Datapack,
-} from "../pages/ConditionImmunities";
+  Filters,
+  SOURCES,
+} from "@pages/ConditionImmunities";
 
 const BestiaryFilterNavbar = ({
   hidden,
@@ -53,7 +53,6 @@ const BestiaryFilterNavbar = ({
             { value: 0, label: "0" },
             { value: 10, label: "10" },
             { value: 20, label: "20" },
-
             { value: 30, label: "30" },
           ]}
         />
