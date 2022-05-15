@@ -25,7 +25,6 @@ const Clip = () => {
     );
   };
   useEffect(() => {
-    console.log(navigator.userAgent);
     if (
       navigator.userAgent.toLowerCase().includes("mozilla") &&
       !navigator.userAgent.toLowerCase().includes("chrom")
