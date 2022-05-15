@@ -34,6 +34,7 @@ import playerCard from "@/damage/DamagerCard/PlayerCard";
 
 import "./Damage.module.css";
 import { Clipboard, Link } from "tabler-icons-react";
+import Head from "next/head";
 
 export interface Target {
   ac: number;
@@ -52,7 +53,7 @@ const PLAYER_SHORT_TO_FIELD = Object.fromEntries(
   Object.entries(PLAYER_FIELD_TO_SHORT).map(([k, v]) => [v, k])
 );
 
-console.log(PLAYER_SHORT_TO_FIELD);
+// console.log(PLAYER_SHORT_TO_FIELD);
 
 // const PLAYER_FIELD_TO_SHORT = new Map(
 //   [...PLAYER_SHORT_TO_FIELD.entries()].map(([k, v]) => [v, k])
@@ -183,7 +184,7 @@ export type playerListReducerAction =
   | playerListReducerFieldSet;
 
 const transformPlayerList = (p: PlayerList, inflate: boolean) => {
-  console.log(p);
+  // console.log(p);
   const PLAYER_MAP = inflate ? PLAYER_SHORT_TO_FIELD : PLAYER_FIELD_TO_SHORT;
   const DAMAGER_MAP = inflate ? DAMAGER_SHORT_TO_FIELD : DAMAGER_FIELD_TO_SHORT;
   const DAMAGERS_KEY = inflate ? "damagers" : "d";
@@ -228,8 +229,8 @@ const Damage = () => {
     state: { [key: number]: Player },
     action: playerListReducerAction
   ): PlayerList => {
-    console.log(state);
-    console.log(action);
+    // console.log(state);
+    // console.log(action);
     const getNextDamagerIndex = (playerKey: number) =>
       Math.max(
         ...Object.keys(state[playerKey].damagers).map((i) => parseInt(i)),
@@ -385,11 +386,9 @@ const Damage = () => {
     debouncedUpdateURI();
   }, [playerList]);
 
-  useEffect(() => {
-    const data = decodeURIComponent(
-      new URLSearchParams(document.location.search).get("d") || ""
-    );
+  const setData = React.useCallback((data) => {
     if (data) {
+      // console.log(data);
       let d = Buffer.from(data, "base64").toString();
       let newPlayerList = transformPlayerList(
         JSON.parse(d, reviver),
@@ -403,6 +402,35 @@ const Damage = () => {
     } else {
       setInitialPlayerList(playerList);
     }
+  }, []);
+
+  useEffect(() => {
+    const shortKey = decodeURIComponent(
+      new URLSearchParams(document.location.search).get("s") || ""
+    );
+
+    if (shortKey) {
+      fetch(`https://s.cephalon.xyz/${shortKey}`, {
+        method: "GET",
+        mode: "cors",
+      })
+        .then((r) => {
+          r.text().then((t) => {
+            // console.log("GOT ");
+            // console.log(t);
+            setData(t);
+          });
+        })
+        .catch((err) => {
+          window.location.assign("/Damage");
+        });
+    } else {
+      const data = decodeURIComponent(
+        new URLSearchParams(document.location.search).get("d") || ""
+      );
+      setData(data);
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -411,14 +439,23 @@ const Damage = () => {
   >(<></>);
   const [modalOpen, setModalOpen] = useState(false);
   const setModalContentWrapper = (modalContent: React.FC) => {
-    console.log("setting modal");
-    console.log(modalContent);
+    // console.log("setting modal");
+    // console.log(modalContent);
     setModalContent(modalContent);
     setModalOpen(true);
   };
 
   const [showCopyPopup, setShowCopyPopup] = useState(false);
 
+  // const copyURIPopup = React.useCallback(() => {
+  //   navigator.clipboard.writeText(uri);
+  //   setShowCopyPopup(true);
+  //   setTimeout(
+  //     () => setShowCopyPopup(false),
+  //     850
+  //   );
+  // }, [setData]);
+  //
   const submitURL = async () => {
     // let dataUrl = (
     //   await HTMLToImage.toSvg(document.getElementById("damageChart")!)
@@ -426,42 +463,42 @@ const Damage = () => {
 
     let graphSVG =
       document.getElementById("damageChart")?.children[1].children[0];
-    const serializer = new XMLSerializer();
+    if (!graphSVG) {
+      return;
+    }
+    // const serializer = new XMLSerializer();
     let dataUrl = new XMLSerializer().serializeToString(graphSVG);
-    console.log(graphSVG);
+    // console.log(graphSVG);
 
-    let labelX = 20;
-    let y = 10;
-    let tLength = 0;
+    let legendXOffset = 20;
+    let legendYOffset = 10;
+    let legendWidthFactor = 0;
     let t = [
-      ...document.getElementById("damageChartLegend").children[0].children,
+      ...(document.getElementById("damageChartLegend")?.children[0].children ||
+        []),
     ].map((x) => {
       let [color, name] = x.children;
-      let nameText = name.innerText;
-      console.log();
-      console.log(nameText);
-      console.log(color.children[0]);
-      tLength = Math.max(tLength, nameText.length);
+      let nameText = (name as HTMLElement).innerText;
+      legendWidthFactor = Math.max(legendWidthFactor, nameText.length);
       let colorFill = color.children[0].getAttribute("fill");
-      let ydex = (y += 15);
-      return `<rect x="5" y="${ydex}" fill="${colorFill}" width="10" height="10"></rect> <text  x="${labelX}" y="${
+      let ydex = (legendYOffset += 15);
+      return `<rect x="5" y="${ydex}" fill="${colorFill}" width="10" height="10"></rect> <text  x="${legendXOffset}" y="${
         ydex + 4
       }" >${nameText}</text>`;
     });
-    console.log(t);
+    // console.log(t);
     let legend = `<svg xmlns="http://www.w3.org/2000/svg" width="${
-      (tLength * 25) ** 0.85
+      (legendWidthFactor * 25) ** 0.85
     }" height="${graphSVG.getAttribute(
       "height"
-    )}"> <style><![CDATA[text{ dominant-baseline: middle; font: 12px Verdana, Helvetica, Arial, sans-serif;  }]]></style>
+    )}">   <style><![CDATA[text{ dominant-baseline: middle; font: 12px Verdana, Helvetica, Arial, sans-serif;  } svg{background-color: white}]]></style>
     ${t.join("\n")}
     </svg>`;
     // return;
-    console.log(dataUrl);
-    console.log(legend);
-    let imageStack = (
-      await HTMLToImage.toPng(document.getElementById("damageChartLegend")!)
-    ).substring("data:image/svg+xml;charset=utf-8,".length);
+
+    // let imageStack = (
+    //   await HTMLToImage.toPng(document.getElementById("damageChartLegend")!)
+    // ).substring("data:image/svg+xml;charset=utf-8,".length);
     //
     // console.log(decodeURIComponent(imageStack));
 
@@ -477,133 +514,171 @@ const Damage = () => {
         JSON.stringify({
           image: dataUrl,
           legend: legend,
-          url: uri,
+          datahash: uri.split("Damage?d=")[1],
         })
       ),
-    });
+    }).then((r) =>
+      r.text().then((shortHash) => {
+        router.replace({
+          query: {
+            s: shortHash,
+          },
+        });
+        setUri(`${location.href.replace(location.search, "")}?s=${shortHash}`);
+      })
+    );
   };
 
   return (
-    <DamageDataContext.Provider value={damageData}>
-      <InitialPlayerListContext.Provider value={initialPlayerList}>
-        <DispatchPlayerList.Provider value={dispatchPlayerList}>
-          <SelectedPlayerContext.Provider value={selectedPlayerKey}>
-            <Modal opened={modalOpen} onClose={() => setModalOpen(false)}>
-              {modalContent}
-            </Modal>
-            <AppShell
-              fixed
-              padding="md"
-              navbar={<TargetNavbar target={target} setTarget={setTarget} />}
-              aside={
-                <SetModalContext.Provider value={setModalContentWrapper}>
-                  <MemoDamageGraphs
-                    player={playerList[selectedPlayerKey]}
-                    target={target}
-                    hidden={hideGraphs}
-                  />
-                </SetModalContext.Provider>
-              }
-              zIndex={1}
-              style={{ isolation: "isolate" }}
-              header={
-                <Header height={60} p="xs">
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      height: "100%",
-                    }}
-                  >
-                    <Title> Damage Calcs :)</Title>
-                    <Burger
-                      opened={!hideGraphs}
-                      onClick={() => setHideGraphs((o) => !o)}
-                      size="sm"
-                      ml={"auto"}
-                      mr={"sm"}
+    <>
+      <Head>
+        <meta property="REWRITE_ANCHOR" />
+        <meta property="REWRITE_ANCHOR_URL" />
+        <meta property="twitter:card" content="summary_large_image" />
+        <meta property="og:title" content="Damage Graphs" />
+      </Head>
+      <DamageDataContext.Provider value={damageData}>
+        <InitialPlayerListContext.Provider value={initialPlayerList}>
+          <DispatchPlayerList.Provider value={dispatchPlayerList}>
+            <SelectedPlayerContext.Provider value={selectedPlayerKey}>
+              <Modal opened={modalOpen} onClose={() => setModalOpen(false)}>
+                {modalContent}
+              </Modal>
+              <AppShell
+                fixed
+                padding="md"
+                navbar={<TargetNavbar target={target} setTarget={setTarget} />}
+                aside={
+                  <SetModalContext.Provider value={setModalContentWrapper}>
+                    <MemoDamageGraphs
+                      player={playerList[selectedPlayerKey]}
+                      target={target}
+                      hidden={hideGraphs}
                     />
-                  </div>
-                </Header>
-              }
-              footer={
-                <Footer height={30}>
-                  <Container
-                    mx={0}
-                    px={10}
-                    py={2}
-                    style={{
-                      width: "100%",
-                      maxWidth: "100%",
-                      alignItems: "center",
-                    }}
-                  >
-                    <Group style={{ width: "100%", height: 25 }}>
-                      Share:
-                      <div style={{ width: "70%", height: "100%" }}>
-                        <TextInput
-                          variant={"filled"}
-                          value={uri}
-                          readOnly
-                          icon={<Link />}
-                          __staticSelector={"damagerFooterLinkInput"}
-                        ></TextInput>
-                      </div>
-                      <Popover
-                        opened={showCopyPopup}
-                        position={"top"}
-                        withArrow
-                        target={
-                          <ActionIcon variant={"filled"} color={"blue"}>
-                            <Clipboard
-                              onClick={() => {
-                                navigator.clipboard.writeText(uri);
-                                setShowCopyPopup(true);
-                                setTimeout(() => setShowCopyPopup(false), 850);
-                              }}
-                            ></Clipboard>
-                          </ActionIcon>
-                        }
-                      >
-                        <Text size={"sm"}>Copied!</Text>
-                      </Popover>
-                      <Button compact onClick={() => submitURL()}>
-                        Shorten
-                      </Button>
-                      <div style={{ width: "auto", height: "100%" }} />
-                      <Badge
+                  </SetModalContext.Provider>
+                }
+                zIndex={1}
+                style={{ isolation: "isolate" }}
+                header={
+                  <Header height={60} p="xs">
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        height: "100%",
+                      }}
+                    >
+                      <Title> Damage Calcs :)</Title>
+                      <Burger
+                        opened={!hideGraphs}
+                        onClick={() => setHideGraphs((o) => !o)}
+                        size="sm"
+                        ml={"auto"}
                         mr={"sm"}
-                        style={{ marginLeft: "auto", cursor: "pointer" }}
-                        component={"a"}
-                        href={"https://discord.com/invite/dndnext"}
-                        variant={"outline"}
-                      >
-                        Made with &lt;3
-                      </Badge>
-                    </Group>
-                  </Container>
+                      />
+                    </div>
+                  </Header>
+                }
+                footer={
+                  <Footer height={30}>
+                    <Container
+                      mx={0}
+                      px={10}
+                      py={2}
+                      style={{
+                        width: "100%",
+                        maxWidth: "100%",
+                        alignItems: "center",
+                      }}
+                    >
+                      <Group style={{ width: "100%", height: 25 }}>
+                        Share:
+                        <div style={{ width: "70%", height: "100%" }}>
+                          <Popover
+                            opened={showCopyPopup}
+                            position={"top"}
+                            withArrow
+                            target={
+                              <TextInput
+                                style={{ cursor: "pointer" }}
+                                variant={"filled"}
+                                value={uri}
+                                readOnly
+                                icon={<Link />}
+                                __staticSelector={"damagerFooterLinkInput"}
+                                onClick={() => {
+                                  navigator.clipboard.writeText(uri);
+                                  setShowCopyPopup(true);
+                                  setTimeout(
+                                    () => setShowCopyPopup(false),
+                                    850
+                                  );
+                                }}
+                              ></TextInput>
+                            }
+                          >
+                            <Text size={"sm"}>Copied!</Text>
+                          </Popover>
+                        </div>
+                        {/*<Popover*/}
+                        {/*  opened={showCopyPopup}*/}
+                        {/*  position={"top"}*/}
+                        {/*  withArrow*/}
+                        {/*  target={*/}
+                        {/*    <ActionIcon variant={"filled"} color={"blue"}>*/}
+                        {/*      <Clipboard*/}
+                        {/*        onClick={() => {*/}
+                        {/*          navigator.clipboard.writeText(uri);*/}
+                        {/*          setShowCopyPopup(true);*/}
+                        {/*          setTimeout(*/}
+                        {/*            () => setShowCopyPopup(false),*/}
+                        {/*            850*/}
+                        {/*          );*/}
+                        {/*        }}*/}
+                        {/*      ></Clipboard>*/}
+                        {/*    </ActionIcon>*/}
+                        {/*  }*/}
+                        {/*>*/}
+                        {/*  <Text size={"sm"}>Copied!</Text>*/}
+                        {/*</Popover>*/}
+                        <Button compact onClick={() => submitURL()}>
+                          Shorten
+                        </Button>
+                        <div style={{ width: "auto", height: "100%" }} />
+                        <Badge
+                          mr={"sm"}
+                          style={{ marginLeft: "auto", cursor: "pointer" }}
+                          component={"a"}
+                          href={"https://discord.com/invite/dndnext"}
+                          variant={"outline"}
+                        >
+                          Made with &lt;3
+                        </Badge>
+                      </Group>
+                    </Container>
 
-                  {/*</UnstyledButton>*/}
-                </Footer>
-              }
-            >
-              <Container pl={0} ml={0} style={{ width: "40%" }}>
-                {/*<Paper>*/}
-                <Title order={3}>Attacks</Title>
-                <Space h={3} />
+                    {/*</UnstyledButton>*/}
+                  </Footer>
+                }
+              >
+                <Container pl={0} ml={0} style={{ width: "40%" }}>
+                  {/*<Paper>*/}
+                  <Title order={3}>Attacks</Title>
+                  <Space h={3} />
 
-                {Object.entries(initialPlayerList).length &&
-                  Object.entries(playerList).map(([index, player]) => (
-                    <PlayerContext.Provider value={player} key={index}>
-                      <MemoPlayerCard key={index} target={target} />
-                    </PlayerContext.Provider>
-                  ))}
-              </Container>
-            </AppShell>
-          </SelectedPlayerContext.Provider>
-        </DispatchPlayerList.Provider>
-      </InitialPlayerListContext.Provider>
-    </DamageDataContext.Provider>
+                  {Object.entries(initialPlayerList).length &&
+                    Object.entries(playerList).map(([index, player]) => (
+                      <PlayerContext.Provider value={player} key={index}>
+                        <MemoPlayerCard key={index} target={target} />
+                      </PlayerContext.Provider>
+                    ))}
+                </Container>
+              </AppShell>
+            </SelectedPlayerContext.Provider>
+          </DispatchPlayerList.Provider>
+        </InitialPlayerListContext.Provider>
+      </DamageDataContext.Provider>
+    </>
   );
 };
 

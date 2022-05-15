@@ -1,11 +1,10 @@
-import React, {
-  MouseEventHandler,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { LegendItem, LegendLabel, LegendOrdinal } from "@visx/legend";
-import { AdvantageTypes, Player } from "@damage/DamagerCard/PlayerCard";
+import {
+  AdvantageType,
+  AdvantageTypes,
+  Player,
+} from "@damage/DamagerCard/PlayerCard";
 import { ActionIcon, ColorSwatch, Text } from "@mantine/core";
 import { ArrowsMaximize, ArrowsMinimize } from "tabler-icons-react";
 import {
@@ -22,7 +21,6 @@ import { useViewportSize } from "@mantine/hooks";
 import {
   DamageDataContext,
   SelectedPlayerContext,
-  SetModalContext,
   Target,
 } from "@pages/Damage";
 import { scaleOrdinal } from "@visx/scale";
@@ -30,8 +28,6 @@ import { schemeSet2, schemeTableau10 } from "d3-scale-chromatic";
 import * as ColorConvert from "color-convert";
 
 const s = (l: number[]) => l.reduce((a, b) => a + b, 0);
-const MAX_AC = 30;
-const NUM_WORKERS = 8;
 const accessors = {
   xAccessor: (d: any) => d.x,
   yAccessor: (d: any) => d.y,
@@ -55,12 +51,8 @@ const DamageGraphsChart = ({
   }>([]);
   const { height, width } = useViewportSize();
 
-  // const [damageMeans, setDamageMeans] = useState<{
-  //   [key: keyof Player["damagers"]]: number;
-  // }>({});
   const damageContext = useContext(DamageDataContext)!;
   const selectedPlayerContext = useContext(SelectedPlayerContext)!;
-  // const setModalContext = useContext(SetModalContext)!;
 
   const [w, setW] = useState(width * 0.4);
 
@@ -95,6 +87,60 @@ const DamageGraphsChart = ({
     domain: Object.values(player.damagers).map((d) => d.key.toString()),
     range: [...schemeTableau10, ...schemeSet2],
   });
+
+  const colorTransform = (hex: string, modifier: number) => {
+    let lab = ColorConvert.hex.lab(hex);
+    let modifierFactor = (modifier * 1.1) ** 3;
+
+    let l = lab[0];
+    let a = lab[1];
+    let b = lab[2];
+    let l_new = l;
+    let a_new = a;
+    let b_new = b;
+
+    if (a > 0) {
+      a_new += 8 * modifier;
+      b_new += 5 * modifier;
+    }
+    if (a < 0) {
+      a_new -= 8 * modifier;
+      b_new -= 5 * modifier;
+    }
+    if (a < 0 && b > 0) {
+      a_new -= 3 * modifier;
+      b_new += 3 * modifier;
+    }
+    if (b > 0) {
+      b_new += 8 * modifier;
+    }
+    if (b < 0) {
+      b_new -= 12 * modifier;
+      a_new += 5 * modifier;
+      l_new -= 6 * modifier;
+    }
+    if (l > 0) {
+      l_new += 5 * modifier;
+    }
+    if (l < 0) {
+      l_new -= 5 * modifier;
+    }
+
+    let newLab = [l_new, a_new, b_new] as [number, number, number];
+    return `#${ColorConvert.lab.hex(newLab)}`;
+  };
+  let CS_COLORGORICAL = ["#42952e", "#b735e8", "#91da4d", "#f2579c", "#4aeeb6"];
+  let CS = ["#ff88f3", "#51c458", "#e65240", "#0171b4", "#d3960f"];
+  console.log(
+    CS.slice(0, 6).flatMap((x) => {
+      return [...Array(5).keys()]
+        .map((x) => x - 2)
+        .map((advantageModifier) => {
+          return colorTransform(x, advantageModifier);
+        });
+    })
+  );
+
   const colorScaler = (dataKey: string) => {
     let k = parseInt(dataKey);
 
@@ -106,12 +152,26 @@ const DamageGraphsChart = ({
       AdvantageTypes.indexOf("normal") - (k % AdvantageTypes.length);
 
     let hsl = ColorConvert.hex.hsl(baseColorScale(damagerDex.toString()));
+    // console.log(hsl);
 
-    let newHsl = [hsl[0], hsl[1], hsl[2] + 15 * advantageModifier] as [
-      number,
-      number,
-      number
-    ];
+    let lab = ColorConvert.hex.lab(baseColorScale(damagerDex.toString()));
+    // return colorTransform(
+    //   baseColorScale(damagerDex.toString()),
+    //   advantageModifier
+    // );
+    let newLab = [
+      lab[0] + 15 * advantageModifier,
+      lab[1] + 15 * advantageModifier,
+      lab[2] + 15 * advantageModifier,
+    ] as [number, number, number];
+    return `#${ColorConvert.lab.hex(newLab)}`;
+
+    let newHsl = [
+      hsl[0] + 7 * advantageModifier,
+      hsl[1] + Math.abs(advantageModifier) * 8,
+      hsl[2] + 10 * advantageModifier,
+    ] as [number, number, number];
+    console.log(newHsl);
     return `#${ColorConvert.hsl.hex(newHsl)}`;
   };
   const ordinalColorScale = scaleOrdinal({
@@ -123,9 +183,15 @@ const DamageGraphsChart = ({
       )
       .flat()
       .map((x) => x.toString()),
-    range: [...schemeTableau10, ...schemeSet2]
-      .map((x) => [...Array(AdvantageTypes.length).keys()].map((_) => x))
-      .flat(),
+    range: [...Object.values(player.damagers).map((d) => d.key)]
+      .map((x) =>
+        [...Array(AdvantageTypes.length).keys()].map(
+          (i) => x * AdvantageTypes.length + i
+        )
+      )
+      .flat()
+      .map((x) => x.toString())
+      .map((x) => colorScaler(x)),
   });
 
   // console.log(ordinalColorScale.domain());
@@ -139,6 +205,14 @@ const DamageGraphsChart = ({
     gridColorDark: "white",
     xTickLineStyles: { strokeWidth: 50, color: "orange" },
   });
+
+  const STROKE_DASH_OFFSET: Record<AdvantageType, string> = {
+    superadvantage: "20 5",
+    advantage: "10 7",
+    normal: "0 0",
+    disadvantage: "1 10",
+    superdisadvantage: "1 2 ",
+  };
 
   return (
     <div id={"damageChart"}>
@@ -162,7 +236,7 @@ const DamageGraphsChart = ({
                   )
                 )
                 .map((label, i) => {
-                  console.log(label.text);
+                  // console.log(label.text);
                   return (
                     <LegendItem
                       key={`legend-quantile-${i}`}
@@ -312,6 +386,8 @@ const DamageGraphsChart = ({
                     colorAccessor={(dataKey) => colorScaler(dataKey)}
                     // color={ordinalColorScale(index)}
                     {...accessors}
+                    strokeDasharray={STROKE_DASH_OFFSET[advantageType]}
+                    strokeWidth={3}
                   />
                 );
               }
