@@ -14,14 +14,14 @@ import {
   MediaQuery,
   Title,
 } from "@mantine/core";
-import BestiaryFilterNavbar from "../components/BestiaryFilter.navbar";
+import BestiaryFilterNavbar from "@condition/BestiaryFilter.navbar";
 import { useCallback, useEffect, useState } from "react";
 import { useViewportSize } from "@mantine/hooks";
 
 const queryString = require("query-string");
 import { useDebouncedCallback } from "use-debounce";
 import { StringifiableRecord } from "query-string";
-import CreatureList from "../components/CreatureList";
+import CreatureList from "@condition/CreatureList";
 
 export const CREATURE_TYPES = [
   "aberration",
