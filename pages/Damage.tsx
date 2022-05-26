@@ -1,56 +1,64 @@
-import React, { useEffect, useReducer, useState } from "react";
+/* eslint-env browser */
+
+import React, { useEffect, useReducer, useState } from 'react';
 import {
   ActionIcon,
   AppShell,
   Badge,
   Burger,
   Button,
+  ColorScheme,
+  ColorSchemeProvider,
   Container,
   Footer,
+  Grid,
   Group,
   Header,
+  MantineProvider,
   Modal,
+  Paper,
   Popover,
   Space,
-  TextInput,
-  Title,
   Text,
-} from "@mantine/core";
-import DamageGraphsAside from "@damage/DamageGraphs/DamageGraphsAside";
-import { useRouter } from "next/router";
-import * as HTMLToImage from "html-to-image";
-import { gzip } from "pako";
-
+  Title,
+} from '@mantine/core';
+import Image from 'next/image';
+import DamageGraphsAside from '@damage/DamageGraphs/DamageGraphsAside';
+import { useRouter } from 'next/router';
+import { gzip } from 'pako';
+// import { ReactComponent as DiscordLogoBlack } from "/public/img/Discord-Logo-Black.svg";
+// import DiscordLogoWhite from "/public/img/Discord-Logo-White.svg";
+import { useDebouncedCallback } from 'use-debounce';
+import { MoonStars, Sun } from 'tabler-icons-react';
+import Head from 'next/head';
+import { useToggle, useViewportSize } from '@mantine/hooks';
 import PlayerCard, {
   AdvantageType,
   Damager,
   Player,
-} from "@/damage/DamagerCard/PlayerCard";
-import TargetNavbar from "@/damage/Target.navbar";
-import { dummyDamageData, useHandleDamageData } from "@/damage/damageData.hook";
-import { useDebouncedCallback } from "use-debounce";
-import { PRESET_DAMAGERS } from "@/damage/constants";
-import playerCard from "@/damage/DamagerCard/PlayerCard";
+} from '@/damage/DamagerCard/PlayerCard';
+import TargetNavbar from '@/damage/Target.navbar';
+import { dummyDamageData, useHandleDamageData } from '@damage/damageData.hook';
+import { NARROW_WIDTH, PRESET_DAMAGERS } from '@/damage/constants';
 
-import "./Damage.module.css";
-import { Clipboard, Link } from "tabler-icons-react";
-import Head from "next/head";
+import './Damage.module.css';
 
 export interface Target {
   ac: number;
 }
 
 const PLAYER_FIELD_TO_SHORT: Record<keyof Player, string> = {
-  key: "k",
-  attackBonus: "a",
-  spellSaveDC: "s",
-  elvenAccuracy: "e",
-  battleMaster: "b",
-  damagers: "d",
-  critThreshold: "c",
+  key: 'k',
+  attackBonus: 'a',
+  spellSaveDC: 's',
+  elvenAccuracy: 'e',
+  battleMaster: 'b',
+  damagers: 'd',
+  critThreshold: 'c',
+  modifier: 'm',
 };
 const PLAYER_SHORT_TO_FIELD = Object.fromEntries(
-  Object.entries(PLAYER_FIELD_TO_SHORT).map(([k, v]) => [v, k])
+  Object.entries(PLAYER_FIELD_TO_SHORT).map(([k, v]) => [v, k]),
 );
 
 // console.log(PLAYER_SHORT_TO_FIELD);
@@ -60,21 +68,21 @@ const PLAYER_SHORT_TO_FIELD = Object.fromEntries(
 // );
 
 const DAMAGER_FIELD_TO_SHORT: Record<keyof Damager, string> = {
-  damage: "dmg",
-  damageMean: "dm",
-  advantageShow: "as",
-  modifiers: "m",
-  modifierOptions: "mo",
-  modifierRaws: "mr",
-  atkBase: "a",
-  name: "n",
-  disabled: "di",
-  key: "k",
-  count: "c",
+  damage: 'dmg',
+  damageMean: 'dm',
+  advantageShow: 'as',
+  modifiers: 'm',
+  modifierOptions: 'mo',
+  modifierRaws: 'mr',
+  atkBase: 'a',
+  name: 'n',
+  disabled: 'di',
+  key: 'k',
+  count: 'c',
 };
 
 const DAMAGER_SHORT_TO_FIELD = Object.fromEntries(
-  Object.entries(DAMAGER_FIELD_TO_SHORT).map(([k, v]) => [v, k])
+  Object.entries(DAMAGER_FIELD_TO_SHORT).map(([k, v]) => [v, k]),
 ) as Record<string, keyof Damager>;
 
 // const DAMAGER_FIELD_TO_SHORT = new Map(
@@ -84,116 +92,115 @@ const DAMAGER_SHORT_TO_FIELD = Object.fromEntries(
 function replacer(key: string, value: any) {
   if (value instanceof Map) {
     return {
-      dataType: "Map",
+      dataType: 'Map',
       value: Array.from(value.entries()), // or with spread: value: [...value]
     };
-  } else {
-    return value;
   }
+  return value;
 }
 
 function reviver(key: string, value: any) {
-  if (typeof value === "object" && value !== null) {
-    if (value.dataType === "Map") {
+  if (typeof value === 'object' && value !== null) {
+    if (value.dataType === 'Map') {
       return new Map(value.value);
     }
   }
   return value;
 }
+export type DamageData = Map<
+  number,
+  Map<number, Map<AdvantageType, Map<number, number>>>
+>;
+export const DamageDataContext = React.createContext<DamageData>(dummyDamageData);
 
-export const DamageDataContext =
-  React.createContext<DamageData>(dummyDamageData);
-
-export const DispatchPlayerList =
-  React.createContext<React.Dispatch<playerListReducerAction> | null>(null);
+export const DispatchPlayerList = React.createContext<React.Dispatch<playerListReducerAction> | null>(null);
 
 export const SelectedPlayerContext = React.createContext<number>(0);
 export const PlayerContext = React.createContext<Player | null>(null);
 export const InitialPlayerListContext = React.createContext<PlayerList>({});
-export const SetModalContext = React.createContext<(e: React.FC) => void>(
-  () => {}
-);
+export const SetModalContext = React.createContext<(_: React.FC) => void>(
+  () => {});
 
 const MemoDamageGraphs = React.memo(DamageGraphsAside);
 
 const MemoPlayerCard = React.memo(PlayerCard);
 
 export type PlayerList = { [key: number]: Player };
-export type DamageData = Map<
-  number,
-  Map<number, Map<AdvantageType, Map<number, number>>>
->;
 
 export type playerListReducerFieldSet = (
   | {
-      field: "id";
+      field: 'id';
       val: number;
     }
   | {
-      field: "attackBonus";
+      field: 'attackBonus';
       val: number;
     }
   | {
-      field: "spellSaveDC";
+    field: 'modifier';
+    val: number;
+  }
+  | {
+      field: 'spellSaveDC';
       val: number;
     }
   | {
-      field: "elvenAccuracy";
+      field: 'elvenAccuracy';
       val: boolean;
     }
   | {
-      field: "battleMaster";
+      field: 'battleMaster';
       val: boolean;
     }
   | {
-      field: "damagers";
+      field: 'damagers';
       val: { [key: number]: Damager };
     }
   | {
-      field: "critThreshold";
+      field: 'critThreshold';
       val: number;
     }
 ) & { playerKey: number };
 
 export type playerListReducerAction =
   | {
-      field: "OVERWRITE";
+      field: 'OVERWRITE';
       val: PlayerList;
     }
   | {
-      field: "NEW_DAMAGER";
+      field: 'NEW_DAMAGER';
       playerKey: number;
     }
   | {
-      field: "PRESET_DAMAGER";
+      field: 'PRESET_DAMAGER';
       playerKey: number;
       newDamagerName: keyof typeof PRESET_DAMAGERS;
     }
   | {
-      field: "COPY_DAMAGER";
+      field: 'COPY_DAMAGER';
       playerKey: number;
       newDamager: Damager;
     }
   | {
-      field: "UPDATE_DAMAGER";
+      field: 'UPDATE_DAMAGER';
       playerKey: number;
       damagerKey: number;
       newDamager: Damager;
     }
-  | { field: "DELETE_DAMAGER"; playerKey: number; damagerKey: number }
+  | { field: 'DELETE_DAMAGER'; playerKey: number; damagerKey: number }
   | playerListReducerFieldSet;
 
 const transformPlayerList = (p: PlayerList, inflate: boolean) => {
   // console.log(p);
   const PLAYER_MAP = inflate ? PLAYER_SHORT_TO_FIELD : PLAYER_FIELD_TO_SHORT;
   const DAMAGER_MAP = inflate ? DAMAGER_SHORT_TO_FIELD : DAMAGER_FIELD_TO_SHORT;
-  const DAMAGERS_KEY = inflate ? "damagers" : "d";
+  const DAMAGERS_KEY = inflate ? 'damagers' : 'd';
   return Object.fromEntries(
     [...Object.entries(p)].map(([playerIndex, player]) => [
       playerIndex,
       Object.fromEntries(
         Object.entries(player).map(([playerField, playerValue]) => {
-          if (["damagers", "d"].includes(playerField)) {
+          if (['damagers', 'd'].includes(playerField)) {
             return [
               DAMAGERS_KEY,
               Object.fromEntries(
@@ -205,41 +212,42 @@ const transformPlayerList = (p: PlayerList, inflate: boolean) => {
                         ([damagerKey, damagerVal]) => [
                           DAMAGER_MAP[damagerKey as keyof Damager],
                           damagerVal,
-                        ]
-                      )
+                        ],
+                      ),
                     ),
-                  ]
-                )
+                  ],
+                ),
               ),
             ];
-          } else {
-            return [PLAYER_MAP[playerField], playerValue];
           }
-        })
+          return [PLAYER_MAP[playerField], playerValue];
+        }),
       ),
-    ])
+    ]),
   );
 };
 
-const Damage = () => {
+function Damage() {
   const router = useRouter();
   const [hideGraphs, setHideGraphs] = useState(false);
-
+  const { height, width } = useViewportSize();
+  console.log(width);
   const playerListReducer = (
     state: { [key: number]: Player },
-    action: playerListReducerAction
+    action: playerListReducerAction,
   ): PlayerList => {
+    console.log(state);
+    console.log(action);
     // console.log(state);
     // console.log(action);
-    const getNextDamagerIndex = (playerKey: number) =>
-      Math.max(
-        ...Object.keys(state[playerKey].damagers).map((i) => parseInt(i)),
-        -1
-      ) + 1;
+    const getNextDamagerIndex = (playerKey: number) => Math.max(
+      ...Object.keys(state[playerKey].damagers).map((i) => Number(i)),
+      -1,
+    ) + 1;
 
-    if (action.field === "OVERWRITE") {
+    if (action.field === 'OVERWRITE') {
       return action.val;
-    } else if (action.field === "UPDATE_DAMAGER") {
+    } if (action.field === 'UPDATE_DAMAGER') {
       const newDamagers = {
         ...state[action.playerKey].damagers,
         [action.damagerKey]: action.newDamager,
@@ -251,7 +259,7 @@ const Damage = () => {
           damagers: newDamagers,
         },
       };
-    } else if (action.field === "NEW_DAMAGER") {
+    } if (action.field === 'NEW_DAMAGER') {
       const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
       const newDamagers = {
         ...state[action.playerKey].damagers,
@@ -264,7 +272,7 @@ const Damage = () => {
           damagers: newDamagers,
         },
       };
-    } else if (action.field === "PRESET_DAMAGER") {
+    } if (action.field === 'PRESET_DAMAGER') {
       const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
       const newDamagers = {
         ...state[action.playerKey].damagers,
@@ -278,7 +286,7 @@ const Damage = () => {
           damagers: newDamagers,
         },
       };
-    } else if (action.field === "COPY_DAMAGER") {
+    } if (action.field === 'COPY_DAMAGER') {
       const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
       const newDamagers = {
         ...state[action.playerKey].damagers,
@@ -291,15 +299,15 @@ const Damage = () => {
           damagers: newDamagers,
         },
       };
-    } else if (action.field === "DELETE_DAMAGER") {
+    } if (action.field === 'DELETE_DAMAGER') {
       return {
         ...state,
         [action.playerKey]: {
           ...state[action.playerKey],
           damagers: Object.fromEntries(
             Object.entries(state[action.playerKey].damagers).filter(
-              ([k, v]) => parseInt(k) !== action.damagerKey
-            )
+              ([k, v]) => parseInt(k) !== action.damagerKey,
+            ),
           ),
         },
       };
@@ -322,6 +330,7 @@ const Damage = () => {
       battleMaster: false,
       damagers: [new Damager(0)],
       critThreshold: 20,
+      modifier: 0,
     },
   } as { [key: number]: Player });
 
@@ -329,57 +338,28 @@ const Damage = () => {
 
   const damageData = useHandleDamageData(playerList);
 
-  // const playerContext = React.createContext(playerList[0]);
-
   const [selectedPlayerKey, setSelectedPlayerKey] = useState(0);
 
-  // const [selectedPlayer, setSelectedPlayer] = useState(playerList[0]);
-
-  // useEffect(() => {
-  //   // setSelectedPlayer(playerList[selectedPlayerKey]);
-  // }, [selectedPlayerKey]);
-
-  const [graphedPlayer, setGraphedPlayer] = useState<Player>(playerList[0]);
-
-  const [uri, setUri] = useState("");
+  const [uri, setUri] = useState('');
 
   const [target, setTarget] = useState<Target>({ ac: 14 });
 
-  const debouncedUpdateURI = useDebouncedCallback(() => {
-    // console.log({ ...playerList });
-    // console.log(playerList);
-    // console.log("QQQQQQQQQQQ");
-    //
-    // console.log(
-    //   JSON.stringify(
-    //     transformPlayerList(transformPlayerList(playerList, false), true),
-    //     replacer
-    //   ) === JSON.stringify(playerList, replacer)
-    // );
-    // console.log((transformPlayerList(playerList, false), replacer));
-    //
-    // console.log(
-    //   transformPlayerList(transformPlayerList(playerList, false), true)
-    // );
-    // console.log(
-    //   JSON.stringify(
-    //     transformPlayerList(transformPlayerList(playerList, false), true),
-    //     replacer
-    //   )
-    // );
-    setUri(
-      `${location.href.replace(location.search, "")}?d=${Buffer.from(
-        JSON.stringify(transformPlayerList(playerList, false), replacer)
-      ).toString("base64")}`
-    );
+  const [playerInfoDisplay, setPlayerInfoDisplay] = useState('block');
 
-    // router.replace({
-    //   query: {
-    //     d: Buffer.from(
-    //       JSON.stringify(transformPlayerList(playerList, false), replacer)
-    //     ).toString("base64"),
-    //   },
-    // });
+  useEffect(() => {
+    if (width < NARROW_WIDTH) {
+      setPlayerInfoDisplay(hideGraphs ? 'block' : 'none');
+    } else {
+      setPlayerInfoDisplay('block');
+    }
+  }, [width]);
+
+  const debouncedUpdateURI = useDebouncedCallback(() => {
+    setUri(
+      `${location.href.replace(location.search, '')}?d=${Buffer.from(
+        JSON.stringify(transformPlayerList(playerList, false), replacer),
+      ).toString('base64')}`,
+    );
   }, 1000);
 
   useEffect(() => {
@@ -389,13 +369,13 @@ const Damage = () => {
   const setData = React.useCallback((data) => {
     if (data) {
       // console.log(data);
-      let d = Buffer.from(data, "base64").toString();
-      let newPlayerList = transformPlayerList(
+      const d = Buffer.from(data, 'base64').toString();
+      const newPlayerList = transformPlayerList(
         JSON.parse(d, reviver),
-        true
+        true,
       ) as PlayerList;
       dispatchPlayerList({
-        field: "OVERWRITE",
+        field: 'OVERWRITE',
         val: newPlayerList,
       });
       setInitialPlayerList(newPlayerList);
@@ -406,13 +386,13 @@ const Damage = () => {
 
   useEffect(() => {
     const shortKey = decodeURIComponent(
-      new URLSearchParams(document.location.search).get("s") || ""
+      new URLSearchParams(document.location.search).get('s') || '',
     );
 
     if (shortKey) {
       fetch(`https://s.cephalon.xyz/${shortKey}`, {
-        method: "GET",
-        mode: "cors",
+        method: 'GET',
+        mode: 'cors',
       })
         .then((r) => {
           r.text().then((t) => {
@@ -422,11 +402,11 @@ const Damage = () => {
           });
         })
         .catch((err) => {
-          window.location.assign("/Damage");
+          window.location.assign('/Damage');
         });
     } else {
       const data = decodeURIComponent(
-        new URLSearchParams(document.location.search).get("d") || ""
+        new URLSearchParams(document.location.search).get('d') || '',
       );
       setData(data);
     }
@@ -436,99 +416,80 @@ const Damage = () => {
 
   const [modalContent, setModalContent] = useState<
     React.FC | React.ReactElement
-  >(<></>);
+  >();
   const [modalOpen, setModalOpen] = useState(false);
-  const setModalContentWrapper = (modalContent: React.FC) => {
+  const setModalContentWrapper = (mc: React.FC) => {
     // console.log("setting modal");
     // console.log(modalContent);
-    setModalContent(modalContent);
+    setModalContent(mc);
     setModalOpen(true);
   };
 
   const [showCopyPopup, setShowCopyPopup] = useState(false);
 
-  // const copyURIPopup = React.useCallback(() => {
-  //   navigator.clipboard.writeText(uri);
-  //   setShowCopyPopup(true);
-  //   setTimeout(
-  //     () => setShowCopyPopup(false),
-  //     850
-  //   );
-  // }, [setData]);
-  //
   const submitURL = async () => {
-    // let dataUrl = (
-    //   await HTMLToImage.toSvg(document.getElementById("damageChart")!)
-    // ).substring("data:image/svg+xml;charset=utf-8,".length);
-
-    let graphSVG =
-      document.getElementById("damageChart")?.children[1].children[0];
+    const graphSVG = document.getElementById('damageChart')?.children[1].children[0];
     if (!graphSVG) {
       return;
     }
-    // const serializer = new XMLSerializer();
-    let dataUrl = new XMLSerializer().serializeToString(graphSVG);
-    // console.log(graphSVG);
+    const dataUrl = new XMLSerializer().serializeToString(graphSVG);
 
-    let legendXOffset = 20;
+    const legendXOffset = 20;
     let legendYOffset = 10;
     let legendWidthFactor = 0;
-    let t = [
-      ...(document.getElementById("damageChartLegend")?.children[0].children ||
-        []),
+    const t = [
+      ...(document.getElementById('damageChartLegend')?.children[0].children
+        || []),
     ].map((x) => {
-      let [color, name] = x.children;
-      let nameText = (name as HTMLElement).innerText;
+      const [color, name] = x.children;
+      const nameText = (name as HTMLElement).innerText;
       legendWidthFactor = Math.max(legendWidthFactor, nameText.length);
-      let colorFill = color.children[0].getAttribute("fill");
-      let ydex = (legendYOffset += 15);
+      const colorFill = color.children[0].getAttribute('fill');
+      const ydex = (legendYOffset += 15);
       return `<rect x="5" y="${ydex}" fill="${colorFill}" width="10" height="10"></rect> <text  x="${legendXOffset}" y="${
         ydex + 4
       }" >${nameText}</text>`;
     });
-    // console.log(t);
-    let legend = `<svg xmlns="http://www.w3.org/2000/svg" width="${
+    const legend = `<svg xmlns="http://www.w3.org/2000/svg" width="${
       (legendWidthFactor * 25) ** 0.85
     }" height="${graphSVG.getAttribute(
-      "height"
+      'height',
     )}">   <style><![CDATA[text{ dominant-baseline: middle; font: 12px Verdana, Helvetica, Arial, sans-serif;  } svg{background-color: white}]]></style>
-    ${t.join("\n")}
+    ${t.join('\n')}
     </svg>`;
-    // return;
 
-    // let imageStack = (
-    //   await HTMLToImage.toPng(document.getElementById("damageChartLegend")!)
-    // ).substring("data:image/svg+xml;charset=utf-8,".length);
-    //
-    // console.log(decodeURIComponent(imageStack));
-
-    // console.log("submitting :)");
-    await fetch("https://s.cephalon.xyz", {
-      method: "POST",
-      mode: "cors",
+    await fetch('https://s.cephalon.xyz', {
+      method: 'POST',
+      mode: 'cors',
       headers: {
-        "Content-Encoding": "gzip",
-        "Content-Type": "application/json",
+        'Content-Encoding': 'gzip',
+        'Content-Type': 'application/json',
       },
       body: gzip(
         JSON.stringify({
           image: dataUrl,
-          legend: legend,
-          datahash: uri.split("Damage?d=")[1],
-        })
+          legend,
+          datahash: uri.split('Damage?d=')[1],
+        }),
       ),
-    }).then((r) =>
-      r.text().then((shortHash) => {
-        router.replace({
-          query: {
-            s: shortHash,
-          },
-        });
-        setUri(`${location.href.replace(location.search, "")}?s=${shortHash}`);
-      })
-    );
+    }).then((r) => r.text().then((shortHash) => {
+      router.replace({
+        query: {
+          s: shortHash,
+        },
+      });
+      // setUri(`${location.href.replace(location.search, "")}?s=${shortHash}`);
+      navigator.clipboard.writeText(
+        `${window.location.href.replace(window.location.search, '')}?s=${shortHash}`,
+      );
+      setShowCopyPopup(true);
+      setTimeout(() => setShowCopyPopup(false), 850);
+    }));
   };
+  // const [colorScheme, setColorScheme] = useState<ColorScheme>('light');
+  const [colorScheme, toggleColorScheme] = useToggle<ColorScheme>('light', ['dark', 'light']);
 
+  // const toggleColorScheme = (value?: ColorScheme) => setColorScheme(value || (colorScheme === 'dark' ? 'light' : 'dark'));
   return (
     <>
       <Head>
@@ -537,149 +498,199 @@ const Damage = () => {
         <meta property="twitter:card" content="summary_large_image" />
         <meta property="og:title" content="Damage Graphs" />
       </Head>
-      <DamageDataContext.Provider value={damageData}>
-        <InitialPlayerListContext.Provider value={initialPlayerList}>
-          <DispatchPlayerList.Provider value={dispatchPlayerList}>
-            <SelectedPlayerContext.Provider value={selectedPlayerKey}>
-              <Modal opened={modalOpen} onClose={() => setModalOpen(false)}>
-                {modalContent}
-              </Modal>
-              <AppShell
-                fixed
-                padding="md"
-                navbar={<TargetNavbar target={target} setTarget={setTarget} />}
-                aside={
-                  <SetModalContext.Provider value={setModalContentWrapper}>
-                    <MemoDamageGraphs
-                      player={playerList[selectedPlayerKey]}
-                      target={target}
-                      hidden={hideGraphs}
-                    />
-                  </SetModalContext.Provider>
-                }
-                zIndex={1}
-                style={{ isolation: "isolate" }}
-                header={
-                  <Header height={60} p="xs">
-                    <div
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        height: "100%",
-                      }}
-                    >
-                      <Title> Damage Calcs :)</Title>
-                      <Burger
-                        opened={!hideGraphs}
-                        onClick={() => setHideGraphs((o) => !o)}
-                        size="sm"
-                        ml={"auto"}
-                        mr={"sm"}
-                      />
-                    </div>
-                  </Header>
-                }
-                footer={
-                  <Footer height={30}>
-                    <Container
-                      mx={0}
-                      px={10}
-                      py={2}
-                      style={{
-                        width: "100%",
-                        maxWidth: "100%",
-                        alignItems: "center",
-                      }}
-                    >
-                      <Group style={{ width: "100%", height: 25 }}>
-                        Share:
-                        <div style={{ width: "70%", height: "100%" }}>
-                          <Popover
-                            opened={showCopyPopup}
-                            position={"top"}
-                            withArrow
-                            target={
-                              <TextInput
-                                style={{ cursor: "pointer" }}
-                                variant={"filled"}
-                                value={uri}
-                                readOnly
-                                icon={<Link />}
-                                __staticSelector={"damagerFooterLinkInput"}
-                                onClick={() => {
-                                  navigator.clipboard.writeText(uri);
-                                  setShowCopyPopup(true);
-                                  setTimeout(
-                                    () => setShowCopyPopup(false),
-                                    850
-                                  );
-                                }}
-                              ></TextInput>
-                            }
-                          >
-                            <Text size={"sm"}>Copied!</Text>
-                          </Popover>
-                        </div>
-                        {/*<Popover*/}
-                        {/*  opened={showCopyPopup}*/}
-                        {/*  position={"top"}*/}
-                        {/*  withArrow*/}
-                        {/*  target={*/}
-                        {/*    <ActionIcon variant={"filled"} color={"blue"}>*/}
-                        {/*      <Clipboard*/}
-                        {/*        onClick={() => {*/}
-                        {/*          navigator.clipboard.writeText(uri);*/}
-                        {/*          setShowCopyPopup(true);*/}
-                        {/*          setTimeout(*/}
-                        {/*            () => setShowCopyPopup(false),*/}
-                        {/*            850*/}
-                        {/*          );*/}
-                        {/*        }}*/}
-                        {/*      ></Clipboard>*/}
-                        {/*    </ActionIcon>*/}
-                        {/*  }*/}
-                        {/*>*/}
-                        {/*  <Text size={"sm"}>Copied!</Text>*/}
-                        {/*</Popover>*/}
-                        <Button compact onClick={() => submitURL()}>
-                          Shorten
-                        </Button>
-                        <div style={{ width: "auto", height: "100%" }} />
-                        <Badge
-                          mr={"sm"}
-                          style={{ marginLeft: "auto", cursor: "pointer" }}
-                          component={"a"}
-                          href={"https://discord.com/invite/dndnext"}
-                          variant={"outline"}
+      <ColorSchemeProvider
+        colorScheme={colorScheme}
+        toggleColorScheme={toggleColorScheme}
+      >
+        <MantineProvider theme={{ colorScheme }} withGlobalStyles>
+          <DamageDataContext.Provider value={damageData}>
+            <InitialPlayerListContext.Provider value={initialPlayerList}>
+              <DispatchPlayerList.Provider value={dispatchPlayerList}>
+                <SelectedPlayerContext.Provider value={selectedPlayerKey}>
+                  <Modal opened={modalOpen} onClose={() => setModalOpen(false)}>
+                    {modalContent}
+                  </Modal>
+                  <AppShell
+                    // fixed
+                    // styles={{
+                    //   body: { height: "90%" },
+                    //   root: { height: "99vh" },
+                    // }}
+                    padding={0}
+                    // padding="md"
+                    navbar={
+                      <TargetNavbar target={target} setTarget={setTarget} />
+                    }
+                    aside={(
+                      <SetModalContext.Provider value={setModalContentWrapper}>
+                        <MemoDamageGraphs
+                          player={playerList[selectedPlayerKey]}
+                          target={target}
+                          hidden={hideGraphs}
+                        />
+                      </SetModalContext.Provider>
+                    )}
+                    zIndex={1}
+                    style={{ isolation: 'isolate' }}
+                    header={(
+                      <Header height={60} p="xs">
+                        <Grid>
+                          <Grid.Col span={4}>
+                            {/* <div */}
+                            {/*  style={{ */}
+                            {/*    display: "flex", */}
+                            {/*    alignItems: "center", */}
+                            {/*    height: "100%", */}
+                            {/*  }} */}
+                            {/* > */}
+                            <Title>
+                              {' '}
+                              {/* Damage Calcs :) */}
+                              {width < NARROW_WIDTH ? (hideGraphs ? 'block' : 'none') : 'block'}
+                            </Title>
+                          </Grid.Col>
+                          <Grid.Col span={4}>
+                            <ActionIcon
+                              variant="outline"
+                              color={
+                                colorScheme === 'light' ? 'yellow' : 'blue'
+                              }
+                              onClick={() => toggleColorScheme()}
+                              title="Toggle color scheme"
+                              mx="auto"
+                            >
+                              {colorScheme === 'light' ? (
+                                <Sun size={18} />
+                              ) : (
+                                <MoonStars size={18} />
+                              )}
+                            </ActionIcon>
+                          </Grid.Col>
+
+                          <Grid.Col span={4} style={{ display: 'flex' }}>
+                            <div style={{ flexGrow: 1 }} />
+
+                            <Burger
+                              opened={!hideGraphs}
+                              onClick={() => setHideGraphs((o) => !o)}
+                              size="sm"
+                              style={{ display: width > NARROW_WIDTH ? 'none' : 'block' }}
+                            />
+                          </Grid.Col>
+                          {/* </div> */}
+                        </Grid>
+                      </Header>
+                    )}
+                    footer={(
+                      <Footer height={30}>
+                        <Container
+                          mx={0}
+                          px={10}
+                          py={2}
+                          style={{
+                            width: '100%',
+                            maxWidth: '100%',
+                            alignItems: 'center',
+                          }}
                         >
-                          Made with &lt;3
-                        </Badge>
-                      </Group>
-                    </Container>
+                          {/* <div></div> */}
+                          <Group style={{ width: '100%', height: 25 }} grow>
+                            {/* Share: */}
+                            <div style={{ width: '20%' }} />
+                            <div style={{ height: '100%', width: '50%' }}>
+                              <Popover
+                                opened={showCopyPopup}
+                                position="top"
+                                withArrow
+                                style={{ width: '100%' }}
+                                target={(
+                                  <Button
+                                    compact
+                                    onClick={() => {
+                                      submitURL();
+                                    }}
+                                    style={{ width: '100%' }}
+                                  >
+                                    Share
+                                  </Button>
+                                )}
+                              >
+                                <Text size="sm">Copied!</Text>
+                              </Popover>
+                            </div>
+                            <div style={{ display: 'flex' }}>
+                              <div style={{ flexGrow: 1 }} />
+                              <Badge
+                                mr="sm"
+                                style={{
+                                  cursor: 'pointer',
+                                  width: 150,
+                                }}
+                                component="a"
+                                href="https://discord.com/invite/dndnext"
+                                variant="outline"
+                              >
+                                <div>
+                                  {colorScheme === 'dark' ? (
+                                    <Image
+                                      src="/img/Discord-Logo-White.svg"
+                                      width={20}
+                                      height={20}
+                                    />
+                                  ) : (
+                                    <Image
+                                      src="/img/Discord-Logo-Black.svg"
+                                      width={20}
+                                      height={20}
+                                    />
+                                  )}
+                                </div>
+                                Made with 💖
+                              </Badge>
+                            </div>
+                          </Group>
+                        </Container>
 
-                    {/*</UnstyledButton>*/}
-                  </Footer>
-                }
-              >
-                <Container pl={0} ml={0} style={{ width: "40%" }}>
-                  {/*<Paper>*/}
-                  <Title order={3}>Attacks</Title>
-                  <Space h={3} />
+                        {/* </UnstyledButton> */}
+                      </Footer>
+                    )}
+                  >
+                    <Paper
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        // maxWidth: width > NARROW_WIDTH ? '35vw' : '100vw',
+                        // eslint-disable-next-line no-nested-ternary
+                        display: playerInfoDisplay,
+                      }}
+                      // p={0}
+                      p="sm"
+                      radius={0}
 
-                  {Object.entries(initialPlayerList).length &&
-                    Object.entries(playerList).map(([index, player]) => (
-                      <PlayerContext.Provider value={player} key={index}>
-                        <MemoPlayerCard key={index} target={target} />
-                      </PlayerContext.Provider>
-                    ))}
-                </Container>
-              </AppShell>
-            </SelectedPlayerContext.Provider>
-          </DispatchPlayerList.Provider>
-        </InitialPlayerListContext.Provider>
-      </DamageDataContext.Provider>
+                    >
+                      {/* <Paper> */}
+                      <Title order={3}>
+                        Attacks
+                        {width}
+                      </Title>
+                      <Space h={3} />
+
+                      {Object.entries(initialPlayerList).length
+                        && Object.entries(playerList).map(([index, player]) => (
+                          <PlayerContext.Provider value={player} key={index}>
+                            <MemoPlayerCard key={index} target={target} />
+                          </PlayerContext.Provider>
+                        ))}
+                    </Paper>
+                  </AppShell>
+                </SelectedPlayerContext.Provider>
+              </DispatchPlayerList.Provider>
+            </InitialPlayerListContext.Provider>
+          </DamageDataContext.Provider>
+        </MantineProvider>
+      </ColorSchemeProvider>
     </>
   );
-};
+}
 
 export default Damage;

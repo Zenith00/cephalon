@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   add_pmfs,
   boundProb, convolve_pmfs_prod,
-  convolve_pmfs_sum,
+  convolve_pmfs_sum, convolve_pmfs_sum_2,
   cumSum,
   d20ToCritrate,
   d20ToFailRate, multiply_pmf,
@@ -70,7 +70,7 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
               : `${player.attackBonus}`;
             const damageModEnriched = damager.damage.replace('mod', player.modifier?.toString() || '0');
             const simpleDamagePMF = simpleProcess(damageModEnriched);
-            const simpleCritPMF = simpleProcess(
+            const simpleCritBonusPMF = simpleProcess(
               damageModEnriched,
               'normal',
             );
@@ -93,12 +93,12 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
             if (
               simpleDamagePMF
                 && simpleAttackPMFs
-                && simpleCritPMF
+                && simpleCritBonusPMF
                 && [...simpleAttackPMFs.values()].every((x) => x)
             ) {
               // region [[Simple Processing]]
               const simpleDamage = weighted_mean_pmf(simpleDamagePMF);
-              const critDamage = weighted_mean_pmf(simpleCritPMF);
+              // const critDamage = weighted_mean_pmf(simpleCritPMF);
 
               const attackCumsum = new Map(
                 [...simpleAttackPMFs.entries()].map(([k, v]) => [
@@ -107,36 +107,36 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
                 ]),
               );
 
-              const critAwareDamagePMFs = new Map(AdvantageTypes.map((advType) => {
-                const critrate = d20ToCritrate(
-                  ADVANTAGE_TO_DICE[advType],
-                  player.critThreshold,
-                );
-                return [
-                  advType,
-                  convolve_pmfs_sum(multiply_pmf(simpleDamagePMF, 1 - critrate), multiply_pmf(simpleCritPMF, critrate), true),
-                  // new Map([...simpleCritPMF.entries()].map(([k, v]) => [k, v * ]))]));
-                ];
-              }));
+              // const critAwareDamagePMFs = new Map(AdvantageTypes.map((advType) => {
+              //   const critrate = d20ToCritrate(
+              //     ADVANTAGE_TO_DICE[advType],
+              //     player.critThreshold,
+              //   );
+              //   return [
+              //     advType,
+              //     convolve_pmfs_sum(multiply_pmf(simpleDamagePMF, 1 - critrate), multiply_pmf(simpleCritPMF, critrate), true),
+              //     // new Map([...simpleCritPMF.entries()].map(([k, v]) => [k, v * ]))]));
+              //   ];
+              // }));
 
-              const critawareEV = (
-                advType: AdvantageType,
-                hitChance: number,
-              ) => {
-                const critRate = d20ToCritrate(
-                  ADVANTAGE_TO_DICE[advType],
-                  player.critThreshold,
-                );
-                const failRate = d20ToFailRate(ADVANTAGE_TO_DICE[advType]);
-                return (
-                  critRate * critDamage
-                    + (boundProb(hitChance, critRate, failRate) - critRate)
-                      * simpleDamage
-                );
-              };
+              // const critawareEV = (
+              //   advType: AdvantageType,
+              //   hitChance: number,
+              // ) => {
+              //   const critRate = d20ToCritrate(
+              //     ADVANTAGE_TO_DICE[advType],
+              //     player.critThreshold,
+              //   );
+              //   const failRate = d20ToFailRate(ADVANTAGE_TO_DICE[advType]);
+              //   return (
+              //     critRate * critDamage
+              //       + (boundProb(hitChance, critRate, failRate) - critRate)
+              //         * simpleDamage
+              //   );
+              // };
 
               // console.log(attackCumsum);
-              console.log(critAwareDamagePMFs);
+              // console.log(critAwareDamagePMFs);
 
               return [
                 Number(damagerKey),
@@ -156,26 +156,30 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
                         if (missChance) {
                           seen = true;
                         }
-                        const critrate = d20ToCritrate(
-                          ADVANTAGE_TO_DICE[advType],
-                          player.critThreshold,
-                        );
+                        // const critrate = d20ToCritrate(
+                        //   ADVANTAGE_TO_DICE[advType],
+                        //   player.critThreshold,
+                        // );
                         const failRate = d20ToFailRate(ADVANTAGE_TO_DICE[advType]);
 
                         const critFailRate = critRate + failRate;
 
                         const nonCritFailPMF = multiply_pmf(simpleDamagePMF, 1 - critFailRate);
                         nonCritFailPMF.set(0, failRate);
-                        const critPMF = multiply_pmf(simpleCritPMF, critRate);
-                        const enhanced = add_pmfs(nonCritFailPMF, critPMF);
+                        // const critPMF = multiply_pmf(simpleCritPMF, critRate);
+                        // const enhanced = add_pmfs(nonCritFailPMF, critPMF);
 
-                        const hitChanceAwareDamagePMF = convolve_pmfs_prod(simpleDamagePMF, new Map([[0, missChance], [1, 1 - missChance]]));
+                        const critFactor = critRate / (1 - missChance);
+                        const critChanceEnrichedBonusPMF = convolve_pmfs_prod(simpleCritBonusPMF, new Map([[0, 1 - critFactor], [1, critFactor]]));
+
+                        const fullPMF = convolve_pmfs_sum_2(simpleDamagePMF, critChanceEnrichedBonusPMF, true);
+                        const hitChanceAwareDamagePMF = convolve_pmfs_prod(fullPMF, new Map([[0, missChance], [1, 1 - missChance]]));
 
                         // const critEnrichedHitChanceAwareDamagePMF =
 
-                        const enhancedWithToHit = convolve_pmfs_prod(enhanced, new Map([[0, missChance], [1, 1 - missChance]]));
-                        const enhancedWithToHit2 = multiply_pmf(enhanced, 1 - missChance);
-                        enhancedWithToHit2.set(0, missChance);
+                        // const enhancedWithToHit = convolve_pmfs_prod(enhanced, new Map([[0, missChance], [1, 1 - missChance]]));
+                        // const enhancedWithToHit2 = multiply_pmf(enhanced, 1 - missChance);
+                        // enhancedWithToHit2.set(0, missChance);
                         // enhancedWithToHit.set(0, missChance);
                         // const expectedDamagePMF = multiply_pmf(simpleDamagePMF, 1 - (missChance || 0));
                         // const expectedCritPMF = multiply_pmf(simpleCritPMF, 1 - (missChance || 0));
@@ -194,17 +198,20 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
                         if (ac + 1 === 14) {
                           console.log(advType);
                           console.log(missChance);
-                          console.log(hitChanceAwareDamagePMF);
+                          console.log({ fullPMF });
+                          console.log({ hitChanceAwareDamagePMF });
+                          console.log({ simpleDamagePMF });
+                          console.log({ critChanceEnrichedBonusPMF });
+                          console.log({ simpleCritBonusPMF });
                           // console.log(enhanced);
                           // console.log(enhancedWithToHit);
                           // console.log(enhancedWithToHit2);
-                          console.log(weighted_mean_pmf(enhancedWithToHit));
+                          // console.log(weighted_mean_pmf(enhancedWithToHit));
                         }
 
                         damageMap.set(
                           ac + 1,
-                          critawareEV(advType, 1 - (missChance || (seen ? 1 : 0)))
-                              * damager.count,
+                          1,
                         );
                         return damageMap;
                       }, new Map<number, number>()),
