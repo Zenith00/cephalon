@@ -14,33 +14,21 @@ import {
   UnstyledButton,
   useMantineColorScheme,
 } from '@mantine/core';
-import { useForm } from '@mantine/form';
 import type { Target } from '@pages/Damage';
 import { PRESET_DAMAGERS } from '@damage/constants';
 import { useToggle } from '@mantine/hooks';
 import {
-  CaretDown, CaretRight, Notes, Settings,
+  CaretDown, CaretRight, Notes, Plus,
 } from 'tabler-icons-react';
-import type { AdvantageType, Damager } from '@damage/types';
+import type { AdvantageType } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
 import type { PMF } from '@utils/math';
-import {
-  convolve_pmfs_sum_2, weighted_mean_pmf, zero_pmf,
-} from '@utils/math';
+import { convolve_pmfs_sum_2, weighted_mean_pmf, zero_pmf } from '@utils/math';
 // import PAMGWMCard from '@damage/DamagerCard/PAMGWMCard';
-import {
-  DamageDataContext, DamageDetailsContext, DispatchPlayerListContext, PlayerContext,
-} from '@damage/contexts';
+import { DamageDetailsContext, DispatchPlayerListContext, PlayerContext } from '@damage/contexts';
 import DamagerCard from './DamagerCard';
 
 const MemoDamagerCard = React.memo(DamagerCard);
-// const MemoPAMGWMDamagerCard = React.memo(PAMGWMCard);
-
-// const DamageCard : Record<Damager['damagerType'], typeof MemoDamagerCard | typeof MemoPAMGWMDamagerCard> = {
-//   regular: MemoDamagerCard,
-//   pam: MemoPAMGWMDamagerCard,
-//   'pam+gwm': MemoPAMGWMDamagerCard,
-// };
 
 const PlayerCard = ({
   // player,
@@ -161,9 +149,14 @@ const PlayerCard = ({
       </Title>
       {/* <Checkbox label={"Elven Accuracy"} /> */}
       <div style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
-        <Checkbox label="Halfling Luck" />
-        <Checkbox label="Polearm Master" />
-        <Checkbox label="Great Weapon Master" />
+        {/* <Checkbox label="Halfling Luck" /> */}
+        {/* <Checkbox */}
+        {/*  label="Polearm Master" */}
+        {/*  onChange={(ev) => dispatchPlayerList({ */}
+        {/*    field: 'TOGGLE_SPECIAL_PAM', playerKey: player.key, toggle: ev.currentTarget.checked, damagerType: 'pam', */}
+        {/*  })} */}
+        {/* /> */}
+        {/* <Checkbox label="Great Weapon Master" /> */}
       </div>
       <UnstyledButton onClick={() => toggleShowAttacks()} pt="sm">
         <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
@@ -183,8 +176,7 @@ const PlayerCard = ({
           )}
         </>
         {Object.entries(player.damagers).map(([i, damager]) => (
-          <DamagerCard
-
+          <MemoDamagerCard
             key={Number(i)}
             playerKey={player.key}
             damager={damager}
@@ -262,7 +254,7 @@ const PlayerCard = ({
               size="sm"
               compact
             >
-              <Notes size={20} />
+              <Plus size={20} />
             </Button>
             )}
         >
@@ -280,7 +272,6 @@ const PlayerCard = ({
         in={showTotalDamage}
       >
         <Table>
-
           <tbody>
             {AdvantageTypes.filter(
               (advType) => showAdvantageTypes[advType],
@@ -290,9 +281,11 @@ const PlayerCard = ({
                   <td>{advType}</td>
                   <td>
                     {weighted_mean_pmf(
-                      [...damageDetailsContext.get(player.key)?.values() || []]
+                      [...damageDetailsContext.get(player.key)?.entries() || []]
+                        .filter(([damagerKey, _]) => !player.damagers[damagerKey].disabled).map(([_, damager]) => damager)
                         .map((damageMap) => damageMap.get(advType))
-                        .map((damageACMap) => damageACMap?.get(target.ac)).filter((x):x is PMF => !!x)
+                        .map((damageACMap) => damageACMap?.get(target.ac))
+                        .filter((x):x is PMF => !!x)
                         .reduce((acc, n) => convolve_pmfs_sum_2(acc, n, true), zero_pmf()),
                     ).toString(3)}
                   </td>
