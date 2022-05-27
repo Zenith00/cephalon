@@ -2,7 +2,7 @@ import type { SelectItem } from '@mantine/core';
 import {
   Button, MultiSelect, NumberInput, Popover, Switch, TextInput, Tooltip,
 } from '@mantine/core';
-import { InfoCircle, Notes } from 'tabler-icons-react';
+import { InfoCircle, Plus } from 'tabler-icons-react';
 import type { Damager, AdvantageType } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
 import React, { useState } from 'react';
@@ -90,7 +90,7 @@ const RegularDamageInfo = ({
           style={{ width: '100%' }}
           onChange={(ev) => setDamagerName(ev.currentTarget.value)}
         />
-        <Button onClick={() => toggleDisabled()} mt={27} ml="sm" color={disabled ? 'red' : 'blue'}>
+        <Button onClick={() => toggleDisabled()} mt={27} ml={2} mr={0} color={disabled ? 'red' : 'blue'}>
           {disabled ? 'Disabled' : 'Enabled'}
         </Button>
         <Popover
@@ -102,12 +102,12 @@ const RegularDamageInfo = ({
             <Button
               color="blue"
               onClick={() => setSettingsPopover(true)}
-              ml="sm"
+              ml={2}
               mr="sm"
               mt={27}
               variant="outline"
             >
-              <Notes />
+              <Plus />
             </Button>
             )}
         >
