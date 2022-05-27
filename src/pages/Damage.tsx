@@ -1,6 +1,8 @@
 /* eslint-env browser */
 
-import React, { useEffect, useReducer, useState } from 'react';
+import React, {
+  useCallback, useEffect, useReducer, useState,
+} from 'react';
 import type { ColorScheme } from '@mantine/core';
 import {
   AppShell, Button, ColorSchemeProvider, MantineProvider, Modal, Paper, Space, Title,
@@ -61,7 +63,6 @@ const PLAYER_SHORT_TO_FIELD = Object.fromEntries(
 
 const DAMAGER_FIELD_TO_SHORT: Record<keyof Damager, string> = {
   damage: 'dmg',
-  damageMean: 'dm',
   advantageShow: 'as',
   modifiers: 'm',
   modifierOptions: 'mo',
@@ -71,7 +72,7 @@ const DAMAGER_FIELD_TO_SHORT: Record<keyof Damager, string> = {
   disabled: 'di',
   key: 'k',
   count: 'c',
-  damagerType: 'dt',
+  flags: 'f',
 };
 
 const DAMAGER_SHORT_TO_FIELD = Object.fromEntries(
@@ -169,7 +170,7 @@ export type playerListReducerAction =
     }
   | {
       field: 'PRESET_DAMAGER';
-      playerKey: number;
+      playerKey: PlayerKey;
       newDamagerName: keyof typeof PRESET_DAMAGERS;
     }
   | {
@@ -183,7 +184,7 @@ export type playerListReducerAction =
       damagerKey: number;
       newDamager: Damager;
     }
-  | { field: 'DELETE_DAMAGER'; playerKey: number; damagerKey: number }
+  | { field: 'DELETE_DAMAGER'; playerKey: PlayerKey; damagerKey: number }
   | playerListReducerFieldSet;
 // endregion
 
@@ -226,7 +227,7 @@ const transformPlayerList = (p: PlayerList, inflate: boolean) => {
 const Damage = () => {
   const router = useRouter();
   const [hideGraphs, setHideGraphs] = useState(false);
-  const { height, width } = useViewportSize();
+  const { width } = useViewportSize();
 
   const playerListReducer = (
     state: { [key: number]: Player },
@@ -359,7 +360,7 @@ const Damage = () => {
 
   useEffect(() => {
     debouncedUpdateURI();
-  }, [playerList]);
+  }, [debouncedUpdateURI, playerList]);
 
   const setData = React.useCallback((data: string) => {
     if (data) {
@@ -412,10 +413,10 @@ const Damage = () => {
   >();
 
   const [modalOpen, setModalOpen] = useState(false);
-  const setModalContentWrapper = (mc: React.FC) => {
+  const setModalContentWrapper = useCallback((mc: React.FC) => {
     setModalContent(mc);
     setModalOpen(true);
-  };
+  }, [setModalContent, setModalOpen]);
 
   const [showCopyPopup, setShowCopyPopup] = useState(false);
 
@@ -447,7 +448,7 @@ const Damage = () => {
       (legendWidthFactor * 25) ** 0.85
     }" height="${graphSVG.getAttribute(
       'height',
-    )}">   <style><![CDATA[text{ dominant-baseline: middle; font: 12px Verdana, Helvetica, Arial, sans-serif;  } svg{background-color: white}]]></style>
+    ) || ''}">   <style><![CDATA[text{ dominant-baseline: middle; font: 12px Verdana, Helvetica, Arial, sans-serif;  } svg{background-color: white}]]></style>
     ${t.join('\n')}
     </svg>`;
 
@@ -502,7 +503,7 @@ const Damage = () => {
                 <DispatchPlayerListContext.Provider value={dispatchPlayerList}>
                   <SelectedPlayerContext.Provider value={selectedPlayerKey}>
                     <Modal opened={modalOpen} onClose={() => setModalOpen(false)}>
-                      {modalContent}
+                      {/* {modalContent} */}
                     </Modal>
                     <AppShell
                       padding={0}
