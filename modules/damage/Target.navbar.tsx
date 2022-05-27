@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 import {
   Box,
   Checkbox,
@@ -6,39 +6,39 @@ import {
   NumberInput,
   Space,
   Title,
-} from "@mantine/core";
+} from '@mantine/core';
 
-import { Target } from "../../pages/Damage";
+import type { Target } from '@pages/Damage';
 
-const Target = ({
+function Target({
   target,
   setTarget,
 }: {
   target: Target;
   setTarget: React.Dispatch<React.SetStateAction<Target>>;
-}) => {
+}) {
   return (
-    <Navbar width={{ base: 200 }} height={500} p="xs">
-      <Box px={"2px"}>
+    <Navbar width={{ base: 200 }} py="xs" p="xs">
+      <Box px="2px">
         <Navbar.Section>
           <Title order={4}>Target Info</Title>
           <NumberInput
-            label={"AC"}
+            label="AC"
             step={1}
             value={target.ac}
             onChange={(val) => setTarget({ ...target, ac: val || 0 })}
           />
         </Navbar.Section>
-        <Space h={"md"} />
-        {/*<Divider pt={"3px"} size={"sm"}/>*/}
-        {/*<Navbar.Section>*/}
-        {/*  <Title order={4}>Special</Title>*/}
-        {/*  <Checkbox label={"Elven Accuracy"} />*/}
-        {/*  <Checkbox label={"Lucky"} />*/}
-        {/*</Navbar.Section>*/}
+        <Space h="md" />
+        {/* <Divider pt={"3px"} size={"sm"}/> */}
+        {/* <Navbar.Section> */}
+        {/*  <Title order={4}>Special</Title> */}
+        {/*  <Checkbox label={"Elven Accuracy"} /> */}
+        {/*  <Checkbox label={"Lucky"} /> */}
+        {/* </Navbar.Section> */}
       </Box>
     </Navbar>
   );
-};
+}
 
 export default Target;

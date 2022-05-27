@@ -1,13 +1,13 @@
 /* eslint-env browser */
 
 import React, { useEffect, useReducer, useState } from 'react';
+import type { ColorScheme } from '@mantine/core';
 import {
   ActionIcon,
   AppShell,
   Badge,
   Burger,
   Button,
-  ColorScheme,
   ColorSchemeProvider,
   Container,
   Footer,
@@ -32,16 +32,15 @@ import { useDebouncedCallback } from 'use-debounce';
 import { MoonStars, Sun } from 'tabler-icons-react';
 import Head from 'next/head';
 import { useToggle, useViewportSize } from '@mantine/hooks';
-import PlayerCard, {
-  AdvantageType,
-  Damager,
-  Player,
-} from '@/damage/DamagerCard/PlayerCard';
+import PlayerCard from '@/damage/DamagerCard/PlayerCard';
 import TargetNavbar from '@/damage/Target.navbar';
-import { dummyDamageData, useHandleDamageData } from '@damage/damageData.hook';
-import { NARROW_WIDTH, PRESET_DAMAGERS } from '@/damage/constants';
+import { dummyDamageData, dummyDamageDetails, useHandleDamageData } from '@damage/damageData.hook';
+import { NARROW_WIDTH, PRESET_DAMAGERS } from '@damage/constants';
 
 import './Damage.module.css';
+import type { PMF } from '@utils/math';
+import type { AdvantageType, PlayerKey } from '@damage/types';
+import { Damager, Player } from '@damage/types';
 
 export interface Target {
   ac: number;
@@ -79,6 +78,7 @@ const DAMAGER_FIELD_TO_SHORT: Record<keyof Damager, string> = {
   disabled: 'di',
   key: 'k',
   count: 'c',
+  special: 's',
 };
 
 const DAMAGER_SHORT_TO_FIELD = Object.fromEntries(
@@ -96,28 +96,34 @@ function replacer(key: string, value: any) {
       value: Array.from(value.entries()), // or with spread: value: [...value]
     };
   }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return value;
 }
 
 function reviver(key: string, value: any) {
   if (typeof value === 'object' && value !== null) {
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (value.dataType === 'Map') {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-argument,@typescript-eslint/no-unsafe-member-access
       return new Map(value.value);
     }
   }
+  // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return value;
 }
 export type DamageData = Map<
   number,
   Map<number, Map<AdvantageType, Map<number, number>>>
 >;
+export type DamageDetails = Map<
+  number,
+  Map<number, Map<AdvantageType, Map<number, PMF>>>
+>;
 export const DamageDataContext = React.createContext<DamageData>(dummyDamageData);
-
-export const DispatchPlayerList = React.createContext<React.Dispatch<playerListReducerAction> | null>(null);
+export const DamageDetailsContext = React.createContext<DamageDetails>(dummyDamageDetails);
 
 export const SelectedPlayerContext = React.createContext<number>(0);
 export const PlayerContext = React.createContext<Player | null>(null);
-export const InitialPlayerListContext = React.createContext<PlayerList>({});
 export const SetModalContext = React.createContext<(_: React.FC) => void>(
   () => {});
 
@@ -168,6 +174,9 @@ export type playerListReducerAction =
       val: PlayerList;
     }
   | {
+      field: 'NEW_PLAYER'
+    }
+  | {
       field: 'NEW_DAMAGER';
       playerKey: number;
     }
@@ -178,7 +187,7 @@ export type playerListReducerAction =
     }
   | {
       field: 'COPY_DAMAGER';
-      playerKey: number;
+      playerKey: PlayerKey;
       newDamager: Damager;
     }
   | {
@@ -189,6 +198,8 @@ export type playerListReducerAction =
     }
   | { field: 'DELETE_DAMAGER'; playerKey: number; damagerKey: number }
   | playerListReducerFieldSet;
+export const DispatchPlayerList = React.createContext<React.Dispatch<playerListReducerAction> | null>(null);
+export const InitialPlayerListContext = React.createContext<PlayerList>({});
 
 const transformPlayerList = (p: PlayerList, inflate: boolean) => {
   // console.log(p);
@@ -259,6 +270,9 @@ function Damage() {
           damagers: newDamagers,
         },
       };
+    } if (action.field === 'NEW_PLAYER') {
+      const nextPlayerIndex = Math.max(...Object.keys(state).map((i) => Number(i)), -1) + 1 as PlayerKey;
+      return { ...state, [nextPlayerIndex]: new Player(nextPlayerIndex) };
     } if (action.field === 'NEW_DAMAGER') {
       const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
       const newDamagers = {
@@ -336,7 +350,7 @@ function Damage() {
 
   const [initialPlayerList, setInitialPlayerList] = useState<PlayerList>({});
 
-  const damageData = useHandleDamageData(playerList);
+  const { damageData, damageDetails } = useHandleDamageData(playerList);
 
   const [selectedPlayerKey, setSelectedPlayerKey] = useState(0);
 
@@ -399,9 +413,9 @@ function Damage() {
             // console.log("GOT ");
             // console.log(t);
             setData(t);
-          });
+          }).catch(() => { /* ignore */ });
         })
-        .catch((err) => {
+        .catch(() => {
           window.location.assign('/Damage');
         });
     } else {
@@ -504,188 +518,189 @@ function Damage() {
       >
         <MantineProvider theme={{ colorScheme }} withGlobalStyles>
           <DamageDataContext.Provider value={damageData}>
-            <InitialPlayerListContext.Provider value={initialPlayerList}>
-              <DispatchPlayerList.Provider value={dispatchPlayerList}>
-                <SelectedPlayerContext.Provider value={selectedPlayerKey}>
-                  <Modal opened={modalOpen} onClose={() => setModalOpen(false)}>
-                    {modalContent}
-                  </Modal>
-                  <AppShell
+            <DamageDetailsContext.Provider value={damageDetails}>
+              <InitialPlayerListContext.Provider value={initialPlayerList}>
+                <DispatchPlayerList.Provider value={dispatchPlayerList}>
+                  <SelectedPlayerContext.Provider value={selectedPlayerKey}>
+                    <Modal opened={modalOpen} onClose={() => setModalOpen(false)}>
+                      {modalContent}
+                    </Modal>
+                    <AppShell
                     // fixed
                     // styles={{
                     //   body: { height: "90%" },
                     //   root: { height: "99vh" },
                     // }}
-                    padding={0}
+                      padding={0}
                     // padding="md"
-                    navbar={
-                      <TargetNavbar target={target} setTarget={setTarget} />
+                      navbar={
+                        <TargetNavbar target={target} setTarget={setTarget} />
                     }
-                    aside={(
-                      <SetModalContext.Provider value={setModalContentWrapper}>
-                        <MemoDamageGraphs
-                          player={playerList[selectedPlayerKey]}
-                          target={target}
-                          hidden={hideGraphs}
-                        />
-                      </SetModalContext.Provider>
+                      aside={(
+                        <SetModalContext.Provider value={setModalContentWrapper}>
+                          <MemoDamageGraphs
+                            player={playerList[selectedPlayerKey]}
+                            target={target}
+                            hidden={hideGraphs}
+                          />
+                        </SetModalContext.Provider>
                     )}
-                    zIndex={1}
-                    style={{ isolation: 'isolate' }}
-                    header={(
-                      <Header height={60} p="xs">
-                        <Grid>
-                          <Grid.Col span={4}>
-                            {/* <div */}
-                            {/*  style={{ */}
-                            {/*    display: "flex", */}
-                            {/*    alignItems: "center", */}
-                            {/*    height: "100%", */}
-                            {/*  }} */}
-                            {/* > */}
-                            <Title>
-                              {' '}
-                              {/* Damage Calcs :) */}
-                              {width < NARROW_WIDTH ? (hideGraphs ? 'block' : 'none') : 'block'}
-                            </Title>
-                          </Grid.Col>
-                          <Grid.Col span={4}>
-                            <ActionIcon
-                              variant="outline"
-                              color={
+                      zIndex={1}
+                      style={{ isolation: 'isolate' }}
+                      header={(
+                        <Header height={60} p="xs">
+                          <Grid>
+                            <Grid.Col span={4}>
+                              {/* <div */}
+                              {/*  style={{ */}
+                              {/*    display: "flex", */}
+                              {/*    alignItems: "center", */}
+                              {/*    height: "100%", */}
+                              {/*  }} */}
+                              {/* > */}
+                              <Title>
+                                Damage Calcs :)
+                              </Title>
+                            </Grid.Col>
+                            <Grid.Col span={4}>
+                              <ActionIcon
+                                variant="outline"
+                                color={
                                 colorScheme === 'light' ? 'yellow' : 'blue'
                               }
-                              onClick={() => toggleColorScheme()}
-                              title="Toggle color scheme"
-                              mx="auto"
-                            >
-                              {colorScheme === 'light' ? (
-                                <Sun size={18} />
-                              ) : (
-                                <MoonStars size={18} />
-                              )}
-                            </ActionIcon>
-                          </Grid.Col>
-
-                          <Grid.Col span={4} style={{ display: 'flex' }}>
-                            <div style={{ flexGrow: 1 }} />
-
-                            <Burger
-                              opened={!hideGraphs}
-                              onClick={() => setHideGraphs((o) => !o)}
-                              size="sm"
-                              style={{ display: width > NARROW_WIDTH ? 'none' : 'block' }}
-                            />
-                          </Grid.Col>
-                          {/* </div> */}
-                        </Grid>
-                      </Header>
-                    )}
-                    footer={(
-                      <Footer height={30}>
-                        <Container
-                          mx={0}
-                          px={10}
-                          py={2}
-                          style={{
-                            width: '100%',
-                            maxWidth: '100%',
-                            alignItems: 'center',
-                          }}
-                        >
-                          {/* <div></div> */}
-                          <Group style={{ width: '100%', height: 25 }} grow>
-                            {/* Share: */}
-                            <div style={{ width: '20%' }} />
-                            <div style={{ height: '100%', width: '50%' }}>
-                              <Popover
-                                opened={showCopyPopup}
-                                position="top"
-                                withArrow
-                                style={{ width: '100%' }}
-                                target={(
-                                  <Button
-                                    compact
-                                    onClick={() => {
-                                      submitURL();
-                                    }}
-                                    style={{ width: '100%' }}
-                                  >
-                                    Share
-                                  </Button>
+                                onClick={() => toggleColorScheme()}
+                                title="Toggle color scheme"
+                                mx="auto"
+                              >
+                                {colorScheme === 'light' ? (
+                                  <Sun size={18} />
+                                ) : (
+                                  <MoonStars size={18} />
                                 )}
-                              >
-                                <Text size="sm">Copied!</Text>
-                              </Popover>
-                            </div>
-                            <div style={{ display: 'flex' }}>
+                              </ActionIcon>
+                            </Grid.Col>
+
+                            <Grid.Col span={4} style={{ display: 'flex' }}>
                               <div style={{ flexGrow: 1 }} />
-                              <Badge
-                                mr="sm"
-                                style={{
-                                  cursor: 'pointer',
-                                  width: 150,
-                                }}
-                                component="a"
-                                href="https://discord.com/invite/dndnext"
-                                variant="outline"
-                              >
-                                <div>
-                                  {colorScheme === 'dark' ? (
-                                    <Image
-                                      src="/img/Discord-Logo-White.svg"
-                                      width={20}
-                                      height={20}
-                                    />
-                                  ) : (
-                                    <Image
-                                      src="/img/Discord-Logo-Black.svg"
-                                      width={20}
-                                      height={20}
-                                    />
-                                  )}
-                                </div>
-                                Made with 💖
-                              </Badge>
-                            </div>
-                          </Group>
-                        </Container>
 
-                        {/* </UnstyledButton> */}
-                      </Footer>
+                              <Burger
+                                opened={!hideGraphs}
+                                onClick={() => setHideGraphs((o) => !o)}
+                                size="sm"
+                                style={{ display: width > NARROW_WIDTH ? 'none' : 'block' }}
+                              />
+                            </Grid.Col>
+                            {/* </div> */}
+                          </Grid>
+                        </Header>
                     )}
-                  >
-                    <Paper
-                      style={{
-                        width: '100%',
-                        height: '100%',
-                        // maxWidth: width > NARROW_WIDTH ? '35vw' : '100vw',
-                        // eslint-disable-next-line no-nested-ternary
-                        display: playerInfoDisplay,
-                      }}
-                      // p={0}
-                      p="sm"
-                      radius={0}
+                      footer={(
+                        <Footer height={30}>
+                          <Container
+                            mx={0}
+                            px={10}
+                            py={2}
+                            style={{
+                              width: '100%',
+                              maxWidth: '100%',
+                              alignItems: 'center',
+                            }}
+                          >
+                            {/* <div></div> */}
+                            <Group style={{ width: '100%', height: 25 }} grow>
+                              {/* Share: */}
+                              <div style={{ width: '20%' }} />
+                              <div style={{ height: '100%', width: '50%' }}>
+                                <Popover
+                                  opened={showCopyPopup}
+                                  position="top"
+                                  withArrow
+                                  style={{ width: '100%' }}
+                                  target={(
+                                    <Button
+                                      compact
+                                      onClick={() => {
+                                        submitURL();
+                                      }}
+                                      style={{ width: '100%' }}
+                                    >
+                                      Share
+                                    </Button>
+                                )}
+                                >
+                                  <Text size="sm">Copied!</Text>
+                                </Popover>
+                              </div>
+                              <div style={{ display: 'flex' }}>
+                                <div style={{ flexGrow: 1 }} />
+                                <Badge
+                                  mr="sm"
+                                  style={{
+                                    cursor: 'pointer',
+                                    width: 150,
+                                  }}
+                                  component="a"
+                                  href="https://discord.com/invite/dndnext"
+                                  variant="outline"
+                                >
+                                  <div>
+                                    {colorScheme === 'dark' ? (
+                                      <Image
+                                        src="/img/Discord-Logo-White.svg"
+                                        width={20}
+                                        height={20}
+                                      />
+                                    ) : (
+                                      <Image
+                                        src="/img/Discord-Logo-Black.svg"
+                                        width={20}
+                                        height={20}
+                                      />
+                                    )}
+                                  </div>
+                                  Made with 💖
+                                </Badge>
+                              </div>
+                            </Group>
+                          </Container>
 
+                          {/* </UnstyledButton> */}
+                        </Footer>
+                    )}
                     >
-                      {/* <Paper> */}
-                      <Title order={3}>
-                        Attacks
-                        {width}
-                      </Title>
-                      <Space h={3} />
+                      <Paper
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          // maxWidth: width > NARROW_WIDTH ? '35vw' : '100vw',
+                          // eslint-disable-next-line no-nested-ternary
+                          display: playerInfoDisplay,
+                        }}
+                      // p={0}
+                        p="sm"
+                        radius={0}
+                      >
+                        {/* <Paper> */}
+                        <Title order={3}>
+                          Attacks
+                        </Title>
+                        <Space h={3} />
 
-                      {Object.entries(initialPlayerList).length
+                        {Object.entries(initialPlayerList).length
                         && Object.entries(playerList).map(([index, player]) => (
                           <PlayerContext.Provider value={player} key={index}>
                             <MemoPlayerCard key={index} target={target} />
                           </PlayerContext.Provider>
                         ))}
-                    </Paper>
-                  </AppShell>
-                </SelectedPlayerContext.Provider>
-              </DispatchPlayerList.Provider>
-            </InitialPlayerListContext.Provider>
+                        <Button onClick={() => { dispatchPlayerList({ field: 'NEW_PLAYER' }); }}>
+                          New Player
+                        </Button>
+                      </Paper>
+                    </AppShell>
+                  </SelectedPlayerContext.Provider>
+                </DispatchPlayerList.Provider>
+              </InitialPlayerListContext.Provider>
+            </DamageDetailsContext.Provider>
           </DamageDataContext.Provider>
         </MantineProvider>
       </ColorSchemeProvider>

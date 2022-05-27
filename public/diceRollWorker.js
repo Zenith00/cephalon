@@ -1,15 +1,15 @@
-import { DiceRoller } from "dice-roller-parser";
+import { DiceRoller } from 'dice-roller-parser';
 
 const roller = new DiceRoller();
 const SIMS = 1000;
 
-let mean = (arr) => arr.reduce((a, b) => a + b) / arr.length;
+// const mean = (arr) => arr.reduce((a, b) => a + b) / arr.length;
 
-addEventListener("message", (event) => {
-  let { damage: dice } = event.data;
+window.addEventListener('message', (event) => {
+  const { damage: dice } = event.data;
 
   const rolls = [...Array(SIMS).keys()]
-    .map((x) => roller.rollValue(dice))
+    .map(() => roller.rollValue(dice))
     .reduce((acc, curr) => acc.set(curr, (acc.get(curr) || 0) + 1), new Map());
 
   postMessage([

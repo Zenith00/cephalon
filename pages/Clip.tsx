@@ -1,33 +1,33 @@
-import React, { useEffect, useState } from "react";
-import { AppShell, Container, Header, Textarea, Title } from "@mantine/core";
+import React, { useEffect, useState } from 'react';
+import {
+  AppShell, Container, Header, Textarea, Title,
+} from '@mantine/core';
 
-const Clip = () => {
-  const [outText, setOutText] = useState("");
+function Clip() {
+  const [outText, setOutText] = useState('');
   const [disclaimer, setDisclaimer] = useState<boolean>(false);
 
   const pasteHandler = (e: React.ClipboardEvent) => {
-    navigator.clipboard.read().then((e) =>
-      e.forEach((clipItem) => {
-        if (clipItem.types.includes("text/html")) {
-          clipItem.getType("text/html").then((res) => {
-            res.text().then((pasteText) => {
-              let parser = new DOMParser();
-              let htmlDoc = parser.parseFromString(pasteText, "text/html");
-              let messages = htmlDoc.querySelectorAll(
-                ".messageContent-2t3eCI"
-              ) as NodeListOf<HTMLElement>;
-              let messageText = [...messages].map((m) => m.innerText);
-              setOutText(messageText.join("\n"));
-            });
+    navigator.clipboard.read().then((e) => e.forEach((clipItem) => {
+      if (clipItem.types.includes('text/html')) {
+        clipItem.getType('text/html').then((res) => {
+          res.text().then((pasteText) => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(pasteText, 'text/html');
+            const messages = htmlDoc.querySelectorAll(
+              '.messageContent-2t3eCI',
+            ) as NodeListOf<HTMLElement>;
+            const messageText = [...messages].map((m) => m.innerText);
+            setOutText(messageText.join('\n'));
           });
-        }
-      })
-    );
+        });
+      }
+    }));
   };
   useEffect(() => {
     if (
-      navigator.userAgent.toLowerCase().includes("mozilla") &&
-      !navigator.userAgent.toLowerCase().includes("chrom")
+      navigator.userAgent.toLowerCase().includes('mozilla')
+      && !navigator.userAgent.toLowerCase().includes('chrom')
     ) {
       setDisclaimer(true);
     }
@@ -36,11 +36,11 @@ const Clip = () => {
   return (
     <div>
       <AppShell
-        header={
+        header={(
           <Header height={40}>
             <Title order={2}>Discord Paste :)</Title>
           </Header>
-        }
+        )}
       >
         <Container>
           {disclaimer && (
@@ -50,23 +50,23 @@ const Clip = () => {
           )}
           <Textarea
             onPaste={pasteHandler}
-            p={"md"}
-            placeholder={"Paste here"}
+            p="md"
+            placeholder="Paste here"
             autosize
             minRows={3}
-            value={""}
-          ></Textarea>
+            value=""
+          />
           <Textarea
             value={outText}
-            p={"md"}
+            p="md"
             autosize
             minRows={5}
-            placeholder={"Output goes here"}
-          ></Textarea>
+            placeholder="Output goes here"
+          />
         </Container>
       </AppShell>
     </div>
   );
-};
+}
 
 export default Clip;

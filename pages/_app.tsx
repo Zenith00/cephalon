@@ -1,7 +1,8 @@
-import { AppProps } from "next/app";
-import Head from "next/head";
-import { MantineProvider } from "@mantine/core";
-import "../styles/styles.css";
+import { AppProps } from 'next/app';
+import Head from 'next/head';
+import { MantineProvider } from '@mantine/core';
+import '../styles/styles.css';
+
 export default function App(props: AppProps) {
   const { Component, pageProps } = props;
 
@@ -18,7 +19,7 @@ export default function App(props: AppProps) {
         withGlobalStyles
         withNormalizeCSS
         theme={{
-          colorScheme: "light",
+          colorScheme: 'light',
         }}
       >
         <Component {...pageProps} />

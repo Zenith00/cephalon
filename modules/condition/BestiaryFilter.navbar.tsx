@@ -1,4 +1,4 @@
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from 'react';
 import {
   Box,
   Button,
@@ -10,15 +10,15 @@ import {
   RangeSlider,
   ScrollArea,
   Title,
-} from "@mantine/core";
+} from '@mantine/core';
 import {
   CREATURE_TYPES,
   Datapack,
   Filters,
   SOURCES,
-} from "@pages/ConditionImmunities";
+} from '@pages/ConditionImmunities';
 
-const BestiaryFilterNavbar = ({
+function BestiaryFilterNavbar({
   hidden,
   setFilters,
   filters,
@@ -27,20 +27,24 @@ const BestiaryFilterNavbar = ({
   hidden: boolean;
   setFilters: Dispatch<SetStateAction<Filters>>;
   filters: Filters;
-  counts: Datapack["typeCounts"];
-}) => {
+  counts: Datapack['typeCounts'];
+}) {
   const [showTypeChips, setShowTypeChips] = useState(false);
   const [showSourceSelect, setShowSourceSelect] = useState(false);
   return (
     <Navbar
-      p={"xs"}
+      p="xs"
       width={{ sm: 200, md: 250, lg: 300 }}
       hidden={hidden}
-      hiddenBreakpoint={"sm"}
+      hiddenBreakpoint="sm"
     >
-      <Navbar.Section mt={"xs"} grow component={ScrollArea}>
+      <Navbar.Section mt="xs" grow component={ScrollArea}>
         <Title order={2}>Creature Filters</Title>
-        Showing a total of {counts.all} creatures.
+        Showing a total of
+        {' '}
+        {counts.all}
+        {' '}
+        creatures.
         <Title order={2}>CR</Title>
         <RangeSlider
           max={30}
@@ -50,13 +54,13 @@ const BestiaryFilterNavbar = ({
           onChange={(v) => setFilters({ ...filters, crInclude: v })}
           style={{ marginTop: 20, marginBottom: 5, marginRight: 10 }}
           marks={[
-            { value: 0, label: "0" },
-            { value: 10, label: "10" },
-            { value: 20, label: "20" },
-            { value: 30, label: "30" },
+            { value: 0, label: '0' },
+            { value: 10, label: '10' },
+            { value: 20, label: '20' },
+            { value: 30, label: '30' },
           ]}
         />
-        <Box pt={"md"} pb={"xs"}>
+        <Box pt="md" pb="xs">
           <Title order={2}>
             <Button onClick={() => setShowTypeChips(!showTypeChips)}>
               Creature Types
@@ -65,26 +69,28 @@ const BestiaryFilterNavbar = ({
         </Box>
         <Collapse in={showTypeChips}>
           <Chips
-            multiple={true}
+            multiple
             defaultValue={[...CREATURE_TYPES]}
-            direction={"column"}
+            direction="column"
             value={filters.creatureTypeInclude as any as string[]}
-            onChange={(v) =>
-              setFilters({
-                ...filters,
-                creatureTypeInclude:
+            onChange={(v) => setFilters({
+              ...filters,
+              creatureTypeInclude:
                   v as any as typeof filters.creatureTypeInclude,
-              })
-            }
+            })}
           >
             {CREATURE_TYPES.map((c) => (
               <Chip value={c} key={c}>
-                {c.charAt(0).toUpperCase() + c.substring(1)} ({counts[c]})
+                {c.charAt(0).toUpperCase() + c.substring(1)}
+                {' '}
+                (
+                {counts[c]}
+                )
               </Chip>
             ))}
           </Chips>
         </Collapse>
-        <Box pt={"md"}>
+        <Box pt="md">
           <Title order={2}>
             <Button onClick={() => setShowSourceSelect(!showSourceSelect)}>
               Sources
@@ -92,23 +98,22 @@ const BestiaryFilterNavbar = ({
           </Title>
         </Box>
         <Collapse in={showSourceSelect}>
-          <Box py={"md"}>
+          <Box py="md">
             <MultiSelect
               data={SOURCES as any as string[]}
               value={filters.sources as any as string[]}
-              onChange={(v) =>
-                setFilters({
-                  ...filters,
-                  sources: v as any as typeof filters.sources,
-                })
-              }
-            ></MultiSelect>
+              onChange={(v) => setFilters({
+                ...filters,
+                sources: v as any as typeof filters.sources,
+              })}
+            />
           </Box>
         </Collapse>
       </Navbar.Section>
-      x{" "}
+      x
+      {' '}
     </Navbar>
   );
-};
+}
 
 export default BestiaryFilterNavbar;

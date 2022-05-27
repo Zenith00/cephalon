@@ -1,8 +1,84 @@
 {
-  "extends": "next/core-web-vitals",
+  "extends": [
+    "airbnb",
+    "airbnb/hooks",
+    "plugin:@typescript-eslint/recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:import/typescript"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "project": "./tsconfig.json"
+  },
+  "plugins": [
+    "@typescript-eslint"
+  ],
   "rules": {
-    "semi": [2, "always"],
+    "semi": [
+      2,
+      "always"
+    ],
     "curly": "error",
-    "dot-notation": "error"
+    "dot-notation": "error",
+    "camelcase": "off",
+    "react/jsx-props-no-spreading": [
+      1,
+      {
+        "custom": "ignore"
+      }
+    ],
+    "max-len": [
+      "warn",
+      {
+        "code": 160
+      }
+    ],
+    "react/jsx-filename-extension": [
+      1,
+      {
+        "extensions": [
+          ".tsx",
+          ".ts"
+        ]
+      }
+    ],
+    "no-plusplus": "off",
+    "no-unused-vars": [
+      "warn",
+      {
+        "varsIgnorePattern": "_+"
+      }
+    ],
+    "import/extensions": [
+      "warn",
+      "always",
+      {
+        "tsx": "never",
+        "ts": "never"
+      }
+    ],
+    "@typescript-eslint/consistent-type-imports": [
+      "error",
+      {
+        "prefer": "type-imports"
+      }
+    ],
+    "@typescript-eslint/restrict-template-expressions": [
+      "error",
+      {
+        "allowBoolean": true
+      }
+    ]
+  },
+  "settings": {
+    "import/resolver": {
+      "typescript": {}
+    },
+    "caseSensitive": false
+  },
+  "env": {
+    "browser": true,
+    "node": true
   }
 }
+
