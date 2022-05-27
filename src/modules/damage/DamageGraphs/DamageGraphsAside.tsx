@@ -1,66 +1,10 @@
-import React, {
-  useContext, useEffect, useRef, useState,
-} from 'react';
-import {
-  AnimatedAxis,
-  AnimatedGrid,
-  AnimatedLineSeries,
-  buildChartTheme,
-  LineSeries,
-  XYChart,
-  lightTheme, Tooltip,
-} from '@visx/xychart';
-import {
-  Aside,
-  Title,
-  Text,
-  ThemeIcon,
-  ColorSwatch,
-  Button,
-  ActionIcon,
-} from '@mantine/core';
+import React, { useEffect, useState } from 'react';
+import { Aside } from '@mantine/core';
 import type { Target } from '@pages/Damage';
-import {
-  DamageDataContext,
-  SelectedPlayerContext,
-  SetModalContext,
-} from '@pages/Damage';
-import { useDebouncedCallback } from 'use-debounce';
-import queryString from 'query-string';
-import {
-  DiceRoll,
-  DiceRoller,
-  DiceRollResult,
-  InlineExpression,
-  MathExpression,
-  MathFunctionExpression,
-  ModGroupedRoll,
-  NumberType,
-  RollExpressionType,
-  RollOrExpression,
-  RootType,
-} from 'dice-roller-parser';
-import { Line, LinePath } from '@visx/shape';
-import { Scale, Legend } from '@visx/visx';
-import { schemeSet2, schemeTableau10 } from 'd3-scale-chromatic';
-import { scaleOrdinal } from '@visx/scale';
-import { LegendItem, LegendLabel, LegendOrdinal } from '@visx/legend';
-import { ScaleOrdinal } from 'd3-scale';
-import debounce from 'lodash.debounce';
-import {
-  convolve_pmfs_sum, make_pmf, PMF, boundProb,
-} from '@utils/math';
-import { AnyRoll } from 'dice-roller-parser/dist/parsedRollTypes';
-import { root } from 'postcss';
+import { DiceRoller } from 'dice-roller-parser';
 // import { useTooltipInPortal, Portal } from "@visx/tooltip";
-import { useViewportSize } from '@mantine/hooks';
-import * as ColorConvert from 'color-convert';
-import { ArrowsMaximize } from 'tabler-icons-react';
 import DamageGraphCharts from '@damage/DamageGraphs/DamageGraphCharts';
-import { NARROW_WIDTH } from '@damage/constants';
 import type { Player } from '@damage/types';
-import { AdvantageTypes, Damager } from '@damage/types';
-import styles from './DamageGraphsCharts.module.css';
 
 const data1 = [
   { x: '2020-01-01', y: 50 },

@@ -46,7 +46,9 @@
     "no-unused-vars": [
       "warn",
       {
-        "varsIgnorePattern": "_+"
+        "caughtErrorsIgnorePattern": "^_",
+        "destructuredArrayIgnorePattern": "^_",
+        "argsIgnorePattern": "^_"
       }
     ],
     "import/extensions": [
@@ -68,7 +70,15 @@
       {
         "allowBoolean": true
       }
-    ]
+    ],
+    "@typescript-eslint/no-empty-function": [
+      "warn",
+      {"allow": ["arrowFunctions"]}
+    ],
+    "react/function-component-definition": ["warn",
+      {
+       "namedComponents": "arrow-function"
+      }]
   },
   "settings": {
     "import/resolver": {

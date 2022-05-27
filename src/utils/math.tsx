@@ -1,14 +1,13 @@
 import type { critType } from '@/damage/DamagerCard/DamagerCard';
-import React from 'react';
-import { ADVANTAGE_TO_DICE } from '@damage/constants';
 import Fraction from 'fraction.js';
 
 export type PMF = Map<number, Fraction>;
 // export type PMF = Map<number, number>;
 
+export const zero_pmf = () => new Map([[0, new Fraction(1)]]) as PMF;
+
 export const boundProb = (x: Fraction, critRate: Fraction, failRate: Fraction) => {
   const NotFailRate = new Fraction(1).sub(failRate);
-  console.log({ NotFailRate });
   const lowerBounded = x.valueOf() < critRate.valueOf() ? critRate : x;
   return lowerBounded.valueOf() > NotFailRate.valueOf() ? NotFailRate : lowerBounded;
   // return upperBounded;
@@ -17,6 +16,7 @@ export const boundProb = (x: Fraction, critRate: Fraction, failRate: Fraction) =
 };
 
 export const printPMF = (pmf: PMF) => {
+  // eslint-disable-next-line no-console
   console.log(new Map([...pmf.entries()].map(([k, v]) => [k, v.valueOf().toFixed(6)])));
 };
 
@@ -35,12 +35,12 @@ export const make_pmf = (diceFace: number, advantage = 0) : PMF => {
   }
   const A = Math.abs(advantage) + 1;
   const x = [...Array(diceFace).keys()]
-    .map((x) => x + 1)
-    .map((x) => [x, new Fraction((x ** A - (x - 1) ** A), diceFace ** A)]);
+    .map((v) => v + 1)
+    .map((v) => [v, new Fraction((v ** A - (v - 1) ** A), diceFace ** A)] as [number, Fraction]);
 
   return new Map(
       [...x.map(([k, v]) => [advantage > 0 ? k : diceFace - k + 1, v])].sort(
-        ([kl, vl], [kr, vr]) => (kl < kr ? -1 : 1),
+        ([kl, _], [kr, __]) => (kl < kr ? -1 : 1),
       ) as [number, Fraction][],
   );
 };
@@ -84,40 +84,39 @@ export const make_pmf = (diceFace: number, advantage = 0) : PMF => {
 //   //   });
 // };
 
-export const convolve_pmfs_sum = (pmfX_: PMF, pmfY_: PMF, add: boolean) => {
-  const pmfX = new Map([...pmfX_.entries()].sort());
-  const pmfY = new Map([...pmfY_.entries()].sort());
-  // const jointProb = [...Array(Math.max(...pmfX.keys()))].map(
-  //   (xDex) => [...Array(Math.max(...pmfY.keys()))].map(
-  //     (yDex) => (pmfX.get(xDex) || 0) * (pmfY.get(yDex) || 0),
-  //   ),
-  // );
-  // console.log({ jointProb });
-  const jointProb = [...pmfX.entries()].map(([k, x]) => [...pmfY.entries()].map(([k, y]) => x.valueOf() * y.valueOf()));
-
-  const diagSign = add ? 1 : -1;
-
-  const xLowerBound = Math.min(...pmfX.keys());
-  const yLowerBound = add
-    ? Math.min(...pmfY.keys())
-    : -Math.max(...pmfY.keys());
-
-  const diagExtra = add ? 0 : pmfY.size - 1;
-  const bound = (x: number) => x + xLowerBound + yLowerBound;
-
-  return [...Array(pmfX.size + pmfY.size - 1).keys()].reduce(
-    (acc, diagDex) => acc.set(
-      bound(diagDex),
-      [...Array(pmfX.size + pmfY.size).keys()]
-        .map(
-          (i) => (jointProb[diagDex - diagExtra - diagSign * i] ?? [])[i] ?? 0,
-        )
-        .reduce((l, r) => l + r),
-    ),
-    new Map(),
-  );
-  // return diag_sum(matrix);
-};
+// export const convolve_pmfs_sum = (pmfX_: PMF, pmfY_: PMF, add: boolean) => {
+//   const pmfX = new Map([...pmfX_.entries()].sort());
+//   const pmfY = new Map([...pmfY_.entries()].sort());
+//   // const jointProb = [...Array(Math.max(...pmfX.keys()))].map(
+//   //   (xDex) => [...Array(Math.max(...pmfY.keys()))].map(
+//   //     (yDex) => (pmfX.get(xDex) || 0) * (pmfY.get(yDex) || 0),
+//   //   ),
+//   // );
+//   // console.log({ jointProb });
+//   const jointProb = [...pmfX.entries()].map(([_, x]) => [...pmfY.entries()].map(([__, y]) => x.valueOf() * y.valueOf()));
+//
+//   const diagSign = add ? 1 : -1;
+//
+//   const xLowerBound = Math.min(...pmfX.keys());
+//   const yLowerBound = add
+//     ? Math.min(...pmfY.keys())
+//     : -Math.max(...pmfY.keys());
+//
+//   const diagExtra = add ? 0 : pmfY.size - 1;
+//   const bound = (x: number) => x + xLowerBound + yLowerBound;
+//
+//   return [...Array(pmfX.size + pmfY.size - 1).keys()].reduce(
+//     (acc, diagDex) => acc.set(
+//       bound(diagDex),
+//       [...Array(pmfX.size + pmfY.size).keys()]
+//         .map(
+//           (i) => (jointProb[diagDex - diagExtra - diagSign * i] ?? [])[i] ?? 0,
+//         )
+//         .reduce((l, r) => l + r),
+//     ),
+//     new Map(),
+//   );
+// };
 
 export const convolve_pmfs_sum_2 = (pmfX_: PMF, pmfY_: PMF, add: boolean) => {
   const pmfX = new Map([...pmfX_.entries()].sort());
@@ -129,17 +128,8 @@ export const convolve_pmfs_sum_2 = (pmfX_: PMF, pmfY_: PMF, add: boolean) => {
       (yDex) => (pmfX.get(xDex) || new Fraction(0)).mul(pmfY.get(yDex) || new Fraction(0)),
     ),
   );
-  // console.log({ jointProb });
-  // const jointProb = [...pmfX.entries()].map(([k, x]) => [...pmfY.entries()].map(([k, y]) => x.valueOf() * y.valueOf()));
 
   const diagSign = add ? 1 : -1;
-
-  // console.log({ pmfX });
-  // console.log({ pmfY });
-  const xLowerBound = Math.min(...[...pmfX.keys()].sort((a, b) => a - b).slice(1));
-  const yLowerBound = add
-    ? Math.min(...pmfY.keys())
-    : -Math.max(...pmfY.keys());
 
   const diagExtra = add ? 0 : pmfYMax - 1;
   const bound = (x: number) => x;
@@ -154,7 +144,6 @@ export const convolve_pmfs_sum_2 = (pmfX_: PMF, pmfY_: PMF, add: boolean) => {
     ),
     new Map(),
   ) as PMF;
-  // return diag_sum(matrix);
 };
 export const convolve_pmfs_prod = (pmfX_: PMF, pmfY_: PMF) => {
   const pmfX = new Map([...pmfX_.entries()].sort());
@@ -188,7 +177,7 @@ export const diceToPMFs = (dice: string) : PMF[] => {
   return [new Map([[Number(count), new Fraction(1)]])];
 };
 
-console.log(diceToPMFs('2'));
+// console.log(diceToPMFs('2'));
 
 export const d20ToCritrate = (dice: string, critThreshold: number) : Fraction => {
   // console.log({ dice });
@@ -201,6 +190,8 @@ export const d20ToCritrate = (dice: string, critThreshold: number) : Fraction =>
         return new Fraction(1).sub(new Fraction((critThreshold - 1), 20)).pow(count);
       case 'kl':
         return new Fraction((new Fraction(21).sub(new Fraction(critThreshold))), 20).pow(count);
+      default:
+        break;
     }
   }
   return new Fraction(1, 20);
@@ -217,12 +208,14 @@ export const d20ToFailRate = (dice: string) => {
         return d20ToCritrate(`${dice.slice(0, -2)}kh`, 20);
       case 'kh':
         return d20ToCritrate(`${dice.slice(0, -2)}kl`, 20);
+      default:
+        break;
     }
   }
   return new Fraction(1 / 20);
 };
 
-export const isSimpleProcessable = (damage: string) => Boolean(new RegExp(/^[\dd+\-khl]+$/).test(damage.replaceAll(/\s/g, '')));
+export const isSimpleProcessable = (damage: string) => Boolean(/^[\dd+\-khl]+$/.test(damage.replaceAll(/\s/g, '')));
 
 export const simpleProcess = (
   damage: string,
@@ -297,7 +290,7 @@ export const simpleProcess = (
 //   [...pmfX.keys(), ...pmfY.keys()].map((key) => [key, (pmfX.get(key) || 0) + (pmfY.get(key) || 0)]),
 // );
 
-export const multiply_pmf = (pmf: PMF, constant: number) => new Map([...pmf.entries()].map(([k, v]) => [k, v * constant]));
+// export const multiply_pmf = (pmf: PMF, constant: number) => new Map([...pmf.entries()].map(([k, v]) => [k, v * constant]));
 
 export const weighted_mean_pmf = (pmf: PMF) => [...pmf.entries()].reduce(
   (acc, [d, p]) => (acc.add(new Fraction(d).mul(p))),
@@ -402,4 +395,4 @@ const v = convolve_pmfs_sum_2(
   true,
 );
 
-console.log([...v.entries()].sort(([aK, _], [bK, __]) => aK - bK).map(([k, v]) => [k, v.valueOf()]));
+// console.log([...v.entries()].sort(([aK, _], [bK, __]) => aK - bK).map(([k, v]) => [k, v.valueOf()]));

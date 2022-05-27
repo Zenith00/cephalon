@@ -10,7 +10,7 @@ import {
 
 import type { Target } from '@pages/Damage';
 
-function Target({
+function TargetNavbar({
   target,
   setTarget,
 }: {
@@ -41,4 +41,4 @@ function Target({
   );
 }
 
-export default Target;
+export default TargetNavbar;

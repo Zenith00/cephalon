@@ -1,6 +1,6 @@
 import type { DamageData, DamageDetails } from '@pages/Damage';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import type { PMF } from '@utils/math';
 import {
   boundProb,

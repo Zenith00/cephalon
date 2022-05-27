@@ -1,10 +1,7 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect } from 'react';
 import { LegendItem, LegendLabel, LegendOrdinal } from '@visx/legend';
 import {
-  ActionIcon,
-  ColorSwatch,
-  Text,
-  useMantineColorScheme,
+  ActionIcon, ColorSwatch, Text, useMantineColorScheme,
 } from '@mantine/core';
 import { ArrowsMaximize, ArrowsMinimize } from 'tabler-icons-react';
 import {
@@ -17,18 +14,15 @@ import {
   XYChart,
 } from '@visx/xychart';
 import styles from '@damage/DamageGraphs/DamageGraphsCharts.module.css';
-import { useToggle, useViewportSize } from '@mantine/hooks';
+import { useViewportSize } from '@mantine/hooks';
 import type { Target } from '@pages/Damage';
-import {
-  DamageDataContext,
-  SelectedPlayerContext,
-} from '@pages/Damage';
 import { scaleOrdinal } from '@visx/scale';
 import { schemeSet2, schemeTableau10 } from 'd3-scale-chromatic';
 import * as ColorConvert from 'color-convert';
 import { NARROW_WIDTH } from '@damage/constants';
 import type { AdvantageType, Player } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
+import { DamageDataContext, SelectedPlayerContext } from '@damage/contexts';
 
 const s = (l: number[]) => l.reduce((a, b) => a + b, 0);
 const accessors = {
@@ -36,7 +30,7 @@ const accessors = {
   yAccessor: (d: any) => d.y,
 };
 
-function DamageGraphsChart({
+const DamageGraphsChart = ({
   target,
   player,
   hidden,
@@ -48,7 +42,7 @@ function DamageGraphsChart({
   hidden: boolean;
   graphWidth: string;
   setGraphWidth: React.Dispatch<React.SetStateAction<string>>;
-}) {
+}) => {
   // const [dataSets, setDataSets] = useState<{
   //   [key: keyof Player['damagers']]: { x: number; y: number }[];
   // }>([]);
@@ -61,7 +55,7 @@ function DamageGraphsChart({
   // const [widthNarrow, toggleWidthNarrow] = useToggle('0%', ['0%', '100%']);
   // const [state, setState] = useState(initState);
   const { colorScheme } = useMantineColorScheme();
-  const dark = colorScheme === 'dark';
+  const darkTheme = colorScheme === 'dark';
 
   useEffect(() => {
     if (width <= NARROW_WIDTH) {
@@ -208,11 +202,11 @@ function DamageGraphsChart({
   });
 
   const STROKE_DASH_OFFSET: Record<AdvantageType, string> = {
-    superadvantage: '20 5',
-    advantage: '10 7',
+    superadvantage: '22 5',
+    advantage: '11 7',
     normal: '0 0',
-    disadvantage: '1 10',
-    superdisadvantage: '1 2 ',
+    disadvantage: '3 7',
+    superdisadvantage: '1 15',
   };
 
   return (
@@ -286,12 +280,12 @@ function DamageGraphsChart({
           numTicks={width > 1100 ? 30 : 15}
           tickLength={5}
           // tickLineProps={{ width: 20, style: { strokeWidth: 10 } }}
-          tickStroke={dark ? 'white' : 'black'}
+          tickStroke={darkTheme ? 'white' : 'black'}
           tickLabelProps={() => ({
-            fill: dark ? 'white' : 'black',
+            fill: darkTheme ? 'white' : 'black',
           })}
           tickTransform="translate(0,-1)"
-          labelProps={{ fill: dark ? 'white' : 'black' }}
+          labelProps={{ fill: darkTheme ? 'white' : 'black' }}
           labelOffset={20}
         />
         <AnimatedAxis
@@ -299,11 +293,11 @@ function DamageGraphsChart({
           label="Average Damage"
           hideTicks={false}
           hideZero={false}
-          tickStroke={dark ? 'white' : 'black'}
+          tickStroke={darkTheme ? 'white' : 'black'}
           tickLabelProps={() => ({
-            fill: dark ? 'white' : 'black',
+            fill: darkTheme ? 'white' : 'black',
           })}
-          labelProps={{ fill: dark ? 'white' : 'black' }}
+          labelProps={{ fill: darkTheme ? 'white' : 'black' }}
           labelOffset={35}
         />
 
@@ -403,5 +397,5 @@ function DamageGraphsChart({
       </XYChart>
     </div>
   );
-}
+};
 export default DamageGraphsChart;

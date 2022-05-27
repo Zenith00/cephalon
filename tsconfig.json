@@ -16,12 +16,12 @@
     "incremental": true,
     "downlevelIteration": true,
     "paths": {
-      "@*": ["modules/*"],
-      "@utils/*": ["utils/*"],
-      "@pages/*": ["pages/*"],
+      "@*": ["src/modules/*"],
+      "@utils/*": ["src/utils/*"],
+      "@pages/*": ["src/pages/*"],
     },
     "baseUrl": "."
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", "..."],
-  "exclude": ["node_modules"]
+  "include": ["next-env.d.ts", "src"],
+  "exclude": ["**/node_modules", "**/.*/"]
 }

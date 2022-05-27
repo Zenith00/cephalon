@@ -18,7 +18,7 @@ export const AdvantageTypes = [
 // type Key<T> = T
 export type DamagerKey = Flavor<number, 'DamagerKey'>;
 export type PlayerKey = Flavor<number, 'PlayerKey'>;
-
+export type AC = Flavor<number, 'AC'>
 export class Damager {
   damage: string;
 
@@ -42,16 +42,16 @@ export class Damager {
 
   key: DamagerKey;
 
-  special: { 'pam': boolean, 'gwm': boolean };
+  damagerType: 'regular' | 'pam' | 'pam+gwm';
 
   constructor(
-    key: DamagerKey,
-    damage?: string,
-    count?: number,
-    name?: string,
-    modifierOptions?: SelectItem[],
-    modifiers?: string[],
-    special?: { 'pam': boolean, 'gwm': boolean },
+    key: Damager['key'],
+    damage?: Damager['damage'],
+    count?: Damager['count'],
+    name?: Damager['name'],
+    modifierOptions?: Damager['modifierOptions'],
+    modifiers?: Damager['modifiers'],
+    damagerType? : Damager['damagerType'],
   ) {
     this.damage = damage ?? '';
     this.advantageShow = new Map([['normal', true]]);
@@ -64,7 +64,7 @@ export class Damager {
     this.modifierOptions = (defaultModifierOptions as SelectItem[]).concat(
       ...(modifierOptions || []),
     );
-    this.special = special || { pam: false, gwm: false };
+    this.damagerType = damagerType || 'regular';
 
     this.modifierRaws = modifiers ?? [];
   }
