@@ -17,7 +17,7 @@ export const boundProb = (x: Fraction, critRate: Fraction, failRate: Fraction) =
 
 export const printPMF = (pmf: PMF) => {
   // eslint-disable-next-line no-console
-  console.log(new Map([...pmf.entries()].map(([k, v]) => [k, v.valueOf().toFixed(6)])));
+  console.log(new Map([...pmf.entries()].sort(([kl, _vl], [kr, _vr]) => kl - kr).map(([k, v]) => [k, v.valueOf().toFixed(6)])));
 };
 
 export const cumSum = (pmf: PMF) => {
@@ -158,6 +158,14 @@ export const convolve_pmfs_prod = (pmfX_: PMF, pmfY_: PMF) => {
   }));
   return pmf;
 };
+
+export const one_or_other_pmfs = (pmfX: PMF, pmfY: PMF, pX: Fraction, pY: Fraction) => {
+  const pmf = new Map<number, Fraction>() as PMF;
+  const keySet = new Set<number>([...pmfX.keys(), ...pmfY.keys()]);
+  [...keySet].forEach((k) => pmf.set(k, (pmfX.get(k) || new Fraction(0)).mul(pX).add((pmfY.get(k) || new Fraction(0)).mul(pY))));
+
+  return pmf;
+};
 const pmfMax = (pmf1: PMF, pmf2: PMF) => {
   const pmfResult = new Map<number, Fraction>() as PMF;
 };
@@ -215,7 +223,7 @@ export const d20ToFailRate = (dice: string) => {
   return new Fraction(1 / 20);
 };
 
-export const isSimpleProcessable = (damage: string) => Boolean(/^[\dd+\-khl]+$/.test(damage.replaceAll(/\s/g, '')));
+export const isSimpleProcessable = (damage: string) => Boolean(/^[\dd+\-khl(mod)]+$/.test(damage.replaceAll(/\s/g, '')));
 
 export const simpleProcess = (
   damage: string,
