@@ -201,12 +201,12 @@ const DamagerCard = ({
               <Button
                 color="blue"
                 onClick={() => setShowDamagerSpecial(!showDamagerSpecial)}
-                ml="sm"
                 mr="sm"
-                mt={27}
+                mt="sm"
+                compact
                 variant="outline"
               >
-                Special
+                Feats & Special
               </Button>
             )}
           >
