@@ -1,16 +1,18 @@
 import React, { useContext, useEffect, useState } from 'react';
 import type { SelectItem } from '@mantine/core';
 import {
+  Popover,
   Box, Button, MultiSelect, Paper, Switch, Text, Tooltip, useMantineColorScheme,
 } from '@mantine/core';
 import { useToggle } from '@mantine/hooks';
 import { Copy, InfoCircle, Trash } from 'tabler-icons-react';
 import { useDebouncedCallback } from 'use-debounce';
 import type { Target } from '@pages/Damage';
-import type { AdvantageType, Damager } from '@damage/types';
+import type { AdvantageType, Damager, PlayerKey } from '@damage/types';
 import DamagerTable from '@damage/DamagerCard/DamagerTable';
-import RegularDamageInfo from '@damage/DamagerCard/RegularDamageInfo';
+import RegularDamageInfo from '@damage/DamagerCard/DamageInfo/RegularDamageInfo';
 import { DamageDataContext, DamageDetailsContext, DispatchPlayerListContext } from '@damage/contexts';
+import PowerAttackDamageInfo from '@damage/DamagerCard/DamageInfo/PowerAttackDamageInfo';
 
 // console.log({ DamagerTable });
 export type critType = 'none' | 'normal' | 'maximized';
@@ -22,18 +24,11 @@ const DamagerCard = ({
 }: {
   target: Target;
   damager: Damager;
-  playerKey: number;
+  playerKey: PlayerKey;
 }) => {
   // const [value, toggle] = useToggle('Attack', ['Attack', 'Save']);
   const { colorScheme } = useMantineColorScheme();
   const darkTheme = colorScheme === 'dark';
-  const [atkModId, setAtkModId] = useState(3);
-
-  const getAtkModID = () => {
-    const i = atkModId;
-    setAtkModId(i + 1);
-    return (i + 1).toString();
-  };
 
   const dispatchPlayerList = useContext(DispatchPlayerListContext)!;
   const damageContext = useContext(DamageDataContext)!;
@@ -41,7 +36,6 @@ const DamagerCard = ({
   // const initialPlayerList = useContext(InitialPlayerListContext)!;
 
   // region [[Form Meta]]
-  const [settingsPopover, setSettingsPopover] = useState(false);
   const [attackModPlaceholder, setAttackModPlaceholder] = useState('');
   const [attackModError, setAttackModError] = useState(false);
   // endregion
@@ -98,13 +92,14 @@ const DamagerCard = ({
   };
 
   const [disabled, toggleDisabled] = useToggle(false, [true, false]);
-  // endregion
+  const [factorPAM, toggleFactorPAM] = useToggle(false, [true, false]);
+  const [factorGWM, toggleFactorGWM] = useToggle(false, [true, false]);
+  const [powerAttack, togglePowerAttack] = useToggle(false, [true, false]);
+  const [powerAttackOptimalOnly, togglePowerAttackOptimalOnly] = useToggle(true, [true, false]);
 
-  const [showSpecialPopover, setShowSpecialPopover] = useState(false);
-  const [specialGWM, setSpecialGWM] = useState(false);
-  const [specialPAM, setSpecialPAM] = useState(false);
-  // const [specialGWM, toggleSpecialGWM] = useToggle(false, [true, false]);
-  // const [specialPAM, toggleSpecialPAM] = useToggle(false, [true, false]);
+  const [showDamagerSpecial, setShowDamagerSpecial] = useState(false);
+
+  // endregion
 
   const modRegex = /^[^\-[]*\[?(([+-]?((\d+d)?\d+))]?)$/;
 
@@ -121,6 +116,7 @@ const DamagerCard = ({
       newDamager: {
         ...damager,
         name: damagerName,
+        damagerType: powerAttack ? 'powerAttack' : 'regular',
         damage: damagerDamage,
         count: damagerCount,
         modifiers: attackModParsed,
@@ -134,17 +130,23 @@ const DamagerCard = ({
           ['disadvantage', showDisadvantage],
           ['superdisadvantage', showSuperDisadvantage],
         ]),
+        flags: {
+          gwm: factorGWM, pam: factorPAM, powerAttackOptimalOnly,
+        },
       },
     });
-    // eslint-disable-next-line max-len
+    // eslint-disable-next-line max-len,react-hooks/exhaustive-deps
   }, [damagerDamage, damagerName, damagerCount,
     showSuperAdvantage, showAdvantage, showDisadvantage, showNeutral, showSuperDisadvantage,
     attackModParsed, attackModSelected, attackModOptions,
+    powerAttack,
+    factorGWM, factorPAM,
     disabled, playerKey]);
 
   useEffect(() => {
     setAttackModParsed(
       attackModSelected.map(
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         (modV) => attackModOptions
           .find((option) => option.value === modV)!
           .label!.match(modRegex)![2],
@@ -153,51 +155,9 @@ const DamagerCard = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [attackModSelected]);
 
-  const onUpdateAttackMods = (
-    newAttackModRawVals: string[],
-    overrideAttackOptions?: SelectItem[],
-  ) => {
-    const originalAttackOptions = overrideAttackOptions || attackModOptions;
-    let newAttackOptions = [...originalAttackOptions];
-
-    const newAttackModIDs = newAttackModRawVals
-      .map((mod) => {
-        if (!mod.match(modRegex)) {
-          return undefined;
-        }
-        if (originalAttackOptions.map((x) => x.value).includes(mod)) {
-          return mod;
-        }
-        const newId = getAtkModID();
-        const newOption = {
-          label: mod,
-          value: newId,
-        };
-        newAttackOptions = [...originalAttackOptions, newOption];
-        return newId;
-      })
-      .filter((x) => x) as string[];
-
-    const seenLabels = new Set();
-    const attackModOptionsDeduped = newAttackOptions.filter((v) => {
-      if (newAttackModIDs.includes(v.value)) {
-        return true;
-      }
-      if (!seenLabels.has(v.label)) {
-        seenLabels.add(v.label);
-        return true;
-      }
-      return false;
-    });
-
-    setAttackModOptions(
-      attackModOptionsDeduped.sort((a, b) => a.label!.localeCompare(b.label!)),
-    );
-    setAttackModSelected(newAttackModIDs);
-  };
-
   const DamageInfoComponent = ({
     regular: RegularDamageInfo,
+    powerAttack: PowerAttackDamageInfo,
   } as Record<Damager['damagerType'], typeof RegularDamageInfo>)[damager.damagerType];
 
   return (
@@ -205,48 +165,25 @@ const DamagerCard = ({
     <Paper shadow="xs" p="xs" mt="xs" pt="0" pb="1" withBorder style={{ borderLeftColor: darkTheme ? 'orange' : 'blue' }}>
       <Box mx="auto">
         <DamageInfoComponent {...{
-          damager, disabled, toggleDisabled, damagerName, setDamagerName, showAdvantageTypes, setShowAdvantageTypes, damagerDamage, setDamagerDamage, damagerCount, setDamagerCount,
+          damager,
+          disabled,
+          toggleDisabled,
+          damagerName,
+          setDamagerName,
+          showAdvantageTypes,
+          setShowAdvantageTypes,
+          damagerDamage,
+          setDamagerDamage,
+          damagerCount,
+          setDamagerCount,
+          attackModOptions,
+          setAttackModOptions,
+          modRegex,
+          attackModSelected,
+          setAttackModSelected,
         }}
         />
 
-        <MultiSelect
-          data={attackModOptions}
-          creatable
-          // ref={ref as MutableRefObject<HTMLInputElement>}
-          label={(
-            <div
-              style={{ display: 'flex', alignItems: 'center', height: '100%' }}
-            >
-              Attack Modifiers
-              <Tooltip
-                label="Examples: 1d4, +1d4, -1d4, CustomName [+1d4]"
-                pl={4}
-                mt={4}
-              >
-                <InfoCircle size={16} />
-              </Tooltip>
-            </div>
-          )}
-          error={attackModError}
-          searchable
-          clearable
-          getCreateLabel={(query) => (query.match(modRegex)
-            ? `+ Add ${query}`
-            : '+-1dX or Name [+-1dX]')}
-          placeholder={attackModPlaceholder}
-          onCreate={(query) => {
-            if (!query.match(modRegex)) {
-              setAttackModError(true);
-              setAttackModPlaceholder('Invalid Format');
-              setTimeout(() => {
-                setAttackModError(false);
-                setAttackModPlaceholder('');
-              }, 1500);
-            }
-          }}
-          onChange={onUpdateAttackMods}
-          value={attackModSelected}
-        />
         <div
           style={{
             display: 'flex',
@@ -254,8 +191,31 @@ const DamagerCard = ({
             gap: '10px',
           }}
         >
-          <Switch label="Disabled" pt="sm" checked={disabled} onChange={() => toggleDisabled()} />
-          <Switch label="Melee" pt="sm" checked={disabled} onChange={() => toggleDisabled()} />
+          {/* <Switch label="Disabled" pt="sm" checked={disabled} onChange={() => toggleDisabled()} /> */}
+          <Popover
+            opened={showDamagerSpecial}
+            onClose={() => setShowDamagerSpecial(false)}
+            position="right"
+            withArrow
+            target={(
+              <Button
+                color="blue"
+                onClick={() => setShowDamagerSpecial(!showDamagerSpecial)}
+                ml="sm"
+                mr="sm"
+                mt={27}
+                variant="outline"
+              >
+                Special
+              </Button>
+            )}
+          >
+            <Switch label="Factor PAM Bonus Action Attack Option" pt="sm" checked={factorPAM} onChange={() => toggleFactorPAM()} />
+            <Switch label="Factor GWM Bonus Action Attack Option" pt="sm" checked={factorGWM} onChange={() => toggleFactorGWM()} />
+            <Switch label="Sharpshooter/Great Weapon Master" pt="sm" checked={powerAttack} onChange={() => togglePowerAttack()} />
+            {powerAttack && <Switch label="Use SS/GWM only when optimal" pt="sm" checked={powerAttackOptimalOnly} onChange={() => togglePowerAttackOptimalOnly()} />}
+          </Popover>
+
         </div>
         <Text weight="bold" mt="sm">Expected Damage</Text>
         <DamagerTable

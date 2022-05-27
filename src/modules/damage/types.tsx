@@ -22,7 +22,7 @@ export type AC = Flavor<number, 'AC'>
 export class Damager {
   damage: string;
 
-  damageMean?: number;
+  damagerType: 'regular' | 'firstHit' | 'powerAttack';
 
   advantageShow: Map<AdvantageType, boolean>;
 
@@ -42,18 +42,20 @@ export class Damager {
 
   key: DamagerKey;
 
-  damagerType: 'regular' | 'pam' | 'pam+gwm';
+  flags: { 'pam':boolean, 'gwm':boolean, 'powerAttackOptimalOnly' : boolean};
 
   constructor(
     key: Damager['key'],
+    damagerType?: Damager['damagerType'],
     damage?: Damager['damage'],
     count?: Damager['count'],
     name?: Damager['name'],
     modifierOptions?: Damager['modifierOptions'],
     modifiers?: Damager['modifiers'],
-    damagerType? : Damager['damagerType'],
+    flags?: Damager['flags'],
   ) {
     this.damage = damage ?? '';
+    this.damagerType = damagerType || 'regular';
     this.advantageShow = new Map([['normal', true]]);
     this.modifiers = [];
     this.atkBase = '0';
@@ -64,7 +66,9 @@ export class Damager {
     this.modifierOptions = (defaultModifierOptions as SelectItem[]).concat(
       ...(modifierOptions || []),
     );
-    this.damagerType = damagerType || 'regular';
+    this.flags = flags || {
+      pam: false, gwm: false, powerAttackOptimalOnly: false,
+    };
 
     this.modifierRaws = modifiers ?? [];
   }
