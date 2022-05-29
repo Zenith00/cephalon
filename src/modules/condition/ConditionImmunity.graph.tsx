@@ -1,11 +1,12 @@
 import { HeatmapRect } from '@visx/heatmap';
-import React, { Dispatch, SetStateAction } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
+import React from 'react';
 import { scaleLinear } from '@visx/scale';
 import { interpolateGnBu } from 'd3-scale-chromatic';
 import { AxisBottom, AxisLeft } from '@visx/axis';
-import { Datapack } from '../../pages/ConditionImmunities';
+import type { Datapack } from '@pages/ConditionImmunities';
 
-function ConditionImmunityGraph({
+const ConditionImmunityGraph = ({
   width,
   height,
   datapack,
@@ -17,7 +18,7 @@ function ConditionImmunityGraph({
   datapack: Datapack;
   setSelection: Dispatch<SetStateAction<[number, number] | undefined>>;
   setListVisible: Dispatch<SetStateAction<boolean>>;
-}) {
+}) => {
   const margin = {
     top: 10, left: 80, right: 5, bottom: 160,
   };
@@ -129,6 +130,6 @@ function ConditionImmunityGraph({
       />
     </svg>
   );
-}
+};
 
 export default ConditionImmunityGraph;
