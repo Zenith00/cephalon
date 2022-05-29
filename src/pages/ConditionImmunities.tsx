@@ -1,120 +1,17 @@
 import Head from 'next/head';
-import Image from 'next/image';
 import { ParentSize } from '@visx/responsive';
 import {
-  AppShell,
-  Navbar,
-  Header,
-  Text,
-  Footer,
-  Burger,
-  MediaQuery,
-  Title,
+  AppShell, Burger, Footer, Header, MediaQuery, Title,
 } from '@mantine/core';
 import BestiaryFilterNavbar from '@condition/BestiaryFilter.navbar';
-import { useCallback, useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useViewportSize } from '@mantine/hooks';
 import { useDebouncedCallback } from 'use-debounce';
-import { StringifiableRecord } from 'query-string';
+import type { StringifiableRecord } from 'query-string';
+import queryString from 'query-string';
 import CreatureList from '@condition/CreatureList';
-import ConditionImmunityGraph from '../modules/condition/ConditionImmunity.graph';
-
-const queryString = require('query-string');
-
-export const CREATURE_TYPES = [
-  'aberration',
-  'beast',
-  'celestial',
-  'construct',
-  'dragon',
-  'elemental',
-  'fey',
-  'fiend',
-  'giant',
-  'humanoid',
-  'monstrosity',
-  'ooze',
-  'plant',
-  'undead',
-] as const;
-export const SOURCES = [
-  'AI',
-  'AitFR-ISF',
-  'AitFR-THP',
-  'AitFR-DN',
-  'AitFR-FCD',
-  'BGDIA',
-  'CM',
-  'CoS',
-  'DC',
-  'DIP',
-  'DMG',
-  'DoD',
-  'EGW',
-  'ERLW',
-  'ESK',
-  'FTD',
-  'GGR',
-  'GoS',
-  'HftT',
-  'HoL',
-  'HotDQ',
-  'IDRotF',
-  'IMR',
-  'KKW',
-  'LLK',
-  'LMoP',
-  'LR',
-  'MaBJoV',
-  'MFF',
-  'MM',
-  'MPMM',
-  'MOT',
-  'MTF',
-  'NRH-TCMC',
-  'NRH-AVitW',
-  'NRH-ASS',
-  'NRH-CoI',
-  'NRH-TLT',
-  'NRH-AWoL',
-  'NRH-AT',
-  'OotA',
-  'OoW',
-  'PSA',
-  'PSD',
-  'PSI',
-  'PSK',
-  'PSX',
-  'PSZ',
-  'PHB',
-  'PotA',
-  'RMBRE',
-  'RoT',
-  'RtG',
-  'SADS',
-  'SCC',
-  'SDW',
-  'SKT',
-  'SLW',
-  'TCE',
-  'TTP',
-  'TftYP',
-  'ToA',
-  'VGM',
-  'VRGR',
-  'XGE',
-  'UA2020SubclassesPt2',
-  'UA2020SubclassesPt5',
-  'UA2020SpellsAndMagicTattoos',
-  'UA2021DraconicOptions',
-  'UA2021MagesOfStrixhaven',
-  'UAArtificerRevisited',
-  'UAClassFeatureVariants',
-  'UAClericDruidWizard',
-  'WBtW',
-  'WDH',
-  'WDMM',
-] as const;
+import ConditionImmunityGraph from '@condition/ConditionImmunity.graph';
+import { CREATURE_TYPES, SOURCES } from '@condition/constants';
 
 export interface Filters extends StringifiableRecord {
   crInclude: [number, number];
@@ -125,12 +22,12 @@ export interface Filters extends StringifiableRecord {
 export interface Datapack {
   column_labels: string[];
   row_labels: string[];
-  data: any[];
+  data: { bins: any[] }[];
   typeCounts: { [key in typeof CREATURE_TYPES[number] | 'all']?: number };
   names: string[][][];
 }
 
-function ConditionImmunities() {
+const ConditionImmunities = () => {
   const [filterVisible, setFilterVisible] = useState(false);
   const [listVisible, setListVisible] = useState(false);
   const [filters, setFilters] = useState<Filters>({
@@ -146,7 +43,7 @@ function ConditionImmunities() {
     names: [[]],
   });
   const [selection, setSelection] = useState<[number, number]>();
-  const { height, width } = useViewportSize();
+  const viewPortWidth = useViewportSize().width;
   useEffect(() => () => {
     //
   }, [selection]);
@@ -163,13 +60,13 @@ function ConditionImmunities() {
     )
       .then((res) => res.json())
       .then((d) => {
-        setDatapack(d);
-      });
+        setDatapack(d as Datapack);
+      }).catch((e) => console.error(e));
   }, 500);
 
   useEffect(() => {
     debounced();
-  }, [filters]);
+  }, [debounced, filters]);
 
   return (
     <div>
@@ -215,7 +112,7 @@ function ConditionImmunities() {
                   mr="xl"
                 />
               </MediaQuery>
-              <Title style={{ fontSize: width > 768 ? '3vh' : '1.5vh' }}>
+              <Title style={{ fontSize: viewPortWidth > 768 ? '3vh' : '1.5vh' }}>
                 Condition Immunity by Creature Type
               </Title>
               <Burger
@@ -257,6 +154,6 @@ function ConditionImmunities() {
       </AppShell>
     </div>
   );
-}
+};
 
 export default ConditionImmunities;
