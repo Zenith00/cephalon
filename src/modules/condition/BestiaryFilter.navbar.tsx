@@ -1,4 +1,5 @@
-import React, { Dispatch, SetStateAction, useState } from 'react';
+import type { Dispatch, SetStateAction } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -11,14 +12,13 @@ import {
   ScrollArea,
   Title,
 } from '@mantine/core';
-import {
-  CREATURE_TYPES,
+import type {
   Datapack,
   Filters,
-  SOURCES,
 } from '@pages/ConditionImmunities';
+import { CREATURE_TYPES, SOURCES } from '@condition/constants';
 
-function BestiaryFilterNavbar({
+const BestiaryFilterNavbar = ({
   hidden,
   setFilters,
   filters,
@@ -28,7 +28,7 @@ function BestiaryFilterNavbar({
   setFilters: Dispatch<SetStateAction<Filters>>;
   filters: Filters;
   counts: Datapack['typeCounts'];
-}) {
+}) => {
   const [showTypeChips, setShowTypeChips] = useState(false);
   const [showSourceSelect, setShowSourceSelect] = useState(false);
   return (
@@ -114,6 +114,6 @@ function BestiaryFilterNavbar({
       {' '}
     </Navbar>
   );
-}
+};
 
 export default BestiaryFilterNavbar;
