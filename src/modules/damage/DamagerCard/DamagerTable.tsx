@@ -4,11 +4,12 @@ import { Popover, Table, Text } from '@mantine/core';
 import type { PMF } from '@utils/math';
 import type Fraction from 'fraction.js';
 import React from 'react';
+import type { SetState } from '@common';
 
 type damagerTableProps = {
   showAdvantageTypes: Record<AdvantageType, boolean>,
 showAdvantageTypesDetails: Record<AdvantageType, boolean>
-  setShowAdvantageTypesDetails: Record<AdvantageType, React.Dispatch<React.SetStateAction<boolean>>>
+  setShowAdvantageTypesDetails: Record<AdvantageType, SetState<boolean>>
   getDamageString: (_: AdvantageType) => string,
   getDamageDetailsPMF: (_: AdvantageType) => PMF | undefined
 }

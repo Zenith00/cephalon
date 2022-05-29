@@ -7,6 +7,7 @@ import type { Damager, AdvantageType } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
 import React, { useState } from 'react';
 import type { DamageInfoProps } from '@damage/DamagerCard/DamageInfo/types';
+import type { SetState } from '@common';
 
 const PowerAttackDamageInfo = ({
   damager,

@@ -1,18 +1,24 @@
 import React, { useContext, useEffect, useState } from 'react';
 import type { SelectItem } from '@mantine/core';
 import {
-  Popover,
-  Box, Button, MultiSelect, Paper, Switch, Text, Tooltip, useMantineColorScheme,
+  InputWrapper,
+  SegmentedControl,
+  Box, Button, Paper, Popover, Switch, Text, useMantineColorScheme,
 } from '@mantine/core';
 import { useToggle } from '@mantine/hooks';
-import { Copy, InfoCircle, Trash } from 'tabler-icons-react';
+import { Copy, Trash } from 'tabler-icons-react';
 import { useDebouncedCallback } from 'use-debounce';
 import type { Target } from '@pages/Damage';
-import type { AdvantageType, Damager, PlayerKey } from '@damage/types';
+import type {
+  AdvantageType, Damager, PlayerKey,
+} from '@damage/types';
 import DamagerTable from '@damage/DamagerCard/DamagerTable';
 import RegularDamageInfo from '@damage/DamagerCard/DamageInfo/RegularDamageInfo';
-import { DamageDataContext, DamageDetailsContext, DispatchPlayerListContext } from '@damage/contexts';
+import { DamageDataContext, DispatchPlayerListContext } from '@damage/contexts';
 import PowerAttackDamageInfo from '@damage/DamagerCard/DamageInfo/PowerAttackDamageInfo';
+import FirstHitDamageInfo from '@damage/DamagerCard/DamageInfo/FirstHitDamageInfo';
+import AdvantageSelect from '@damage/AdvantageSelect';
+import { AdvantageTypes } from '@damage/types';
 
 // console.log({ DamagerTable });
 export type critType = 'none' | 'normal' | 'maximized';
@@ -32,7 +38,7 @@ const DamagerCard = ({
 
   const dispatchPlayerList = useContext(DispatchPlayerListContext)!;
   const damageContext = useContext(DamageDataContext)!;
-  const damageDetailsContext = useContext(DamageDetailsContext)!;
+  // const damageDetailsContext = useContext(DamageDetailsContext)!;
   // const initialPlayerList = useContext(InitialPlayerListContext)!;
 
   // region [[Form Meta]]
@@ -52,50 +58,38 @@ const DamagerCard = ({
   const [damagerDamage, setDamagerDamage] = useState(damager.damage);
   const [damagerCount, setDamagerCount] = useState(damager.count);
 
-  const [showSuperAdvantage, setShowSuperAdvantage] = useState(false);
-  const [showAdvantage, setShowAdvantage] = useState(false);
-  const [showNeutral, setShowNeutral] = useState(true);
-  const [showDisadvantage, setShowDisadvantage] = useState(false);
-  const [showSuperDisadvantage, setShowSuperDisadvantage] = useState(false);
-  const showAdvantageTypes: Record<AdvantageType, boolean> = {
-    advantage: showAdvantage,
-    superadvantage: showSuperAdvantage,
-    normal: showNeutral,
-    disadvantage: showDisadvantage,
-    superdisadvantage: showSuperDisadvantage,
-  };
-  const [showSuperAdvantageDetails, setShowSuperAdvantageDetails] = useState(false);
-  const [showAdvantageDetails, setShowAdvantageDetails] = useState(false);
-  const [showNeutralDetails, setShowNeutralDetails] = useState(false);
-  const [showDisadvantageDetails, setShowDisadvantageDetails] = useState(false);
-  const [showSuperDisadvantageDetails, setShowSuperDisadvantageDetails] = useState(false);
-  const showAdvantageTypesDetails: Record<AdvantageType, boolean> = {
-    advantage: showSuperAdvantageDetails,
-    superadvantage: showAdvantageDetails,
-    normal: showNeutralDetails,
-    disadvantage: showDisadvantageDetails,
-    superdisadvantage: showSuperDisadvantageDetails,
-  };
-  const setShowAdvantageTypesDetails: Record<AdvantageType, React.Dispatch<React.SetStateAction<boolean>>> = {
-    advantage: setShowSuperAdvantageDetails,
-    superadvantage: setShowAdvantageDetails,
-    normal: setShowNeutralDetails,
-    disadvantage: setShowDisadvantageDetails,
-    superdisadvantage: setShowSuperDisadvantageDetails,
-  };
-  const setShowAdvantageTypes: Record<AdvantageType, React.Dispatch<React.SetStateAction<boolean>>> = {
-    advantage: setShowAdvantage,
-    superadvantage: setShowSuperAdvantage,
-    normal: setShowNeutral,
-    disadvantage: setShowDisadvantage,
-    superdisadvantage: setShowSuperDisadvantage,
-  };
+  // const [showSuperAdvantage, setShowSuperAdvantage] = useState(false);
+  // const [showAdvantage, setShowAdvantage] = useState(false);
+  // const [showNeutral, setShowNeutral] = useState(true);
+  // const [showDisadvantage, setShowDisadvantage] = useState(false);
+  // const [showSuperDisadvantage, setShowSuperDisadvantage] = useState(false);
+  // const showAdvantageTypes: Record<AdvantageType, boolean> = {
+  //   advantage: showAdvantage,
+  //   superadvantage: showSuperAdvantage,
+  //   normal: showNeutral,
+  //   disadvantage: showDisadvantage,
+  //   superdisadvantage: showSuperDisadvantage,
+  // };
+  // const setShowAdvantageTypes: Record<AdvantageType, SetState<boolean>> = {
+  //   advantage: setShowAdvantage,
+  //   superadvantage: setShowSuperAdvantage,
+  //   normal: setShowNeutral,
+  //   disadvantage: setShowDisadvantage,
+  //   superdisadvantage: setShowSuperDisadvantage,
+  // };
+
+  const [showAdvantageTypes, setShowAdvantageTypes] = AdvantageSelect();
+  const [showAdvantageTypeDetails, setShowAdvantageTypeDetails] = AdvantageSelect(false);
 
   const [disabled, toggleDisabled] = useToggle(false, [true, false]);
-  const [factorPAM, toggleFactorPAM] = useToggle(false, [true, false]);
-  const [factorGWM, toggleFactorGWM] = useToggle(false, [true, false]);
-  const [powerAttack, togglePowerAttack] = useToggle(false, [true, false]);
-  const [powerAttackOptimalOnly, togglePowerAttackOptimalOnly] = useToggle(true, [true, false]);
+  const [factorPAM, toggleFactorPAM] = useToggle(damager.flags.pam, [true, false]);
+  const [factorGWM, toggleFactorGWM] = useToggle(damager.flags.gwm, [true, false]);
+  const [triggersFirstHit, setTriggersFirstHit] = useState(damager.flags.triggersFirstHit);
+
+  // const [powerAttack, togglePowerAttack] = useToggle(damager.damagerType === 'powerAttack', [true, false]);
+  const [powerAttackOptimalOnly, togglePowerAttackOptimalOnly] = useToggle(damager.flags.powerAttackOptimalOnly, [true, false]);
+
+  const [attackType, setAttackType] = useState<Damager['damagerType']>('regular');
 
   const [showDamagerSpecial, setShowDamagerSpecial] = useState(false);
 
@@ -116,30 +110,24 @@ const DamagerCard = ({
       newDamager: {
         ...damager,
         name: damagerName,
-        damagerType: powerAttack ? 'powerAttack' : 'regular',
+        damagerType: attackType,
         damage: damagerDamage,
         count: damagerCount,
         modifiers: attackModParsed,
         modifierOptions: attackModOptions,
         modifierRaws: attackModSelected,
         disabled,
-        advantageShow: new Map([
-          ['superadvantage', showSuperAdvantage],
-          ['advantage', showAdvantage],
-          ['normal', showNeutral],
-          ['disadvantage', showDisadvantage],
-          ['superdisadvantage', showSuperDisadvantage],
-        ]),
+        advantageShow: new Map(AdvantageTypes.map((advType) => [advType, showAdvantageTypes[advType]])),
         flags: {
-          gwm: factorGWM, pam: factorPAM, powerAttackOptimalOnly,
+          gwm: factorGWM, pam: factorPAM, powerAttackOptimalOnly, triggersFirstHit,
         },
       },
     });
     // eslint-disable-next-line max-len,react-hooks/exhaustive-deps
   }, [damagerDamage, damagerName, damagerCount,
-    showSuperAdvantage, showAdvantage, showDisadvantage, showNeutral, showSuperDisadvantage,
+    showAdvantageTypes,
     attackModParsed, attackModSelected, attackModOptions,
-    powerAttack,
+    attackType, powerAttackOptimalOnly, triggersFirstHit,
     factorGWM, factorPAM,
     disabled, playerKey]);
 
@@ -158,6 +146,7 @@ const DamagerCard = ({
   const DamageInfoComponent = ({
     regular: RegularDamageInfo,
     powerAttack: PowerAttackDamageInfo,
+    firstHit: FirstHitDamageInfo,
   } as Record<Damager['damagerType'], typeof RegularDamageInfo>)[damager.damagerType];
 
   return (
@@ -183,7 +172,20 @@ const DamagerCard = ({
           setAttackModSelected,
         }}
         />
-
+        <InputWrapper label="Attack Type">
+          <div>
+            <SegmentedControl
+              data={[{ label: 'Normal', value: 'regular' }, { label: 'SS/GWM', value: 'powerAttack' }, { label: 'First Hit', value: 'firstHit' }]}
+              value={attackType}
+              onChange={(e: Damager['damagerType']) => {
+                if (e === 'firstHit') {
+                  setTriggersFirstHit(false);
+                }
+                setAttackType(e);
+              }}
+            />
+          </div>
+        </InputWrapper>
         <div
           style={{
             display: 'flex',
@@ -210,21 +212,21 @@ const DamagerCard = ({
               </Button>
             )}
           >
-            <Switch label="Factor PAM Bonus Action Attack Option" pt="sm" checked={factorPAM} onChange={() => toggleFactorPAM()} />
-            <Switch label="Factor GWM Bonus Action Attack Option" pt="sm" checked={factorGWM} onChange={() => toggleFactorGWM()} />
-            <Switch label="Sharpshooter/Great Weapon Master" pt="sm" checked={powerAttack} onChange={() => togglePowerAttack()} />
-            {powerAttack && <Switch label="Use SS/GWM only when optimal" pt="sm" checked={powerAttackOptimalOnly} onChange={() => togglePowerAttackOptimalOnly()} />}
+            <Switch label="Triggers PAM Bonus Action Attack Option" pt="sm" checked={factorPAM} onChange={() => toggleFactorPAM()} />
+            <Switch label="Triggers GWM Bonus Action Attack Option" pt="sm" checked={factorGWM} onChange={() => toggleFactorGWM()} />
+            <Switch label="Triggers First Hit effects" pt="sm" checked={triggersFirstHit} onChange={(e) => setTriggersFirstHit(e.currentTarget.checked)} />
+            {/* <Switch label="Sharpshooter/Great Weapon Master" pt="sm" checked={powerAttack} onChange={() => togglePowerAttack()} /> */}
+            {attackType === 'powerAttack' && <Switch label="Use SS/GWM only when optimal" pt="sm" checked={powerAttackOptimalOnly} onChange={() => togglePowerAttackOptimalOnly()} />}
           </Popover>
 
         </div>
         <Text weight="bold" mt="sm">Expected Damage</Text>
         <DamagerTable
           showAdvantageTypes={showAdvantageTypes}
-          showAdvantageTypesDetails={showAdvantageTypesDetails}
-          setShowAdvantageTypesDetails={setShowAdvantageTypesDetails}
-          getDamageString={(advType: AdvantageType) => damageContext?.get(playerKey)?.get(damager.key)?.get(advType)?.get(target.ac)
-            ?.toFixed(3) || ''}
-          getDamageDetailsPMF={(advType: AdvantageType) => damageDetailsContext?.get(playerKey)?.get(damager.key)?.get(advType)?.get(target.ac)}
+          showAdvantageTypesDetails={showAdvantageTypeDetails}
+          setShowAdvantageTypesDetails={setShowAdvantageTypeDetails}
+          getDamageString={(advType: AdvantageType) => damageContext?.get(playerKey)?.get(damager.key)?.get(advType)?.get(target.ac)?.mean?.valueOf().toFixed(3) || ''}
+          getDamageDetailsPMF={(advType: AdvantageType) => damageContext?.get(playerKey)?.get(damager.key)?.get(advType)?.get(target.ac)?.pmf}
         />
 
         <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
