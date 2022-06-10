@@ -22,3 +22,6 @@ body {
     stroke-width: 2;
 }
 
+.react-flow__attribution{
+    display: none
+}
