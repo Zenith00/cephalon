@@ -12,7 +12,7 @@ const AdvantageShow = (
   }:
     {
       showAdvantageTypes: Record<AdvantageType, boolean>,
-      setShowAdvantageTypes: Record<AdvantageType, SetState<boolean>>
+      setShowAdvantageTypes: SetState<Partial<Record<AdvantageType, boolean | undefined>>>
     },
 ) => {
   const [settingsPopover, setSettingsPopover] = useState(false);
@@ -40,7 +40,9 @@ const AdvantageShow = (
           key={advType}
           label={`Show ${advType}`}
           checked={showAdvantageTypes[advType]}
-          onChange={(ev) => setShowAdvantageTypes[advType](ev.currentTarget.checked)}
+          onChange={(ev) => {
+            setShowAdvantageTypes({ [advType]: ev.currentTarget.checked });
+          }}
         />
       ))}
     </Popover>
