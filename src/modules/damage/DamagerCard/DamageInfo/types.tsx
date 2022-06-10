@@ -10,7 +10,7 @@ export interface DamageInfoProps {
   damagerName: string,
   setDamagerName: SetState<string>,
   showAdvantageTypes: Record<AdvantageType, boolean>
-  setShowAdvantageTypes: Record<AdvantageType, SetState<boolean>>
+  setShowAdvantageTypes: SetState<Partial<Record<AdvantageType, boolean | undefined>>>
   damagerDamage: string,
   setDamagerDamage: SetState<string>,
   damagerCount: number,
