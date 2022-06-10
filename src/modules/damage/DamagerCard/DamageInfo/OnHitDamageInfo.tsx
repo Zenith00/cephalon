@@ -5,11 +5,12 @@ import {
 import { InfoCircle, Plus } from 'tabler-icons-react';
 import type { Damager, AdvantageType } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
-import React, { useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import type { DamageInfoProps } from '@damage/DamagerCard/DamageInfo/types';
+import { PlayerContext } from '@damage/contexts';
 import type { SetState } from '@common';
 
-const PowerAttackDamageInfo = ({
+const OnHitDamageInfo = ({
   damager,
   disabled,
   toggleDisabled,
@@ -31,12 +32,17 @@ const PowerAttackDamageInfo = ({
   const [attackModPlaceholder, setAttackModPlaceholder] = useState('');
   const [attackModError, setAttackModError] = useState(false);
   const [atkModId, setAtkModId] = useState(3);
+  const player = useContext(PlayerContext);
 
   const getAtkModID = () => {
     const i = atkModId;
     setAtkModId(i + 1);
     return (i + 1).toString();
   };
+
+  useEffect(() => {
+    setDamagerCount(Object.values(player?.damagers ?? {}).filter((d) => d.flags.triggersFirstHit).reduce((acc, n) => acc + n.count, 0));
+  }, [player?.damagers, setDamagerCount]);
 
   const onUpdateAttackMods = (
     newAttackModRawVals: string[],
@@ -91,7 +97,7 @@ const PowerAttackDamageInfo = ({
           style={{ width: '100%' }}
           onChange={(ev) => setDamagerName(ev.currentTarget.value)}
         />
-        <Button onClick={() => toggleDisabled()} mt={27} ml={2} color={disabled ? 'red' : 'blue'}>
+        <Button onClick={() => toggleDisabled()} mt={27} ml={2} mr={0} color={disabled ? 'red' : 'blue'}>
           {disabled ? 'Disabled' : 'Enabled'}
         </Button>
         <Popover
@@ -111,17 +117,7 @@ const PowerAttackDamageInfo = ({
               <Plus />
             </Button>
             )}
-        >
-          {AdvantageTypes.map((advType) => (
-            <Switch
-              label={`Show ${advType}`}
-              checked={showAdvantageTypes[advType]}
-              onChange={(ev) => {
-                setShowAdvantageTypes({ [advType]: ev.currentTarget.checked });
-              }}
-            />
-          ))}
-        </Popover>
+        />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         <TextInput
@@ -129,76 +125,59 @@ const PowerAttackDamageInfo = ({
           value={damagerDamage}
           placeholder="1d10+mod"
           onChange={(ev) => setDamagerDamage(ev.currentTarget.value)}
-          style={{ width: '50%' }}
+          style={{ width: '60%' }}
         />
-        <TextInput
-          label="Power Attack"
-          value="+10"
-          style={{ width: '25%' }}
-          mx={1}
-          sx={{ '& input': { cursor: 'default', readonly: true } }}
-          onMouseDown={(e) => e.preventDefault()}
-        />
-        <NumberInput
-          label="Attack Count"
-          onChange={(c) => setDamagerCount(c || 1)}
-          value={damagerCount}
-          style={{ width: '30%' }}
-          mr="xs"
-        />
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
 
-        <MultiSelect
-          data={attackModOptions}
-          style={{ width: '70%' }}
-          creatable
-          // ref={ref as MutableRefObject<HTMLInputElement>}
-          label={(
-            <div
-              style={{ display: 'flex', alignItems: 'center', height: '100%' }}
-            >
-              Attack Modifiers
-              <Tooltip
-                label="Examples: 1d4, +1d4, -1d4, CustomName [+1d4]"
-                pl={4}
-                mt={4}
-              >
-                <InfoCircle size={16} />
-              </Tooltip>
-            </div>
-          )}
-          error={attackModError}
-          searchable
-          clearable
-          getCreateLabel={(query) => (query.match(modRegex)
-            ? `+ Add ${query}`
-            : '+-1dX or Name [+-1dX]')}
-          placeholder={attackModPlaceholder}
-          onCreate={(query) => {
-            if (!query.match(modRegex)) {
-              setAttackModError(true);
-              setAttackModPlaceholder('Invalid Format');
-              setTimeout(() => {
-                setAttackModError(false);
-                setAttackModPlaceholder('');
-              }, 1500);
-            }
-          }}
-          onChange={onUpdateAttackMods}
-          value={attackModSelected}
-        />
         <TextInput
-          label="Power Attack"
-          value="-5"
-          style={{ width: '30%' }}
-          mx={1}
+          label="Triggering Attacks"
+          // onChange={(c) => setDamagerCount(c || 1)}
+          value={Object.values(player?.damagers || {}).filter((d) => d.flags.triggersOnHit).map((d) => d.count + (d.flags.pam ? 1 : 0)).reduce((acc, n) => acc + n, 0)}
+          style={{ width: '40%' }}
+          mr="xs"
           sx={{ '& input': { cursor: 'default', readonly: true } }}
           onMouseDown={(e) => e.preventDefault()}
         />
       </div>
+      {/* <MultiSelect */}
+      {/*  data={attackModOptions} */}
+      {/*  creatable */}
+      {/*    // ref={ref as MutableRefObject<HTMLInputElement>} */}
+      {/*  label={( */}
+      {/*    <div */}
+      {/*      style={{ display: 'flex', alignItems: 'center', height: '100%' }} */}
+      {/*    > */}
+      {/*      Attack Modifiers */}
+      {/*      <Tooltip */}
+      {/*        label="Examples: 1d4, +1d4, -1d4, CustomName [+1d4]" */}
+      {/*        pl={4} */}
+      {/*        mt={4} */}
+      {/*      > */}
+      {/*        <InfoCircle size={16} /> */}
+      {/*      </Tooltip> */}
+      {/*    </div> */}
+      {/*    )} */}
+      {/*  error={attackModError} */}
+      {/*  searchable */}
+      {/*  clearable */}
+      {/*  getCreateLabel={(query) => (query.match(modRegex) */}
+      {/*    ? `+ Add ${query}` */}
+      {/*    : '+-1dX or Name [+-1dX]')} */}
+      {/*  placeholder={attackModPlaceholder} */}
+      {/*  onCreate={(query) => { */}
+      {/*    if (!query.match(modRegex)) { */}
+      {/*      setAttackModError(true); */}
+      {/*      setAttackModPlaceholder('Invalid Format'); */}
+      {/*      setTimeout(() => { */}
+      {/*        setAttackModError(false); */}
+      {/*        setAttackModPlaceholder(''); */}
+      {/*      }, 1500); */}
+      {/*    } */}
+      {/*  }} */}
+      {/*  onChange={onUpdateAttackMods} */}
+      {/*  value={attackModSelected} */}
+      {/* /> */}
     </>
   );
 };
 
-export default PowerAttackDamageInfo;
+export default OnHitDamageInfo;

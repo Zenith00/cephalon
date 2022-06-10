@@ -1,12 +1,12 @@
-import type { DamageData, DamageDetails } from '@pages/Damage';
+import type { DamageData } from '@pages/Damage';
 
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import type { PMF } from '@utils/math';
 import {
   boundProb,
   convolve_pmfs_prod,
   convolve_pmfs_sum_2,
-  cumSum,
+  cumSumHits,
   d20ToCritrate,
   d20ToFailRate,
   isSimpleProcessable,
@@ -18,18 +18,19 @@ import { useDebouncedValue } from '@mantine/hooks';
 
 import Fraction from 'fraction.js';
 import type {
-  AC, AdvantageType, Damager, DamagerKey, Player,
+  AC, AdvantageType, DamageInfo, Damager, DamagerKey, Player,
 } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
 import memoize from 'lodash.memoize';
-import { ADVANTAGE_TO_DICE } from './constants';
+import { AdvancedModeContext } from '@damage/contexts';
+import { ACs, ADVANTAGE_TO_DICE } from './constants';
 
 export const dummyDamageData = new Map([
   [0, new Map([[0, new Map([['normal' as AdvantageType, new Map()]])]])],
 ]) as DamageData;
-export const dummyDamageDetails = new Map([
-  [0, new Map([[0, new Map([['normal' as AdvantageType, new Map()]])]])],
-]) as DamageDetails;
+// export const dummyDamageDetails = new Map([
+//   [0, new Map([[0, new Map([['normal' as AdvantageType, new Map()]])]])],
+// ]) as DamageDetails;
 
 function computeMissChance(
   attackCumsum: Map<string, Map<number, Fraction>>,
@@ -43,16 +44,14 @@ function computeMissChance(
 }
 
 function computeFinalPMF(
-  attackCumsum: Map<string, Map<number, Fraction>>,
   advType: AdvantageType,
   ac: AC,
   missChance: Fraction,
   critRate: Fraction,
   failRate: Fraction,
   damageString: string,
-  // simpleCritBonusPMF: Map<number, Fraction>,
-  // simpleDamagePMF: Map<number, Fraction>,
   count: number,
+  // firstHitOnly = false,
 ) {
   const simpleDamagePMF = simpleProcess(damageString)!;
   const simpleCritBonusPMF = simpleProcess(damageString, 'normal')!;
@@ -63,25 +62,20 @@ function computeFinalPMF(
     new Map([[0, new Fraction(1).sub(critFactor)], [1, critFactor]]),
   );
 
-  // printPMF(critBonusPMF);
-
   const fullPMF = convolve_pmfs_sum_2(simpleDamagePMF, critBonusPMF, true);
+  // if (firstHitOnly) {
+  //   const allMissChance = missChance.pow(count);
+  //   const anyHitChance = new Fraction(1).sub(allMissChance);
+  //   return convolve_pmfs_prod(fullPMF, new Map([[0, allMissChance], [1, anyHitChance]]));
+  // }
   const hitChanceAwareDamagePMF = convolve_pmfs_prod(fullPMF, new Map([[0, missChance], [1, hitChance]]));
-
   return [...Array(count - 1).keys()].reduce(
     (acc) => convolve_pmfs_sum_2(acc, hitChanceAwareDamagePMF, true),
     hitChanceAwareDamagePMF,
   );
 }
 
-const computeDamageInfo = memoize(((player: Player, damager: Damager, damagerKey: DamagerKey) : [ number, Map<AdvantageType, Map<number, PMF>>] => {
-  if (damager.damagerType === 'powerAttack') {
-    const damagePARaw = `${damager.damage}+10`;
-    const atkBonusRaw = (player.attackBonus - 5) >= 0
-      ? `+${player.attackBonus - 5}`
-      : `${player.attackBonus - 5}`;
-  }
-
+function calculateBasicDamageInfo(player: Player, damager: Damager) {
   const damagerBonus = player.attackBonus >= 0
     ? `+${player.attackBonus}`
     : `${player.attackBonus}`;
@@ -99,48 +93,60 @@ const computeDamageInfo = memoize(((player: Player, damager: Damager, damagerKey
       ],
     ),
   ) as Map<AdvantageType, PMF>;
+  const attackCumsum = new Map(
+    [...simpleAttackPMFs.entries()].map(([k, v]) => [
+      k,
+      cumSumHits(v),
+    ]),
+  );
+
+  return { damagerDamage, attackCumsum };
+}
+
+const computeDamageInfo = memoize(((player: Player, damager: Damager, advancedMode: boolean) : Map<AdvantageType, Map<AC, PMF>> => {
+  const { damagerDamage, attackCumsum } = calculateBasicDamageInfo(player, damager);
 
   if (
     !isSimpleProcessable(damager.damage)
   ) {
-    return [
-      Number(damagerKey),
-      new Map([['normal' as AdvantageType, new Map([[0, new Map() as PMF]])]]),
-    ];
+    return new Map([['normal' as AdvantageType, new Map([[0, new Map() as PMF]])]]);
   }
 
-  const attackCumsum = new Map(
-    [...simpleAttackPMFs.entries()].map(([k, v]) => [
-      k,
-      cumSum(v),
-    ]),
-  );
-  return [
-    Number(damagerKey),
-    new Map(
-      AdvantageTypes.map((advType) => {
-        const critRate = d20ToCritrate(
-          ADVANTAGE_TO_DICE[advType],
-          player.critThreshold,
-        );
-        const failRate = d20ToFailRate(
-          ADVANTAGE_TO_DICE[advType],
-        );
-        return [
-          advType,
-          [...Array(30).keys()].reduce((damageMap, ac) => {
+  const usedAdvantageTypes = advancedMode ? [damager.flags.advanced.advantageMode] : AdvantageTypes;
+
+  return new Map(
+    usedAdvantageTypes.map((advType) => {
+      const critRate = d20ToCritrate(
+        ADVANTAGE_TO_DICE[advType],
+        player.critThreshold,
+      );
+      const failRate = d20ToFailRate(
+        ADVANTAGE_TO_DICE[advType],
+      );
+      return [
+        advType,
+        ACs.reduce((damageMap, ac) => {
+          if (damager.damagerType === 'onHit') {
+            const onHitTriggeringAllMiss = Object.values(player.damagers).filter((d) => d.flags.triggersOnHit).map((thisDamager) => {
+              const damagerAttackCumSum = calculateBasicDamageInfo(player, thisDamager).attackCumsum;
+              const damagerAdvType = [...thisDamager.advantageShow.entries()].filter(([_, show]) => show)[0][0];
+              return computeMissChance(damagerAttackCumSum, damagerAdvType, ac, critRate, failRate).pow(thisDamager.count);
+            }).reduce((acc, n) => acc.mul(n), new Fraction(1));
+
+            const firstHitPMF = computeFinalPMF(advType, ac, onHitTriggeringAllMiss, critRate, failRate, damagerDamage, 1);
+            damageMap.set(ac, firstHitPMF);
+          } else {
             const missChance = computeMissChance(attackCumsum, advType, ac, critRate, failRate);
 
-            let finalDamagePMF = computeFinalPMF(attackCumsum, advType, ac, missChance, critRate, failRate, damagerDamage, damager.count);
+            let finalDamagePMF = computeFinalPMF(advType, ac, missChance, critRate, failRate, damagerDamage, damager.count);
 
             if (damager.flags.gwm || damager.flags.pam) {
-              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-              // const anyHitChance = new Fraction(1).sub(missChance.pow(damager.count))
+            // const anyHitChance = new Fraction(1).sub(missChance.pow(damager.count))
               const noneCritsRate = (new Fraction(1).sub(critRate)).pow(damager.count);
               const anyCritsRate = new Fraction(1).sub(noneCritsRate);
 
-              const PAMPMF = computeFinalPMF(attackCumsum, advType, ac, missChance, critRate, failRate, `1d4+${player.modifier}`, 1);
-              const GWMPMF = computeFinalPMF(attackCumsum, advType, ac, missChance, critRate, failRate, damagerDamage, 1);
+              const PAMPMF = computeFinalPMF(advType, ac, missChance, critRate, failRate, `1d4+${player.modifier}`, 1);
+              const GWMPMF = computeFinalPMF(advType, ac, missChance, critRate, failRate, damagerDamage, 1);
 
               const GWM_PAM_PMF = one_or_other_pmfs(PAMPMF, GWMPMF, noneCritsRate, anyCritsRate);
               if (!damager.flags.gwm) {
@@ -152,27 +158,41 @@ const computeDamageInfo = memoize(((player: Player, damager: Damager, damagerKey
               }
             }
 
-            damageMap.set(ac + 1, finalDamagePMF);
+            damageMap.set(ac, finalDamagePMF);
+          }
 
-            return damageMap;
-          }, new Map<number, PMF>()),
-        ];
-      }),
-    ),
-  ];
+          return damageMap;
+        }, new Map<number, PMF>()),
+      ];
+    }),
+  );
   // endregion
-}), (player: Player, damager: Damager, damagerKey: DamagerKey) => (
-  `${player.attackBonus}|${player.modifier}|${player.spellSaveDC}|${player.elvenAccuracy}|${player.battleMaster}|${player.critThreshold}
-  ${damager.damage}|${damager.modifiers.toString()}|${damager.atkBase}|${damager.count}|${damager.flags?.gwm}|${damager.flags?.pam}|${damagerKey}`
+}), (player: Player, damager: Damager) => (
+  `${player.attackBonus}|${player.modifier}|${player.spellSaveDC}|${player.elvenAccuracy}|${player.battleMaster}|${player.critThreshold}|
+  ${damager.damage}|${damager.modifiers.toString()}|${damager.atkBase}|${damager.count}|${damager.flags?.gwm}|${damager.flags?.pam}|${damager.damagerType}|${damager.key}
+  |${damager.damagerType === 'onHit' ? Object.values(player.damagers).filter((d) => d.flags.triggersOnHit).reduce((acc, n) => acc + n.count, 0) : 0
+  }`
 ));
 
 export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
   const [damageData, setDamageData] = useState<DamageData>(dummyDamageData);
-  const [damageDetails, setDamageDetails] = useState<DamageDetails>(dummyDamageDetails);
+  // const [damageDetails, setDamageDetails] = useState<DamageDetails>(dummyDamageDetails);
   const [debouncedPlayerList] = useDebouncedValue(playerList, 500);
+  const advancedMode = useContext(AdvancedModeContext);
 
   // const workerAttack = useRef<Worker>();
   // const workerDamage = useRef<Worker>();
+
+  function getACToDamageMap(attackOptions: Record<Damager['damagerType'], Map<AdvantageType, Map<AC, PMF>>>, advType: AdvantageType) {
+    return new Map(ACs.map(
+      (ac) => [ac, Object.fromEntries([...Object.entries(attackOptions)].map(([damageType, attackOption]) => [
+        damageType as Damager['damagerType'], attackOption.get(advType)?.get(ac) || new Map([[0, new Fraction(1)]])]))],
+    )
+      .map(([ac, attackOption]) => {
+        const damageEntries = Object.entries(attackOption).map(([damageType, pmf]) => [damageType as Damager['damagerType'], pmf as PMF, weighted_mean_pmf(pmf as PMF)] as [Damager['damagerType'], PMF, Fraction]).sort((l, r) => r[2].sub(l[2]).valueOf());
+        return [ac, { bestType: damageEntries[0][0], pmf: damageEntries[0][1], mean: damageEntries[0][2] }];
+      }));
+  }
 
   useEffect(() => {
     const x = new Map(
@@ -180,26 +200,47 @@ export const useHandleDamageData = (playerList: { [key: number]: Player }) => {
         Number(playerKey),
         new Map(
           Object.entries(player.damagers).map(
-            ([damagerKey, damager]) => computeDamageInfo(player, damager, Number(damagerKey)),
+            ([damagerKey, damager]) => {
+              const regular = computeDamageInfo(player, damager, advancedMode);
+
+              const attackOptions = { } as Record<Damager['damagerType'], Map<AdvantageType, Map<AC, PMF>>>;
+              if (damager.damagerType === 'powerAttack') {
+                attackOptions.powerAttack = computeDamageInfo({
+                  ...player,
+                  attackBonus: player.attackBonus - 5,
+                }, { ...damager, damage: `${damager.damage}+10` }, advancedMode);
+              }
+              if (!(damager.damagerType === 'powerAttack' && !damager.flags.powerAttackOptimalOnly)) {
+                attackOptions.regular = regular;
+              }
+
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              const combined = new Map([...regular.keys()].map((advType) => [
+                advType,
+                getACToDamageMap(attackOptions, advType),
+              ])) as Map<AdvantageType, Map<AC, DamageInfo>>;
+
+              return [Number(damagerKey) as DamagerKey, combined];
+            },
           ),
         ),
       ]),
     );
 
-    const damageMeans = new Map(
-      [...x.entries()].map(([playerKey, damagerMap]) => [
-        playerKey,
-        new Map([...damagerMap.entries()].map(([damagerKey, damagerData]) => [
-          damagerKey,
-          new Map([...damagerData.entries()].map(([advType, data]) => [
-            advType,
-            new Map([...data.entries()].map(([ac, pmf]) => [
-              ac,
-              weighted_mean_pmf(pmf).valueOf()]))]))]))]),
-    );
-    setDamageDetails(x);
-    setDamageData(damageMeans);
+    // const damageMeans = new Map(
+    //   [...x.entries()].map(([playerKey, damagerMap]) => [
+    //     (playerKey as PlayerKey),
+    //     new Map([...damagerMap.entries()].map(([damagerKey, damagerData]) => [
+    //       (damagerKey as DamagerKey),
+    //       new Map([...damagerData.entries()].map(([advType, data]) => [
+    //         advType,
+    //         new Map([...data.entries()].map(([ac, pmf]) => [
+    //           ac,
+    //           weighted_mean_pmf(pmf).valueOf()]))]))]))]),
+    // );
+    // setDamageDetails(x);
+    setDamageData(x);
   }, [debouncedPlayerList]);
 
-  return { damageData, damageDetails };
+  return { damageData };
 };

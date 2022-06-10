@@ -1,11 +1,13 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, {
+  useContext, useEffect, useState, useRef,
+} from 'react';
 import type { SelectItem } from '@mantine/core';
 import {
   InputWrapper,
   SegmentedControl,
   Box, Button, Paper, Popover, Switch, Text, useMantineColorScheme,
 } from '@mantine/core';
-import { useToggle } from '@mantine/hooks';
+import { useSetState, useToggle } from '@mantine/hooks';
 import { Copy, Trash } from 'tabler-icons-react';
 import { useDebouncedCallback } from 'use-debounce';
 import type { Target } from '@pages/Damage';
@@ -14,9 +16,9 @@ import type {
 } from '@damage/types';
 import DamagerTable from '@damage/DamagerCard/DamagerTable';
 import RegularDamageInfo from '@damage/DamagerCard/DamageInfo/RegularDamageInfo';
-import { DamageDataContext, DispatchPlayerListContext } from '@damage/contexts';
+import { AdvancedModeContext, DamageDataContext, DispatchPlayerListContext } from '@damage/contexts';
 import PowerAttackDamageInfo from '@damage/DamagerCard/DamageInfo/PowerAttackDamageInfo';
-import FirstHitDamageInfo from '@damage/DamagerCard/DamageInfo/FirstHitDamageInfo';
+import OnHitDamageInfo from '@damage/DamagerCard/DamageInfo/OnHitDamageInfo';
 import AdvantageSelect from '@damage/AdvantageSelect';
 import { AdvantageTypes } from '@damage/types';
 
@@ -35,6 +37,7 @@ const DamagerCard = ({
   // const [value, toggle] = useToggle('Attack', ['Attack', 'Save']);
   const { colorScheme } = useMantineColorScheme();
   const darkTheme = colorScheme === 'dark';
+  const advancedMode = useContext(AdvancedModeContext);
 
   const dispatchPlayerList = useContext(DispatchPlayerListContext)!;
   const damageContext = useContext(DamageDataContext)!;
@@ -78,19 +81,33 @@ const DamagerCard = ({
   //   superdisadvantage: setShowSuperDisadvantage,
   // };
 
-  const [showAdvantageTypes, setShowAdvantageTypes] = AdvantageSelect();
-  const [showAdvantageTypeDetails, setShowAdvantageTypeDetails] = AdvantageSelect(false);
+  const [showAdvantageTypes, setShowAdvantageTypes] = useSetState({
+    advantage: false,
+    superadvantage: false,
+    normal: true,
+    disadvantage: false,
+    superdisadvantage: false,
+  });
+  const [showAdvantageTypeDetails, setShowAdvantageTypeDetails] = useSetState({
+    advantage: false,
+    superadvantage: false,
+    normal: false,
+    disadvantage: false,
+    superdisadvantage: false,
+  });
+  // const [[showAdvantageTypes, setShowAdvantageTypes]] = useState(AdvantageSelect());
+  // const [[showAdvantageTypeDetails, setShowAdvantageTypeDetails]] = useState(AdvantageSelect(false));
 
   const [disabled, toggleDisabled] = useToggle(false, [true, false]);
   const [factorPAM, toggleFactorPAM] = useToggle(damager.flags.pam, [true, false]);
   const [factorGWM, toggleFactorGWM] = useToggle(damager.flags.gwm, [true, false]);
-  const [triggersFirstHit, setTriggersFirstHit] = useState(damager.flags.triggersFirstHit);
+  const [triggersOnHit, setTriggersOnHit] = useState(damager.flags.triggersOnHit);
 
   // const [powerAttack, togglePowerAttack] = useToggle(damager.damagerType === 'powerAttack', [true, false]);
   const [powerAttackOptimalOnly, togglePowerAttackOptimalOnly] = useToggle(damager.flags.powerAttackOptimalOnly, [true, false]);
 
   const [attackType, setAttackType] = useState<Damager['damagerType']>('regular');
-
+  const [advancedAdvantageMode, setAdvancedAdvantageMode] = useState<AdvantageType>(damager.flags.advanced.advantageMode);
   const [showDamagerSpecial, setShowDamagerSpecial] = useState(false);
 
   // endregion
@@ -119,22 +136,21 @@ const DamagerCard = ({
         disabled,
         advantageShow: new Map(AdvantageTypes.map((advType) => [advType, showAdvantageTypes[advType]])),
         flags: {
-          gwm: factorGWM, pam: factorPAM, powerAttackOptimalOnly, triggersFirstHit,
+          gwm: factorGWM, pam: factorPAM, powerAttackOptimalOnly, triggersOnHit, advanced: { advantageMode: advancedAdvantageMode },
         },
       },
     });
     // eslint-disable-next-line max-len,react-hooks/exhaustive-deps
-  }, [damagerDamage, damagerName, damagerCount,
-    showAdvantageTypes,
+  }, [damagerDamage, damagerName, showAdvantageTypes, damagerCount,
+
     attackModParsed, attackModSelected, attackModOptions,
-    attackType, powerAttackOptimalOnly, triggersFirstHit,
+    attackType, powerAttackOptimalOnly, triggersOnHit,
     factorGWM, factorPAM,
-    disabled, playerKey]);
+    disabled, playerKey, advancedAdvantageMode]);
 
   useEffect(() => {
     setAttackModParsed(
       attackModSelected.map(
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         (modV) => attackModOptions
           .find((option) => option.value === modV)!
           .label!.match(modRegex)![2],
@@ -146,8 +162,8 @@ const DamagerCard = ({
   const DamageInfoComponent = ({
     regular: RegularDamageInfo,
     powerAttack: PowerAttackDamageInfo,
-    firstHit: FirstHitDamageInfo,
-  } as Record<Damager['damagerType'], typeof RegularDamageInfo>)[damager.damagerType];
+    onHit: OnHitDamageInfo,
+  })[damager.damagerType];
 
   return (
     // sx={{ maxWidth: 320 }}
@@ -175,17 +191,32 @@ const DamagerCard = ({
         <InputWrapper label="Attack Type">
           <div>
             <SegmentedControl
-              data={[{ label: 'Normal', value: 'regular' }, { label: 'SS/GWM', value: 'powerAttack' }, { label: 'First Hit', value: 'firstHit' }]}
+              data={[{ label: 'Normal', value: 'regular' }, { label: 'SS/GWM', value: 'powerAttack' }].concat((advancedMode ? [{ label: 'On-Hit Effect', value: 'onHit' }] : [])) as {label: string, value: Damager['damagerType']}[]}
               value={attackType}
               onChange={(e: Damager['damagerType']) => {
-                if (e === 'firstHit') {
-                  setTriggersFirstHit(false);
+                if (e === 'onHit') {
+                  setTriggersOnHit(false);
                 }
                 setAttackType(e);
               }}
             />
           </div>
         </InputWrapper>
+        {(advancedMode && damager.damagerType !== 'onHit') && (
+        <InputWrapper label="Advantage">
+          <div>
+            <SegmentedControl
+              data={AdvantageTypes.map((advType) => ({ label: advType.replace('antage', ''), value: advType }))}
+              onChange={(ev: AdvantageType) => {
+                AdvantageTypes.filter((advType) => advType !== ev).map((advType) => {
+                  setShowAdvantageTypes({ [advType]: false });
+                });
+                setShowAdvantageTypes({ [ev]: true });
+              }}
+            />
+          </div>
+        </InputWrapper>
+        )}
         <div
           style={{
             display: 'flex',
@@ -214,7 +245,7 @@ const DamagerCard = ({
           >
             <Switch label="Triggers PAM Bonus Action Attack Option" pt="sm" checked={factorPAM} onChange={() => toggleFactorPAM()} />
             <Switch label="Triggers GWM Bonus Action Attack Option" pt="sm" checked={factorGWM} onChange={() => toggleFactorGWM()} />
-            <Switch label="Triggers First Hit effects" pt="sm" checked={triggersFirstHit} onChange={(e) => setTriggersFirstHit(e.currentTarget.checked)} />
+            <Switch label="Triggers First Hit effects" pt="sm" checked={triggersOnHit} onChange={(e) => setTriggersOnHit(e.currentTarget.checked)} />
             {/* <Switch label="Sharpshooter/Great Weapon Master" pt="sm" checked={powerAttack} onChange={() => togglePowerAttack()} /> */}
             {attackType === 'powerAttack' && <Switch label="Use SS/GWM only when optimal" pt="sm" checked={powerAttackOptimalOnly} onChange={() => togglePowerAttackOptimalOnly()} />}
           </Popover>
@@ -227,6 +258,7 @@ const DamagerCard = ({
           setShowAdvantageTypesDetails={setShowAdvantageTypeDetails}
           getDamageString={(advType: AdvantageType) => damageContext?.get(playerKey)?.get(damager.key)?.get(advType)?.get(target.ac)?.mean?.valueOf().toFixed(3) || ''}
           getDamageDetailsPMF={(advType: AdvantageType) => damageContext?.get(playerKey)?.get(damager.key)?.get(advType)?.get(target.ac)?.pmf}
+          damager={damager}
         />
 
         <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>

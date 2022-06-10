@@ -3,6 +3,7 @@ import {
 } from '@mantine/core';
 import Image from 'next/image';
 import React from 'react';
+import type { SetState } from '@common';
 
 const DamageFooter = (props: { opened: boolean, onClick: () => void, colorScheme: 'dark' | 'light' }) => {
   const { opened, onClick, colorScheme } = props;
@@ -53,22 +54,25 @@ const DamageFooter = (props: { opened: boolean, onClick: () => void, colorScheme
               href="https://discord.com/invite/dndnext"
               variant="outline"
             >
-              <div>
+              <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                 {colorScheme === 'dark' ? (
                   <Image
                     src="/img/Discord-Logo-White.svg"
-                    width={20}
-                    height={20}
+                    width={18}
+                    height={18}
                   />
                 ) : (
                   <Image
                     src="/img/Discord-Logo-Black.svg"
-                    width={20}
-                    height={20}
+                    width={18}
+                    height={18}
                   />
                 )}
+                <p style={{ paddingLeft: '4px' }}>
+                  Made with 💖
+                </p>
+
               </div>
-              Made with 💖
             </Badge>
           </div>
         </Group>

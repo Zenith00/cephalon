@@ -22,13 +22,13 @@ import { NARROW_WIDTH, PRESET_DAMAGERS } from '@damage/constants';
 import './Damage.module.css';
 import type { PMF } from '@utils/math';
 import type {
-  AC, AdvantageType, DamagerKey, PlayerKey,
+  AC, AdvantageType, DamageInfo, DamagerKey, PlayerKey,
 } from '@damage/types';
 import { Damager, Player } from '@damage/types';
 import DamageFooter from '@damage/DamageFooter';
 import {
+  AdvancedModeContext,
   DamageDataContext,
-  DamageDetailsContext,
   DispatchPlayerListContext,
   InitialPlayerListContext,
   PlayerContext,
@@ -43,6 +43,7 @@ export interface Target {
 
 const PLAYER_FIELD_TO_SHORT: Record<keyof Player, string> = {
   key: 'k',
+  name: 'n',
   attackBonus: 'a',
   spellSaveDC: 's',
   elvenAccuracy: 'e',
@@ -63,6 +64,7 @@ const PLAYER_SHORT_TO_FIELD = Object.fromEntries(
 
 const DAMAGER_FIELD_TO_SHORT: Record<keyof Damager, string> = {
   damage: 'dmg',
+  damagerType: 'dt',
   advantageShow: 'as',
   modifiers: 'm',
   modifierOptions: 'mo',
@@ -107,12 +109,12 @@ function reviver(key: string, value: any) {
 }
 export type DamageData = Map<
   PlayerKey,
-  Map<DamagerKey, Map<AdvantageType, Map<AC, number>>>
+  Map<DamagerKey, Map<AdvantageType, Map<AC, DamageInfo>>>
 >;
-export type DamageDetails = Map<
-  PlayerKey,
-  Map<DamagerKey, Map<AdvantageType, Map<AC, PMF>>>
->;
+// export type DamageDetails = Map<
+//   PlayerKey,
+//   Map<DamagerKey, Map<AdvantageType, Map<AC, PMF>>>
+// >;
 
 const MemoDamageGraphs = React.memo(DamageGraphsAside);
 
@@ -122,38 +124,16 @@ export type PlayerList = { [key: number]: Player };
 
 // region [[Player Reducer Types]]
 export type playerListReducerFieldSet = (
-  | {
-      field: 'id';
-      val: number;
-    }
-  | {
-      field: 'attackBonus';
-      val: number;
-    }
-  | {
-    field: 'modifier';
-    val: number;
-  }
-  | {
-      field: 'spellSaveDC';
-      val: number;
-    }
-  | {
-      field: 'elvenAccuracy';
-      val: boolean;
-    }
-  | {
-      field: 'battleMaster';
-      val: boolean;
-    }
-  | {
-      field: 'damagers';
-      val: { [key: number]: Damager };
-    }
-  | {
-      field: 'critThreshold';
-      val: number;
-    }
+  | { field: 'id'; val: number; }
+  | { field: 'attackBonus'; val: number; }
+  | { field: 'modifier'; val: number;}
+  | { field: 'spellSaveDC'; val: number; }
+  | { field: 'elvenAccuracy'; val: boolean; }
+  | { field: 'battleMaster'; val: boolean; }
+  | { field: 'damagers'; val: { [key: number]: Damager }; }
+  | { field: 'critThreshold'; val: number; }
+  | { field: 'firstHitExtraDamage'; val: string; }
+  | {field: 'name'; val: string}
 ) & { playerKey: number };
 
 export type playerListReducerAction =
@@ -320,6 +300,7 @@ const Damage = () => {
   const [playerList, dispatchPlayerList] = useReducer(playerListReducer, {
     0: {
       attackBonus: 7,
+      name: '',
       spellSaveDC: 14,
       key: 0,
       elvenAccuracy: false,
@@ -328,11 +309,11 @@ const Damage = () => {
       critThreshold: 20,
       modifier: 0,
     },
-  } as { [key: number]: Player });
+  } as { [key: PlayerKey]: Player });
 
   const [initialPlayerList, setInitialPlayerList] = useState<PlayerList>({});
 
-  const { damageData, damageDetails } = useHandleDamageData(playerList);
+  const { damageData } = useHandleDamageData(playerList);
 
   const [selectedPlayerKey, setSelectedPlayerKey] = useState(0);
 
@@ -341,7 +322,7 @@ const Damage = () => {
   const [target, setTarget] = useState<Target>({ ac: 14 });
 
   const [playerInfoDisplay, setPlayerInfoDisplay] = useState('block');
-
+  const [advancedMode, setAdvancedMode] = useState(false);
   useEffect(() => {
     if (width < NARROW_WIDTH) {
       setPlayerInfoDisplay(hideGraphs ? 'block' : 'none');
@@ -498,7 +479,8 @@ const Damage = () => {
       >
         <MantineProvider theme={{ colorScheme }} withGlobalStyles>
           <DamageDataContext.Provider value={damageData}>
-            <DamageDetailsContext.Provider value={damageDetails}>
+            <AdvancedModeContext.Provider value={advancedMode}>
+              {/* <DamageDetailsContext.Provider value={damageDetails}> */}
               <InitialPlayerListContext.Provider value={initialPlayerList}>
                 <DispatchPlayerListContext.Provider value={dispatchPlayerList}>
                   <SelectedPlayerContext.Provider value={selectedPlayerKey}>
@@ -508,12 +490,12 @@ const Damage = () => {
                     <AppShell
                       padding={0}
                       navbar={
-                        <TargetNavbar target={target} setTarget={setTarget} />
+                        <TargetNavbar target={target} setTarget={setTarget} advancedMode={advancedMode} setAdvancedMode={setAdvancedMode} />
                     }
                       aside={(
                         <SetModalContext.Provider value={setModalContentWrapper}>
                           <MemoDamageGraphs
-                            player={playerList[selectedPlayerKey]}
+                            players={playerList}
                             target={target}
                             hidden={hideGraphs}
                           />
@@ -572,7 +554,8 @@ const Damage = () => {
                   </SelectedPlayerContext.Provider>
                 </DispatchPlayerListContext.Provider>
               </InitialPlayerListContext.Provider>
-            </DamageDetailsContext.Provider>
+            </AdvancedModeContext.Provider>
+            {/* </DamageDetailsContext.Provider> */}
           </DamageDataContext.Provider>
         </MantineProvider>
       </ColorSchemeProvider>

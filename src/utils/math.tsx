@@ -17,10 +17,10 @@ export const printPMF = (pmf: PMF) => {
   console.log(new Map([...pmf.entries()].sort(([kl, _vl], [kr, _vr]) => kl - kr).map(([k, v]) => [k, v.valueOf().toFixed(6)])));
 };
 
-export const cumSum = (pmf: PMF) => {
+export const cumSumHits = (pmf: PMF) => {
   let acc = new Fraction(0);
   return new Map(
-    [...pmf.entries()].sort((x) => x[0]).map(([val, p]) => [val, (acc = acc.add(p))]),
+    [...pmf.entries()].sort((x) => x[0]).map(([val, p]) => [val + 1, (acc = acc.add(p))]),
   );
 };
 
@@ -151,12 +151,10 @@ export const simpleProcess = memoize((
   crit: critType = 'none',
 ): PMF | undefined => {
   let state: 'pos' | 'neg' = 'pos';
-  const clean = (damage).replaceAll(/\s/g, '') as string;
+  const clean = (damage).replaceAll(/\s/g, '');
   if (!/^[\dd+\-khl]+$/.test(clean)) {
     return undefined;
   }
-  console.log('SimpleProcess');
-  console.log({ damage });
 
   let dice = {
     pos: [],

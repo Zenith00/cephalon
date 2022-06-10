@@ -1,12 +1,14 @@
 import type { SelectItem } from '@mantine/core';
 import {
-  Button, MultiSelect, NumberInput, Popover, Switch, TextInput, Tooltip,
+  Button, MultiSelect, NumberInput, TextInput, Tooltip,
 } from '@mantine/core';
-import { InfoCircle, Plus } from 'tabler-icons-react';
-import type { Damager, AdvantageType } from '@damage/types';
-import { AdvantageTypes } from '@damage/types';
-import React, { useState } from 'react';
+import { InfoCircle } from 'tabler-icons-react';
+import React, { useContext, useState } from 'react';
 import type { DamageInfoProps } from '@damage/DamagerCard/DamageInfo/types';
+
+import { AdvancedModeContext } from '@damage/contexts';
+import AdvantageShow from '@damage/AdvantageShow';
+import type { SetState } from '@common';
 
 const RegularDamageInfo = ({
   damager,
@@ -30,6 +32,7 @@ const RegularDamageInfo = ({
   const [attackModPlaceholder, setAttackModPlaceholder] = useState('');
   const [attackModError, setAttackModError] = useState(false);
   const [atkModId, setAtkModId] = useState(3);
+  const advancedMode = useContext(AdvancedModeContext);
 
   const getAtkModID = () => {
     const i = atkModId;
@@ -93,32 +96,7 @@ const RegularDamageInfo = ({
         <Button onClick={() => toggleDisabled()} mt={27} ml={2} mr={0} color={disabled ? 'red' : 'blue'}>
           {disabled ? 'Disabled' : 'Enabled'}
         </Button>
-        <Popover
-          opened={settingsPopover}
-          onClose={() => setSettingsPopover(false)}
-          position="right"
-          withArrow
-          target={(
-            <Button
-              color="blue"
-              onClick={() => setSettingsPopover(true)}
-              ml={2}
-              mr="sm"
-              mt={27}
-              variant="outline"
-            >
-              <Plus />
-            </Button>
-            )}
-        >
-          {AdvantageTypes.map((advType) => (
-            <Switch
-              label={`Show ${advType}`}
-              checked={showAdvantageTypes[advType]}
-              onChange={(ev) => setShowAdvantageTypes[advType](ev.currentTarget.checked)}
-            />
-          ))}
-        </Popover>
+        {!advancedMode && <AdvantageShow {...{ showAdvantageTypes, setShowAdvantageTypes }} />}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         <TextInput
@@ -175,6 +153,7 @@ const RegularDamageInfo = ({
         onChange={onUpdateAttackMods}
         value={attackModSelected}
       />
+
     </>
   );
 };

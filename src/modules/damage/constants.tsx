@@ -1,4 +1,5 @@
 import type { SelectItem } from '@mantine/core';
+import type { AC } from '@damage/types';
 import { Damager } from '@damage/types';
 
 export const ADVANTAGE_TO_DICE = {
@@ -65,3 +66,4 @@ export const PRESET_DAMAGERS = {
 };
 
 export const NARROW_WIDTH = 850;
+export const ACs = [...Array(30).keys()].map((x) => x + 1) as AC[];

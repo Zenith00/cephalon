@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
   Box,
   Button,
@@ -10,22 +10,28 @@ import {
   Select,
   Switch,
   Table,
+  TextInput,
   Title,
   UnstyledButton,
   useMantineColorScheme,
 } from '@mantine/core';
 import type { Target } from '@pages/Damage';
 import { PRESET_DAMAGERS } from '@damage/constants';
-import { useToggle } from '@mantine/hooks';
+import { useDebouncedValue, useToggle } from '@mantine/hooks';
 import {
   CaretDown, CaretRight, Notes, Plus,
 } from 'tabler-icons-react';
+import type { SetState } from '@common';
+
 import type { AdvantageType } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
 import type { PMF } from '@utils/math';
 import { convolve_pmfs_sum_2, weighted_mean_pmf, zero_pmf } from '@utils/math';
 // import PAMGWMCard from '@damage/DamagerCard/PAMGWMCard';
-import { DamageDetailsContext, DispatchPlayerListContext, PlayerContext } from '@damage/contexts';
+import {
+  DamageDataContext, DispatchPlayerListContext, PlayerContext,
+} from '@damage/contexts';
+import { useDebouncedCallback } from 'use-debounce';
 import DamagerCard from './DamagerCard';
 
 const MemoDamagerCard = React.memo(DamagerCard);
@@ -47,12 +53,15 @@ const PlayerCard = ({
   const toggleShowAttacks = () => { setAttacksNeverCollapsed(false); toggleShowAttacks_(); };
   const [showTotalDamage, toggleShowTotalDamage] = useToggle(false, [true, false]);
   const [showAdvantageSettings, setShowAdvantageSettings] = useState(false);
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+
   const dispatchPlayerList = useContext(DispatchPlayerListContext)!;
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
   const player = useContext(PlayerContext)!;
-  // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-  const damageDetailsContext = useContext(DamageDetailsContext)!;
+
+  const [playerName, setPlayerName] = useState(player.name);
+
+  // const damageDetailsContext = useContext(DamageDetailsContext)!;
+  const damageDataContext = useContext(DamageDataContext)!;
 
   const [showSuperAdvantage, setShowSuperAdvantage] = useState(false);
   const [showAdvantage, setShowAdvantage] = useState(false);
@@ -66,7 +75,7 @@ const PlayerCard = ({
     disadvantage: showDisadvantage,
     superdisadvantage: showSuperDisadvantage,
   };
-  const setShowAdvantageTypes: Record<AdvantageType, React.Dispatch<React.SetStateAction<boolean>>> = {
+  const setShowAdvantageTypes: Record<AdvantageType, SetState<boolean>> = {
     advantage: setShowAdvantage,
     superadvantage: setShowSuperAdvantage,
     normal: setShowNeutral,
@@ -75,14 +84,39 @@ const PlayerCard = ({
   };
   const [showPresetPicker, setShowPresetPicker] = useState(false);
 
+  const [firstHitDamage, setFirstHitDamage] = useState('');
+
   // React.useEffect(() => {
   //   setTimeout(() => document.querySelectorAll('.mantine-collapse').forEach((x) => (x as HTMLElement).style.removeProperty('height')), 500);
   // }, []);
 
+  // const debouncedFirstHitDamage = useDebouncedValue(firstHitDamage, 500);
+  const debouncedDispatchPlayerList = useDebouncedCallback(
+    dispatchPlayerList,
+    500,
+  );
+
+  useEffect(() => {
+    debouncedDispatchPlayerList({
+      field: 'firstHitExtraDamage',
+      val: firstHitDamage,
+      playerKey: player.key,
+    });
+  }, [firstHitDamage]);
+
   return (
     <Paper shadow="xs" p="md" mt="md" sx={{ width: '100%' }} withBorder style={{ borderLeftColor: darkTheme ? 'orangered' : 'teal' }}>
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-        <Title order={4}>PC Info</Title>
+        {/* <Title order={4}>PC Info</Title> */}
+        <TextInput
+          label="Player Name"
+          onChange={(val) => dispatchPlayerList({
+            field: 'name',
+            val: val.currentTarget.value || '',
+            playerKey: player.key,
+          })}
+          value={player.name}
+        />
         <Box mr="sm" ml="auto" pt={8}>
           {/* <Checkbox label={"Show Damage"} /> */}
         </Box>
@@ -97,12 +131,31 @@ const PlayerCard = ({
         }}
       >
         <NumberInput
-          label="Attack Bonus"
+          label="Total Attack Bonus"
           step={1}
           value={player.attackBonus}
-          style={{ width: '50%' }}
+          style={{ width: '33%' }}
           onChange={(val) => dispatchPlayerList({
             field: 'attackBonus',
+            val: val || 0,
+            playerKey: player.key,
+          })}
+          formatter={(value) => {
+            if (value) {
+              const v = value.replace(/^\+/gi, '');
+              return Number(v) > 0 ? `+${v}` : v;
+            }
+            return '';
+          }}
+        />
+
+        <NumberInput
+          label="Modifier (mod)"
+          step={1}
+          value={player.modifier}
+          style={{ width: '33%' }}
+          onChange={(val) => dispatchPlayerList({
+            field: 'modifier',
             val: val || 0,
             playerKey: player.key,
           })}
@@ -118,7 +171,7 @@ const PlayerCard = ({
           label="Spell Save"
           step={1}
           value={player.spellSaveDC}
-          style={{ width: '50%' }}
+          style={{ width: '33%' }}
           onChange={(val) => dispatchPlayerList({
             field: 'spellSaveDC',
             val: val || 0,
@@ -126,27 +179,18 @@ const PlayerCard = ({
           })}
         />
       </div>
-      <NumberInput
-        label="Modifier (mod)"
-        step={1}
-        value={player.modifier}
-        style={{ width: '50%' }}
-        onChange={(val) => dispatchPlayerList({
-          field: 'modifier',
-          val: val || 0,
-          playerKey: player.key,
-        })}
-        formatter={(value) => {
-          if (value) {
-            const v = value.replace(/^\+/gi, '');
-            return Number(v) > 0 ? `+${v}` : v;
-          }
-          return '';
-        }}
+
+      <TextInput
+        label="First Hit Extra Damage"
+        value={firstHitDamage}
+        placeholder="3d6"
+        onChange={(val) => setFirstHitDamage(
+          val.currentTarget.value || '',
+        )}
       />
-      <Title order={4} py="sm">
-        Special
-      </Title>
+      {/* <Title order={4} py="sm"> */}
+      {/*  /!*Special*!/ */}
+      {/* </Title> */}
       {/* <Checkbox label={"Elven Accuracy"} /> */}
       <div style={{ display: 'flex', flexDirection: 'row', gap: '10px' }}>
         {/* <Checkbox label="Halfling Luck" /> */}
@@ -184,9 +228,9 @@ const PlayerCard = ({
           />
         ))}
 
-        <br />
+        {/* <br /> */}
         <Button
-          mt={10}
+          mt={5}
           variant="outline"
           onClick={() => {
             dispatchPlayerList({ field: 'NEW_DAMAGER', playerKey: player.key });
@@ -200,7 +244,7 @@ const PlayerCard = ({
           target={(
             <Button
               variant="outline"
-              mt={10}
+              mt={5}
               ml={5}
               color="cyan"
               onClick={(_: any) => setShowPresetPicker(true)}
@@ -260,9 +304,12 @@ const PlayerCard = ({
         >
           {AdvantageTypes.map((advType) => (
             <Switch
+              key={advType}
               label={`Show ${advType[0].toUpperCase()}${advType.substr(1)}`}
               checked={showAdvantageTypes[advType]}
-              onChange={(ev) => setShowAdvantageTypes[advType](ev.currentTarget.checked)}
+              onChange={(ev) => {
+                setShowAdvantageTypes[advType](ev.currentTarget.checked);
+              }}
             />
           ))}
 
@@ -277,14 +324,15 @@ const PlayerCard = ({
               (advType) => showAdvantageTypes[advType],
             ).map(
               (advType) => (
-                <tr>
+                <tr key={advType}>
                   <td>{advType}</td>
                   <td>
                     {weighted_mean_pmf(
-                      [...damageDetailsContext.get(player.key)?.entries() || []]
-                        .filter(([damagerKey, _]) => !player.damagers[damagerKey].disabled).map(([_, damager]) => damager)
+                      [...damageDataContext.get(player.key)?.entries() || []]
+                        .filter(([damagerKey, _]) => !player.damagers[damagerKey]?.disabled).map(([_, damager]) => damager)
                         .map((damageMap) => damageMap.get(advType))
                         .map((damageACMap) => damageACMap?.get(target.ac))
+                        .map((x) => x?.pmf)
                         .filter((x):x is PMF => !!x)
                         .reduce((acc, n) => convolve_pmfs_sum_2(acc, n, true), zero_pmf()),
                     ).toString(3)}

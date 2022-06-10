@@ -15,33 +15,81 @@ import {
 } from '@visx/xychart';
 import styles from '@damage/DamageGraphs/DamageGraphsCharts.module.css';
 import { useViewportSize } from '@mantine/hooks';
-import type { Target } from '@pages/Damage';
+import type { DamageData, Target } from '@pages/Damage';
 import { scaleOrdinal } from '@visx/scale';
 import { schemeSet2, schemeTableau10 } from 'd3-scale-chromatic';
 import * as ColorConvert from 'color-convert';
 import { NARROW_WIDTH } from '@damage/constants';
-import type { AdvantageType, Player } from '@damage/types';
+import type { SetState } from '@common';
+
+import type {
+  AC, AdvantageType, DamageInfo, Player, PlayerKey,
+} from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
 import { DamageDataContext, SelectedPlayerContext } from '@damage/contexts';
+import type Fraction from 'fraction.js';
 
 const s = (l: number[]) => l.reduce((a, b) => a + b, 0);
-const accessors = {
-  xAccessor: (d: any) => d.x,
-  yAccessor: (d: any) => d.y,
+const lineSeriesProps = {
+  xAccessor: (d: {x: number}) => d.x,
+  yAccessor: (d: {y: number}) => d.y,
 };
+const STROKE_DASH_OFFSET: Record<AdvantageType, string> = {
+  superadvantage: '22 5',
+  advantage: '11 7',
+  normal: '0 0',
+  disadvantage: '3 7',
+  superdisadvantage: '1 15',
+};
+const sumDamagerMeans = (damagers: Map<AC, DamageInfo>[]) => (
+  [...(damagers?.[0]?.entries() || [])]
+    .map(([ac, _]) => (
+      {
+        x: ac,
+        y: damagers.map((damager) => damager.get(ac)?.mean).reduce((acc, n) => acc + (n?.valueOf() || 0), 0),
+      })));
 
+const DamageLineSeries = ({
+  data,
+  keyBase,
+  advantageType,
+  colorScaler,
+}: {
+  data: {x:number, y:number}[]
+  keyBase: number,
+  advantageType: AdvantageType,
+  colorScaler: (k: string) => string }) => (
+    <AnimatedLineSeries
+      key={`${keyBase}|${advantageType}`}
+      dataKey={(
+        keyBase * AdvantageTypes.length
+          + AdvantageTypes.indexOf(advantageType)
+      ).toString()}
+      data={data}
+      colorAccessor={(dataKey) => colorScaler(dataKey)}
+      {...lineSeriesProps}
+      strokeDasharray={STROKE_DASH_OFFSET[advantageType]}
+      strokeWidth={3}
+    />
+);
+
+type DamageDatum = { x: AC, y: number };
 const DamageGraphsChart = ({
   target,
-  player,
+  players,
   hidden,
   graphWidth,
   setGraphWidth,
+  graphTotals,
+  showGraphTotalAdvantage,
 }: {
   target: Target;
-  player: Player;
+  players: { [key: PlayerKey]: Player };
   hidden: boolean;
   graphWidth: string;
-  setGraphWidth: React.Dispatch<React.SetStateAction<string>>;
+  setGraphWidth: SetState<string>;
+  graphTotals: boolean;
+  showGraphTotalAdvantage:Record<AdvantageType, boolean>
 }) => {
   // const [dataSets, setDataSets] = useState<{
   //   [key: keyof Player['damagers']]: { x: number; y: number }[];
@@ -76,7 +124,7 @@ const DamageGraphsChart = ({
   //       .map((i) => i + 1)
   //       .map(
   //         (d8) => ((d20 != 1
-  //                 && d20 + d8 + player.attackBonus >= target.ac
+  //                 && d20 + d8 + players[selectedPlayerContext].attackBonus >= target.ac
   //                 && d20 < target.ac)
   //                 || d20 == 20) as any as number,
   //       ));
@@ -88,10 +136,10 @@ const DamageGraphsChart = ({
   //   });
   //     // console.log({ improvementFactors });
   //     //
-  // }, [target.ac, player.attackBonus]);
+  // }, [target.ac, players[selectedPlayerContext].attackBonus]);
 
   const baseColorScale = scaleOrdinal({
-    domain: Object.values(player.damagers).map((d) => d.key.toString()),
+    domain: Object.values(players[selectedPlayerContext].damagers).map((d) => d.key.toString()),
     range: [...schemeTableau10, ...schemeSet2],
   });
 
@@ -176,14 +224,17 @@ const DamageGraphsChart = ({
     console.log(newHsl);
     return `#${ColorConvert.hsl.hex(newHsl)}`;
   };
+
+  const colorScalerRange = graphTotals ? players : players[selectedPlayerContext].damagers;
+
   const ordinalColorScale = scaleOrdinal({
-    domain: [...Object.values(player.damagers).map((d) => d.key)]
+    domain: [...Object.values(colorScalerRange).map((d) => d.key)]
       .map((x) => [...Array(AdvantageTypes.length).keys()].map(
         (i) => x * AdvantageTypes.length + i,
       ))
       .flat()
       .map((x) => x.toString()),
-    range: [...Object.values(player.damagers).map((d) => d.key)]
+    range: [...Object.values(colorScalerRange).map((d) => d.key)]
       .map((x) => [...Array(AdvantageTypes.length).keys()].map(
         (i) => x * AdvantageTypes.length + i,
       ))
@@ -201,14 +252,6 @@ const DamageGraphsChart = ({
     xTickLineStyles: { strokeWidth: 50, color: 'orange' },
   });
 
-  const STROKE_DASH_OFFSET: Record<AdvantageType, string> = {
-    superadvantage: '22 5',
-    advantage: '11 7',
-    normal: '0 0',
-    disadvantage: '3 7',
-    superdisadvantage: '1 15',
-  };
-
   return (
     <div id="damageChart">
       <div
@@ -219,40 +262,75 @@ const DamageGraphsChart = ({
         }}
         id="damageChartLegend"
       >
-        <LegendOrdinal scale={ordinalColorScale} labelFormat={(l) => l}>
-          {(labels) => (
-            <div style={{ display: 'flex', flexDirection: 'row' }}>
-              {labels
-                .filter((x) => player.damagers[
-                  Math.floor(Number(x.text) / AdvantageTypes.length)
-                ].advantageShow.get(
-                  AdvantageTypes[x.index % AdvantageTypes.length],
-                ))
-                .map((label) => (
-                  <LegendItem
-                    key={`legend-quantile-${label.text}`}
-                    margin="0 5px"
-                  >
-                    <svg width={5} height={5}>
-                      <rect fill={label.value} width={5} height={5} />
-                    </svg>
+        {graphTotals ? (
+          <LegendOrdinal scale={ordinalColorScale} labelFormat={(l) => l}>
+            {(labels) => (
+              <div style={{ display: 'flex', flexDirection: 'row' }}>
+                {labels
+                  .filter((x) => showGraphTotalAdvantage[(
+                    AdvantageTypes[x.index % AdvantageTypes.length]
+                  )])
+                  .map((label) => (
+                    <LegendItem
+                      key={`legend-quantile-${label.text}`}
+                      margin="0 5px"
+                    >
+                      <svg width={5} height={5}>
+                        <rect fill={label.value} width={5} height={5} />
+                      </svg>
 
-                    <LegendLabel align="left" margin="0 0 0 4px">
-                      {`${
-                        player.damagers[
-                          Math.floor(
-                            Number(label.text) / AdvantageTypes.length,
-                          )
-                        ]?.name
-                      } (${
-                        AdvantageTypes[label.index % AdvantageTypes.length]
-                      })`}
-                    </LegendLabel>
-                  </LegendItem>
-                ))}
-            </div>
-          )}
-        </LegendOrdinal>
+                      <LegendLabel align="left" margin="0 0 0 4px">
+                        {`${
+                          players[
+                            Math.floor(
+                              Number(label.text) / AdvantageTypes.length,
+                            )
+                          ]?.name
+                        } (${
+                          AdvantageTypes[label.index % AdvantageTypes.length]
+                        })`}
+                      </LegendLabel>
+                    </LegendItem>
+                  ))}
+              </div>
+            )}
+          </LegendOrdinal>
+        ) : (
+          <LegendOrdinal scale={ordinalColorScale} labelFormat={(l) => l}>
+            {(labels) => (
+              <div style={{ display: 'flex', flexDirection: 'row' }}>
+                {labels
+                  .filter((x) => players[selectedPlayerContext].damagers[
+                    Math.floor(Number(x.text) / AdvantageTypes.length)
+                  ].advantageShow.get(
+                    AdvantageTypes[x.index % AdvantageTypes.length],
+                  ))
+                  .map((label) => (
+                    <LegendItem
+                      key={`legend-quantile-${label.text}`}
+                      margin="0 5px"
+                    >
+                      <svg width={5} height={5}>
+                        <rect fill={label.value} width={5} height={5} />
+                      </svg>
+
+                      <LegendLabel align="left" margin="0 0 0 4px">
+                        {`${
+                          players[selectedPlayerContext].damagers[
+                            Math.floor(
+                              Number(label.text) / AdvantageTypes.length,
+                            )
+                          ]?.name
+                        } (${
+                          AdvantageTypes[label.index % AdvantageTypes.length]
+                        })`}
+                      </LegendLabel>
+                    </LegendItem>
+                  ))}
+              </div>
+            )}
+          </LegendOrdinal>
+        )}
         <ActionIcon
           style={{ marginRight: '5%', marginLeft: 'auto' }}
           onClick={() => {
@@ -324,7 +402,7 @@ const DamageGraphsChart = ({
                     const damagerIndex = Math.floor(
                       index / AdvantageTypes.length,
                     );
-                    const damager = player.damagers[damagerIndex];
+                    const damager = players[selectedPlayerContext].damagers[damagerIndex];
 
                     return (
                       <div
@@ -349,12 +427,8 @@ const DamageGraphsChart = ({
                           })`}
                           :
                           {' '}
-                          {(
-                              tooltipData?.datumByKey[i].datum as {
-                                x: number;
-                                y: number;
-                              }
-                          ).y.toFixed(2)}
+                          {/* eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access */}
+                          { (tooltipData?.datumByKey[i].datum as {y: Fraction}).y.valueOf() }
                         </Text>
                       </div>
                     );
@@ -365,35 +439,33 @@ const DamageGraphsChart = ({
           )}
         />
 
-        {Object.entries(player.damagers).map(([damagerDex, damager]) => AdvantageTypes.filter(
-          (x) => damager.advantageShow.get(x) && !damager.disabled,
-        ).map((advantageType) => (
-          <AnimatedLineSeries
-            key={
-                    damager.key * AdvantageTypes.length
-                    + AdvantageTypes.indexOf(advantageType)
-                  }
-            dataKey={(
-              Number(damagerDex) * AdvantageTypes.length
-                    + AdvantageTypes.indexOf(advantageType)
-            ).toString()}
-            data={[
-              ...(damageContext
-                ?.get(selectedPlayerContext)
-                ?.get(damager.key)
-                ?.get(advantageType)
-                ?.entries() || []),
-            ].map(([ac, dmg]) => ({
-              x: ac,
-              y: dmg,
-            }))}
-            colorAccessor={(dataKey) => colorScaler(dataKey)}
-                  // color={ordinalColorScale(index)}
-            {...accessors}
-            strokeDasharray={STROKE_DASH_OFFSET[advantageType]}
-            strokeWidth={3}
-          />
-        )))}
+        { graphTotals
+          ? AdvantageTypes.filter((x) => showGraphTotalAdvantage[x]).map((advType) => [
+            advType,
+            Object.values(players).map((player) => [player.key, sumDamagerMeans([...(damageContext?.get(player.key)?.values() || [])]
+              .map((x) => (x.get(advType) || new Map<AC, DamageInfo>()))) as DamageDatum[]] as [PlayerKey, DamageDatum[]])] as [AdvantageType, [PlayerKey, DamageDatum[]][]])
+            .flatMap(([advType, playerDamageTups]) => playerDamageTups.map(([playerKey, damageData]) => <DamageLineSeries data={damageData} keyBase={playerKey} advantageType={advType} colorScaler={colorScaler} />))
+
+          : Object.entries(players[selectedPlayerContext].damagers).map(([damagerDex, damager]) => AdvantageTypes.filter(
+            (x) => damager.advantageShow.get(x) && !damager.disabled,
+          ).map((advantageType) => (
+            <DamageLineSeries
+              keyBase={damager.key}
+              data={[
+                ...(damageContext
+                  ?.get(selectedPlayerContext)
+                  ?.get(damager.key)
+                  ?.get(advantageType)
+                  ?.entries() || []),
+              ].map(([ac, dmg]) => ({
+                x: ac,
+                y: dmg.mean.valueOf(),
+              }))}
+              colorScaler={colorScaler}
+              advantageType={advantageType}
+            />
+          )))}
+
       </XYChart>
     </div>
   );
