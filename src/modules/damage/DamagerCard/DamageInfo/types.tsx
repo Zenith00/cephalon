@@ -1,7 +1,7 @@
 import type { AdvantageType, Damager } from '@damage/types';
 import type React from 'react';
 import type { SelectItem } from '@mantine/core';
-import type { SetState } from '@common';
+import type { SetState } from '@utils/typehelpers';
 
 export interface DamageInfoProps {
   damager: Damager,

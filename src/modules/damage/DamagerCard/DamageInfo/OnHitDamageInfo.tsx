@@ -8,7 +8,7 @@ import { AdvantageTypes } from '@damage/types';
 import React, { useContext, useEffect, useState } from 'react';
 import type { DamageInfoProps } from '@damage/DamagerCard/DamageInfo/types';
 import { PlayerContext } from '@damage/contexts';
-import type { SetState } from '@common';
+import { SetState } from '@utils/typehelpers';
 
 const OnHitDamageInfo = ({
   damager,
@@ -41,7 +41,7 @@ const OnHitDamageInfo = ({
   };
 
   useEffect(() => {
-    setDamagerCount(Object.values(player?.damagers ?? {}).filter((d) => d.flags.triggersFirstHit).reduce((acc, n) => acc + n.count, 0));
+    setDamagerCount(Object.values(player?.damagers ?? {}).filter((d) => d.flags.triggersOnHit).reduce((acc, n) => acc + n.count, 0));
   }, [player?.damagers, setDamagerCount]);
 
   const onUpdateAttackMods = (
@@ -100,24 +100,24 @@ const OnHitDamageInfo = ({
         <Button onClick={() => toggleDisabled()} mt={27} ml={2} mr={0} color={disabled ? 'red' : 'blue'}>
           {disabled ? 'Disabled' : 'Enabled'}
         </Button>
-        <Popover
-          opened={settingsPopover}
-          onClose={() => setSettingsPopover(false)}
-          position="right"
-          withArrow
-          target={(
-            <Button
-              color="blue"
-              onClick={() => setSettingsPopover(true)}
-              ml={2}
-              mr="sm"
-              mt={27}
-              variant="outline"
-            >
-              <Plus />
-            </Button>
-            )}
-        />
+        {/* <Popover */}
+        {/*  opened={settingsPopover} */}
+        {/*  onClose={() => setSettingsPopover(false)} */}
+        {/*  position="right" */}
+        {/*  withArrow */}
+        {/*  target={( */}
+        {/*    <Button */}
+        {/*      color="blue" */}
+        {/*      onClick={() => setSettingsPopover(true)} */}
+        {/*      ml={2} */}
+        {/*      mr="sm" */}
+        {/*      mt={27} */}
+        {/*      variant="outline" */}
+        {/*    > */}
+        {/*      <Plus /> */}
+        {/*    </Button> */}
+        {/*    )} */}
+        {/* /> */}
       </div>
       <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
         <TextInput

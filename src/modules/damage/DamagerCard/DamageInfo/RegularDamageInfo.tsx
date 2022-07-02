@@ -8,7 +8,7 @@ import type { DamageInfoProps } from '@damage/DamagerCard/DamageInfo/types';
 
 import { AdvancedModeContext } from '@damage/contexts';
 import AdvantageShow from '@damage/AdvantageShow';
-import type { SetState } from '@common';
+import { SetState } from '@utils/typehelpers';
 
 const RegularDamageInfo = ({
   damager,
