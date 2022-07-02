@@ -3,12 +3,12 @@ import {
   AppShell, Container, Header, Textarea, Title,
 } from '@mantine/core';
 
-function Clip() {
+const Clip = () => {
   const [outText, setOutText] = useState('');
   const [disclaimer, setDisclaimer] = useState<boolean>(false);
 
   const pasteHandler = (e: React.ClipboardEvent) => {
-    navigator.clipboard.read().then((e) => e.forEach((clipItem) => {
+    navigator.clipboard.read().then((c) => c.forEach((clipItem) => {
       if (clipItem.types.includes('text/html')) {
         clipItem.getType('text/html').then((res) => {
           res.text().then((pasteText) => {
@@ -16,13 +16,13 @@ function Clip() {
             const htmlDoc = parser.parseFromString(pasteText, 'text/html');
             const messages = htmlDoc.querySelectorAll(
               '.messageContent-2t3eCI',
-            ) as NodeListOf<HTMLElement>;
-            const messageText = [...messages].map((m) => m.innerText);
+            );
+            const messageText = [...messages].map((m) => (m as HTMLElement).innerText);
             setOutText(messageText.join('\n'));
-          });
-        });
+          }).catch((_) => console.error(e));
+        }).catch((_) => console.error(e));
       }
-    }));
+    })).catch((_) => console.error(e));
   };
   useEffect(() => {
     if (
@@ -67,6 +67,6 @@ function Clip() {
       </AppShell>
     </div>
   );
-}
+};
 
 export default Clip;
