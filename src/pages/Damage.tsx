@@ -17,7 +17,8 @@ import { useToggle, useViewportSize } from '@mantine/hooks';
 import PlayerCard from '@/damage/DamagerCard/PlayerCard';
 import TargetNavbar from '@damage/TargetNavbar';
 import { useHandleDamageData } from '@damage/damageData.hook';
-import { NARROW_WIDTH, PRESET_DAMAGERS } from '@damage/constants';
+import type { PRESET_DAMAGERS } from '@damage/constants';
+import { NARROW_WIDTH } from '@damage/constants';
 
 import './Damage.module.css';
 import type { PMF } from '@utils/math';
@@ -249,19 +250,20 @@ const Damage = () => {
         },
       };
     } if (action.field === 'PRESET_DAMAGER') {
-      const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
-      const newDamagers = {
-        ...state[action.playerKey].damagers,
-        [nextDamagerIndex]:
-          PRESET_DAMAGERS[action.newDamagerName](nextDamagerIndex),
-      };
-      return {
-        ...state,
-        [action.playerKey]: {
-          ...state[action.playerKey],
-          damagers: newDamagers,
-        },
-      };
+      // const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
+      // const newDamagers = {
+      //   ...state[action.playerKey].damagers,
+      //   [nextDamagerIndex]:
+      //     PRESET_DAMAGERS[action.newDamagerName](nextDamagerIndex),
+      // };
+      return state;
+      // return {
+      //   ...state,
+      //   [action.playerKey]: {
+      //     ...state[action.playerKey],
+      //     damagers: newDamagers,
+      //   },
+      // };
     } if (action.field === 'COPY_DAMAGER') {
       const nextDamagerIndex = getNextDamagerIndex(action.playerKey);
       const newDamagers = {
