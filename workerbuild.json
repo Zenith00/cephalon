@@ -1,0 +1,38 @@
+{
+  "compilerOptions": {
+    "target": "esnext",
+    "lib": [
+      "esnext",
+      "webworker"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "noEmit": false,
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "jsx": "preserve",
+    "incremental": false,
+    "downlevelIteration": true,
+    "paths": {
+      "@*": [
+        "src/modules/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@pages/*": [
+        "src/pages/*"
+      ]
+    },
+    "baseUrl": "."
+  },
+  "files": [
+    "src/modules/damageBlocks/mathWorker.tsx"
+  ],
+  "exclude": [
+    "**"
+  ]
+}
