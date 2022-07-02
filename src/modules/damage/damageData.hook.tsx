@@ -10,7 +10,7 @@ import {
   d20ToCritrate,
   d20ToFailRate,
   isSimpleProcessable,
-  one_or_other_pmfs,
+  one_or_other_pmfs, one_or_three_pmfs, printPMF,
   simpleProcess,
   weighted_mean_pmf,
 } from '@utils/math';
@@ -74,6 +74,43 @@ function computeFinalPMF(
     hitChanceAwareDamagePMF,
   );
 }
+function computeFinalPMF2(
+  advType: AdvantageType,
+  ac: AC,
+  missChance: Fraction,
+  critRate: Fraction,
+  failRate: Fraction,
+  damageString: string,
+) {
+  const simpleDamagePMF = simpleProcess(damageString)!;
+  const simpleCritBonusPMF = simpleProcess(damageString, 'raw')!;
+  printPMF(simpleCritBonusPMF);
+
+  const regularHitChance = new Fraction(1).sub(missChance).sub(critRate);
+
+  const finalPMF = one_or_three_pmfs(
+    simpleDamagePMF,
+    simpleCritBonusPMF,
+    new Map([[0, new Fraction(1)]]),
+    regularHitChance,
+    critRate,
+    missChance,
+  );
+  printPMF(finalPMF);
+  console.log(weighted_mean_pmf(finalPMF).toString(6));
+  return finalPMF;
+}
+
+const x = computeFinalPMF2(
+  'normal',
+  14,
+  new Fraction(0.4),
+  new Fraction(0.05),
+  new Fraction(0.05),
+  '1d12+5',
+);
+// printPMF(x);
+// console.log(weighted_mean_pmf(x).toString(5));
 
 function calculateBasicDamageInfo(player: Player, damager: Damager) {
   const damagerBonus = player.attackBonus >= 0
@@ -123,6 +160,10 @@ const computeDamageInfo = memoize(((player: Player, damager: Damager, advancedMo
       const failRate = d20ToFailRate(
         ADVANTAGE_TO_DICE[advType],
       );
+      console.log('ADV!');
+      console.log(ADVANTAGE_TO_DICE[advType]);
+      console.log(failRate);
+      console.log(critRate);
       return [
         advType,
         ACs.reduce((damageMap, ac) => {
@@ -137,6 +178,7 @@ const computeDamageInfo = memoize(((player: Player, damager: Damager, advancedMo
             damageMap.set(ac, firstHitPMF);
           } else {
             const missChance = computeMissChance(attackCumsum, advType, ac, critRate, failRate);
+            console.log(`Miss chance with ac ${ac} ${advType} is ${missChance.toString(4)}`);
 
             let finalDamagePMF = computeFinalPMF(advType, ac, missChance, critRate, failRate, damagerDamage, damager.count);
 
