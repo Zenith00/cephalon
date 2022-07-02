@@ -10,9 +10,9 @@ import type { Player, PlayerKey, AdvantageType } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
 import { useToggle } from '@mantine/hooks';
 import { Plus } from 'tabler-icons-react';
-import type { SetState } from '@common';
 import { AdvancedModeContext } from '@damage/contexts';
 import DamageDetails from '@damage/DamageGraphs/DamageDetails';
+import type { SetState } from '@utils/typehelpers';
 
 const data1 = [
   { x: '2020-01-01', y: 50 },

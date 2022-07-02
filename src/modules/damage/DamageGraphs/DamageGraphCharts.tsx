@@ -9,25 +9,28 @@ import {
   AnimatedGrid,
   AnimatedLineSeries,
   buildChartTheme,
+  GlyphSeries,
   lightTheme,
   Tooltip,
   XYChart,
 } from '@visx/xychart';
-import styles from '@damage/DamageGraphs/DamageGraphsCharts.module.css';
+// import styles from '@damage/DamageGraphs/DamageGraphsCharts.module.css';
 import { useViewportSize } from '@mantine/hooks';
 import type { DamageData, Target } from '@pages/Damage';
 import { scaleOrdinal } from '@visx/scale';
 import { schemeSet2, schemeTableau10 } from 'd3-scale-chromatic';
 import * as ColorConvert from 'color-convert';
 import { NARROW_WIDTH } from '@damage/constants';
-import type { SetState } from '@common';
 
 import type {
   AC, AdvantageType, DamageInfo, Player, PlayerKey,
+  Damager,
 } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
 import { DamageDataContext, SelectedPlayerContext } from '@damage/contexts';
 import type Fraction from 'fraction.js';
+import { GlyphCross } from '@visx/glyph';
+import type { SetState } from '@utils/typehelpers';
 
 const s = (l: number[]) => l.reduce((a, b) => a + b, 0);
 const lineSeriesProps = {
@@ -55,22 +58,34 @@ const DamageLineSeries = ({
   advantageType,
   colorScaler,
 }: {
-  data: {x:number, y:number}[]
+  data: {x:number, y:number, bestType?: Damager['damagerType']}[]
   keyBase: number,
   advantageType: AdvantageType,
   colorScaler: (k: string) => string }) => (
-    <AnimatedLineSeries
-      key={`${keyBase}|${advantageType}`}
-      dataKey={(
-        keyBase * AdvantageTypes.length
+    <>
+      <AnimatedLineSeries
+        key={`${keyBase}|${advantageType}`}
+        dataKey={(
+          keyBase * AdvantageTypes.length
           + AdvantageTypes.indexOf(advantageType)
-      ).toString()}
-      data={data}
-      colorAccessor={(dataKey) => colorScaler(dataKey)}
-      {...lineSeriesProps}
-      strokeDasharray={STROKE_DASH_OFFSET[advantageType]}
-      strokeWidth={3}
-    />
+        ).toString()}
+        data={data}
+        colorAccessor={(dataKey) => colorScaler(dataKey)}
+        {...lineSeriesProps}
+        strokeDasharray={STROKE_DASH_OFFSET[advantageType]}
+        strokeWidth={3}
+      />
+      <GlyphSeries
+        dataKey={(
+          keyBase * AdvantageTypes.length
+          + AdvantageTypes.indexOf(advantageType)
+        ).toString()}
+        data={(data)}
+        size={(d) => (d.bestType === 'powerAttack' ? 35 : 0)}
+        renderGlyph={(d) => (<GlyphCross left={d.x} top={d.y} size={d.size} />)}
+        {...lineSeriesProps}
+      />
+    </>
 );
 
 type DamageDatum = { x: AC, y: number };
@@ -294,7 +309,9 @@ const DamageGraphsChart = ({
                   ))}
               </div>
             )}
+
           </LegendOrdinal>
+
         ) : (
           <LegendOrdinal scale={ordinalColorScale} labelFormat={(l) => l}>
             {(labels) => (
@@ -331,6 +348,12 @@ const DamageGraphsChart = ({
             )}
           </LegendOrdinal>
         )}
+        <LegendItem key="SS">
+          <svg width={30} height={35}>
+            <GlyphCross size={35} top={35 / 2} left={35 / 2} />
+          </svg>
+          <LegendLabel>Using SS/GWM</LegendLabel>
+        </LegendItem>
         <ActionIcon
           style={{ marginRight: '5%', marginLeft: 'auto' }}
           onClick={() => {
@@ -387,7 +410,7 @@ const DamageGraphsChart = ({
           showVerticalCrosshair
           applyPositionStyle
           detectBounds
-          className={styles.tooltip}
+          // className={styles.tooltip}
           glyphStyle={{ width: '5' }}
           showSeriesGlyphs
           style={{
@@ -460,6 +483,7 @@ const DamageGraphsChart = ({
               ].map(([ac, dmg]) => ({
                 x: ac,
                 y: dmg.mean.valueOf(),
+                bestType: dmg.bestType,
               }))}
               colorScaler={colorScaler}
               advantageType={advantageType}
