@@ -1,6 +1,5 @@
 import type { SelectItem } from '@mantine/core';
 import type { AC } from '@damage/types';
-import { Damager } from '@damage/types';
 
 export const ADVANTAGE_TO_DICE = {
   superadvantage: '3d20kh',
@@ -42,27 +41,27 @@ const MODS_2_DATA = (rawModifiers: string[]) => {
   return { modifierOptions, modifiers };
 };
 
-const make_preset = (name: string, damagerType: Damager['damagerType'], rawModifiers: string[], damage: string, count: number) => (
-  (key: number) => {
-    const { modifierOptions, modifiers } = MODS_2_DATA(rawModifiers);
-    return new Damager(key, damagerType, damage, count, name, modifierOptions, modifiers);
-  });
+// const make_preset = (name: string, damagerType: Damager['damagerType'], rawModifiers: string[], damage: string, count: number) => (
+//   (key: number) => {
+//     const { modifierOptions, modifiers } = MODS_2_DATA(rawModifiers);
+//     return new Damager(key, damagerType, damage, count, name, modifierOptions, modifiers);
+//   });
 
 export const PRESET_DAMAGERS = {
-  'Crossbow Expert+Sharpshooter Hand Crossbow': make_preset(
-    'CBE/SS + Hand Crossbow',
-    'regular',
-    ['Sharpshooter [-5]'],
-    '1d6+5+10',
-    1,
-  ),
-  'Eldritch Blast + Agonizing Blast': make_preset(
-    'EB + Agonizing Blast',
-    'regular',
-    [],
-    '1d10+5',
-    1,
-  ),
+  // 'Crossbow Expert+Sharpshooter Hand Crossbow': make_preset(
+  //   'CBE/SS + Hand Crossbow',
+  //   'regular',
+  //   ['Sharpshooter [-5]'],
+  //   '1d6+5+10',
+  //   1,
+  // ),
+  // 'Eldritch Blast + Agonizing Blast': make_preset(
+  //   'EB + Agonizing Blast',
+  //   'regular',
+  //   [],
+  //   '1d10+5',
+  //   1,
+  // ),
 };
 
 export const NARROW_WIDTH = 850;
