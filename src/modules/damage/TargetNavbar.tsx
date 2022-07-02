@@ -8,10 +8,10 @@ import {
   Switch,
   Title, Tooltip,
 } from '@mantine/core';
-import type { SetState } from '@common';
 
 import type { Target } from '@pages/Damage';
 import { InfoCircle } from 'tabler-icons-react';
+import type { SetState } from '@utils/typehelpers';
 
 const TargetNavbar = ({
   target,

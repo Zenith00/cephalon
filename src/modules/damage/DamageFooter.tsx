@@ -3,7 +3,7 @@ import {
 } from '@mantine/core';
 import Image from 'next/image';
 import React from 'react';
-import type { SetState } from '@common';
+import { SetState } from '@utils/typehelpers';
 
 const DamageFooter = (props: { opened: boolean, onClick: () => void, colorScheme: 'dark' | 'light' }) => {
   const { opened, onClick, colorScheme } = props;

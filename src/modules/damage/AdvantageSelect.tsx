@@ -1,7 +1,7 @@
 import type React from 'react';
 import { useEffect, useState } from 'react';
 import type { AdvantageType } from '@damage/types';
-import type { SetState } from '@common';
+import type { SetState } from '@utils/typehelpers';
 
 const AdvantageSelect = (neutralDefault = true) => {
   const [showSuperAdvantage, setShowSuperAdvantage] = useState(false);

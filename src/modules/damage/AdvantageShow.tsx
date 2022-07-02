@@ -3,7 +3,7 @@ import { AdvantageTypes } from '@damage/types';
 import React, { useState } from 'react';
 import { Button, Popover, Switch } from '@mantine/core';
 import { Plus } from 'tabler-icons-react';
-import type { SetState } from '@common';
+import type { SetState } from '@utils/typehelpers';
 
 const AdvantageShow = (
   {
