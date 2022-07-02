@@ -16,15 +16,17 @@ import type { NextPage } from 'next';
 import Head from 'next/head';
 import { ArrowRightCircle } from 'tabler-icons-react';
 import React from 'react';
+import Link from 'next/link';
 
 interface PageInfo {
   title: string;
-  imageURL: string
+  imageURL: string;
+  targetPageURL: string;
 }
 
 const pages: PageInfo[] = [
-  { title: 'Condition Immunity', imageURL: '/img/ConditionImmunity.png' },
-  { title: 'Damage Calculator', imageURL: 'img/Damage.png' },
+  { title: 'Condition Immunity', imageURL: '/img/ConditionImmunity.png', targetPageURL: '/ConditionImmunities' },
+  { title: 'Damage Calculator', imageURL: 'img/Damage.png', targetPageURL: '/Damage' },
 ];
 
 const Home: NextPage = () => (
@@ -48,14 +50,18 @@ const Home: NextPage = () => (
                 <Image src={page.imageURL} height={260} />
               </Card.Section>
               <Center>
-                <ActionIcon
-                  variant="filled"
-                  color="blue"
-                  style={{ width: '50%' }}
-                  mt="md"
-                >
-                  <ArrowRightCircle />
-                </ActionIcon>
+                <Link href={page.targetPageURL}>
+
+                  <ActionIcon
+                    variant="filled"
+                    color="blue"
+                    style={{ width: '50%' }}
+                    mt="md"
+                  >
+                    <ArrowRightCircle />
+                  </ActionIcon>
+                </Link>
+
               </Center>
             </Card>
           </Grid.Col>
