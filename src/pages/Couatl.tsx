@@ -53,12 +53,12 @@ export interface CouatlDatapack {
   bySpell: Record<CreatureName, SpellName[]>;
 }
 
-function getElementCoords(element, coords) {
-  const ctm = element.getCTM();
-  const x = ctm.e + coords.x * ctm.a + coords.y * ctm.c;
-  const y = ctm.f + coords.x * ctm.b + coords.y * ctm.d;
-  return { x, y };
-}
+// function getElementCoords(element, coords) {
+//   const ctm = element.getCTM();
+//   const x = ctm.e + coords.x * ctm.a + coords.y * ctm.c;
+//   const y = ctm.f + coords.x * ctm.b + coords.y * ctm.d;
+//   return { x, y };
+// }
 const Couatl = () => {
   const [zoomRef, setZoomRef_] = useState<ProvidedZoom<SVGSVGElement>>();
   const setZoomRef = useDebouncedCallback(setZoomRef_, 500);
@@ -214,7 +214,8 @@ const Couatl = () => {
         padding="sm"
         aside={(
           <SpellListAside
-            spells={datapack?.bySpell}
+            spells={datapack?.bySpell || {}}
+            hidden={false}
             jumpTo={
               ({ creature, spell }) => {
                 console.log({ creature });
@@ -234,7 +235,9 @@ const Couatl = () => {
                 // console.log(rootTranslateX - translateX)
                 // console.log(rootTranslateY - translateY)
                 const v = { x: rootTranslateX - translateX, y: rootTranslateY - translateY };
-
+                if (!zoomRef) {
+                  return;
+                }
                 const rootPoint = zoomRef.applyInverseToPoint({ x: rootTranslateX, y: rootTranslateY });
                 const selectedPoint = zoomRef.applyInverseToPoint({ x: translateX, y: translateY });
 
@@ -340,7 +343,7 @@ const Couatl = () => {
                       }}
                     />
                     <Tree
-                      root={data}
+                      root={data!}
                       size={[(height - margin.top - margin.bottom) * 12, (width - margin.left - margin.right) * 2]}
                     >
                       {(tree) => (
@@ -361,7 +364,7 @@ const Couatl = () => {
                           {tree.descendants().map((node, i) => (
                             <Node
                               key={`node-${i}`}
-                              node={node}
+                              node={node as any as HierarchyPointNode<TreeNode>}
                               fullname={`${node.parent?.data.name}|${node.data.name}`}
                             />
                           ))}
