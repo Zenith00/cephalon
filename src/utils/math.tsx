@@ -1,15 +1,28 @@
-import type { critType } from '@/damage/DamagerCard/DamagerCard';
+// import type { critType } from '@/damage/DamagerCard/DamagerCard';
 import Fraction from 'fraction.js';
 import memoize from 'lodash.memoize';
 
+export type critType = 'none' | 'normal' | 'maximized' | 'raw';
+
 export type PMF = Map<number, Fraction>;
 
-export const zero_pmf = () => new Map([[0, new Fraction(1)]]) as PMF;
+export const zero_pmf = () => new Map([[0, ONE]]) as PMF;
 
-export const boundProb = (x: Fraction, critRate: Fraction, failRate: Fraction) => {
-  const NotFailRate = new Fraction(1).sub(failRate);
-  const lowerBounded = x.valueOf() < critRate.valueOf() ? critRate : x;
-  return lowerBounded.valueOf() > NotFailRate.valueOf() ? NotFailRate : lowerBounded;
+const ZERO = new Fraction(0);
+const ONE = new Fraction(1);
+
+export const boundProb = (missChance: Fraction, critRate: Fraction, failRate: Fraction) => {
+  console.log(`Bounding ${missChance.toString(3)} to ${critRate.toString(3)}-${failRate.toString(3)}`);
+  if (missChance.valueOf() < failRate.valueOf()) {
+    return failRate;
+  } if (missChance.valueOf() > ONE.sub(critRate).valueOf()) {
+    return ONE.sub(critRate);
+  }
+  return missChance;
+  // const NotFailRate = ONE.sub(failRate);
+  // const lowerBounded = missChance.valueOf() < critRate.valueOf() ? critRate : missChance;
+  // console.log(`Lower bound: ${lowerBounded.toString(3)}`);
+  // return lowerBounded.valueOf() > NotFailRate.valueOf() ? NotFailRate : lowerBounded;
 };
 
 export const printPMF = (pmf: PMF) => {
@@ -18,7 +31,7 @@ export const printPMF = (pmf: PMF) => {
 };
 
 export const cumSumHits = (pmf: PMF) => {
-  let acc = new Fraction(0);
+  let acc = ZERO;
   return new Map(
     [...pmf.entries()].sort((x) => x[0]).map(([val, p]) => [val + 1, (acc = acc.add(p))]),
   );
@@ -49,7 +62,7 @@ export const convolve_pmfs_sum_2 = (pmfX_: PMF, pmfY_: PMF, add: boolean) => {
   const pmfYMax = Math.max(...pmfY.keys());
   const jointProb = [...Array(pmfXMax + 1).keys()].map(
     (xDex) => [...Array(pmfYMax + 1).keys()].map(
-      (yDex) => (pmfX.get(xDex) || new Fraction(0)).mul(pmfY.get(yDex) || new Fraction(0)),
+      (yDex) => (pmfX.get(xDex) || ZERO).mul(pmfY.get(yDex) || ZERO),
     ),
   );
 
@@ -62,7 +75,7 @@ export const convolve_pmfs_sum_2 = (pmfX_: PMF, pmfY_: PMF, add: boolean) => {
       bound(diagDex),
       [...Array(pmfXMax + pmfYMax + 2).keys()]
         .map(
-          (i) => (jointProb[diagDex - diagExtra - diagSign * i] ?? [])[i] ?? new Fraction(0),
+          (i) => (jointProb[diagDex - diagExtra - diagSign * i] ?? [])[i] ?? ZERO,
         )
         .reduce((l, r) => l.add(r)),
     ),
@@ -75,7 +88,7 @@ export const convolve_pmfs_prod = (pmfX_: PMF, pmfY_: PMF) => {
 
   const pmf = new Map<number, Fraction>() as PMF;
   [...pmfX.entries()].forEach(([xKey, xVal]) => [...pmfY.entries()].forEach(([yKey, yVal]) => {
-    pmf.set(xKey * yKey, (pmf.get(xKey * yKey) || new Fraction(0)).add(xVal.mul(yVal)));
+    pmf.set(xKey * yKey, (pmf.get(xKey * yKey) || ZERO).add(xVal.mul(yVal)));
   }));
   return pmf;
 };
@@ -83,13 +96,70 @@ export const convolve_pmfs_prod = (pmfX_: PMF, pmfY_: PMF) => {
 export const one_or_other_pmfs = (pmfX: PMF, pmfY: PMF, pX: Fraction, pY: Fraction) => {
   const pmf = new Map<number, Fraction>() as PMF;
   const keySet = new Set<number>([...pmfX.keys(), ...pmfY.keys()]);
-  [...keySet].forEach((k) => pmf.set(k, (pmfX.get(k) || new Fraction(0)).mul(pX).add((pmfY.get(k) || new Fraction(0)).mul(pY))));
+  [...keySet].forEach((k) => pmf.set(k, (pmfX.get(k) || ZERO).mul(pX).add((pmfY.get(k) || ZERO).mul(pY))));
 
   return pmf;
 };
-const pmfMax = (pmf1: PMF, pmf2: PMF) => {
-  const pmfResult = new Map<number, Fraction>() as PMF;
+
+export const one_or_three_pmfs = (pmfX: PMF, pmfY: PMF, pmfZ: PMF, pX: Fraction, pY: Fraction, pZ: Fraction) => {
+  const pmf = new Map<number, Fraction>() as PMF;
+  const keySet = new Set<number>([...pmfX.keys(), ...pmfY.keys(), ...pmfZ.keys()]);
+  [...keySet].forEach((k) => pmf.set(k, (pmfX.get(k) || ZERO).mul(pX).add((pmfY.get(k) || ZERO).mul(pY)).add((pmfZ.get(k) || ZERO).mul(pZ))));
+
+  return pmf;
 };
+const pmfMax = (pmfX_: PMF, pmfY_: PMF) => {
+  const pmfX = new Map([...pmfX_.entries()].sort());
+  const pmfY = new Map([...pmfY_.entries()].sort());
+
+  const getGT = (pmf: PMF, than: number) : Fraction => [...pmf.values()].slice(0, [...pmf.keys()].indexOf(than)).reduce((acc, n) => acc.add(n), ZERO);
+  const pmfResult = new Map<number, Fraction>() as PMF;
+  const keySet = new Set<number>([...pmfX.keys(), ...pmfY.keys()]);
+  keySet.forEach((key) => {
+    console.log({ key });
+    console.log(getGT(pmfX, key).mul(pmfX.get(key) || ONE).toString(3));
+    console.log(getGT(pmfY, key).mul(pmfY.get(key) || ONE).toString(3));
+    const xkey_ykey = (pmfX.get(key) || ZERO).mul(pmfY.get(key) || ZERO);
+    pmfResult.set(key, getGT(pmfX, key).mul(pmfX.get(key) || ONE).add(getGT(pmfY, key).mul(pmfY.get(key) || ONE)).add(xkey_ykey));
+  });
+  return pmfResult;
+};
+
+const pmfMin = (pmfX_: PMF, pmfY_: PMF) => {
+  const pmfX = new Map([...pmfX_.entries()].sort());
+  const pmfY = new Map([...pmfY_.entries()].sort());
+
+  const getGT = (pmf: PMF, than: number) : Fraction => [...pmf.values()].slice([...pmf.keys()].indexOf(than) + 1).reduce((acc, n) => acc.add(n), ZERO);
+  console.log(getGT(pmfX, 2).toString(3));
+  const pmfResult = new Map<number, Fraction>() as PMF;
+  const keySet = new Set<number>([...pmfX.keys(), ...pmfY.keys()]);
+  keySet.forEach((key) => {
+    console.log({ key });
+    console.log(getGT(pmfX, key).mul(pmfX.get(key) || ONE).toString(3));
+    console.log(getGT(pmfY, key).mul(pmfY.get(key) || ONE).toString(3));
+    const xkey_ykey = (pmfX.get(key) || ZERO).mul(pmfY.get(key) || ZERO);
+    pmfResult.set(key, getGT(pmfX, key).mul(pmfX.get(key) || ONE).add(getGT(pmfY, key).mul(pmfY.get(key) || ONE)).add(xkey_ykey));
+  });
+  return pmfResult;
+};
+
+// export const pmf_max = (pmfX: PMF, pmfY: PMF) => {
+//   const keySet = [...new Set<number>([...pmfX.keys(), ...pmfY.keys()])].sort();
+//
+//   const width = keySet[keySet.length - 1] + 2;
+//   console.log({ keySet });
+//   console.log(keySet.slice(0, keySet.indexOf(2)));
+//   return keySet
+//     .map((n) => {
+//       const l = keySet.slice(keySet.indexOf(n))
+//         .map((x) => (pmfX.get(x) || ZERO)).reduce((acc, c) => acc.add(c), ZERO);
+//       const r = keySet.slice(keySet.indexOf(n))
+//         .map((y) => (pmfY.get(y) || ZERO));
+//       return [n, [...l, ...r].reduce((acc, c) => acc.add(c), ZERO).toString(4)];
+//     });
+// };
+printPMF(pmfMax(make_pmf(7), make_pmf(7)));
+
 export const diceToPMFs = (dice: string) : PMF[] => {
   const [count, face] = dice.split('d');
 
@@ -103,7 +173,7 @@ export const diceToPMFs = (dice: string) : PMF[] => {
     }
     return [...Array(Number(count) || 1).keys()].map((_) => make_pmf(Number(face)));
   }
-  return [new Map([[Number(count), new Fraction(1)]])];
+  return [new Map([[Number(count), ONE]])];
 };
 
 // console.log(diceToPMFs('2'));
@@ -116,7 +186,7 @@ export const d20ToCritrate = (dice: string, critThreshold: number) : Fraction =>
   if (fullFace.endsWith('kh') || fullFace.endsWith('kl')) {
     switch (fullFace.slice(-2)) {
       case 'kh':
-        return new Fraction(1).sub(new Fraction((critThreshold - 1), 20)).pow(count);
+        return ONE.sub(new Fraction((critThreshold - 1), 20).pow(count));
       case 'kl':
         return new Fraction((new Fraction(21).sub(new Fraction(critThreshold))), 20).pow(count);
       default:
@@ -144,17 +214,17 @@ export const d20ToFailRate = (dice: string) => {
   return new Fraction(1 / 20);
 };
 
+console.log('fail');
+console.log(d20ToCritrate('2d20kh', 20));
+
 export const isSimpleProcessable = (damage: string) => Boolean(/^([\dd+\-khl]|(mod))+$/.test(damage.replaceAll(/\s/g, '')));
 
 export const simpleProcess = memoize((
   damage: string,
   crit: critType = 'none',
-): PMF | undefined => {
+): PMF => {
   let state: 'pos' | 'neg' = 'pos';
   const clean = (damage).replaceAll(/\s/g, '');
-  if (!/^[\dd+\-khl]+$/.test(clean)) {
-    return undefined;
-  }
 
   let dice = {
     pos: [],
@@ -196,6 +266,23 @@ export const simpleProcess = memoize((
       neg: string[];
     };
   }
+  if (crit === 'raw') {
+    dice = Object.fromEntries(
+      [Object.entries(dice)].map(([[posneg, d]]) => [
+        posneg,
+        d.map((x) => {
+          if (x.includes('d')) {
+            const [count, face] = x.split('d');
+            return `${Number(count) * 2}d${face}`;
+          }
+          return x;
+        }).filter((v) => v),
+      ]) || [],
+    ) as {
+      pos: string[];
+      neg: string[];
+    };
+  }
 
   // console.log(dice);
   let pmf = (dice.pos || [])
@@ -203,7 +290,7 @@ export const simpleProcess = memoize((
     .map(diceToPMFs)
     .flat()
     .map((x: PMF) => x)
-    .reduce((acc, c) => convolve_pmfs_sum_2(acc, c, true), new Map([[0, new Fraction(1)]]));
+    .reduce((acc, c) => convolve_pmfs_sum_2(acc, c, true), new Map([[0, ONE]]));
 
   pmf = (dice.neg || [])
     .filter((x) => x)
@@ -218,5 +305,5 @@ export const simpleProcess = memoize((
 
 export const weighted_mean_pmf = (pmf: PMF) => [...pmf.entries()].reduce(
   (acc, [d, p]) => (acc.add(new Fraction(d).mul(p))),
-  new Fraction(0),
+  ZERO,
 );
