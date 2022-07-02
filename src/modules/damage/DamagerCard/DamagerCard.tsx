@@ -23,7 +23,6 @@ import AdvantageSelect from '@damage/AdvantageSelect';
 import { AdvantageTypes } from '@damage/types';
 
 // console.log({ DamagerTable });
-export type critType = 'none' | 'normal' | 'maximized';
 
 const DamagerCard = ({
   target,

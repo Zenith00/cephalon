@@ -4,8 +4,8 @@ import { Popover, Table, Text } from '@mantine/core';
 import type { PMF } from '@utils/math';
 import type Fraction from 'fraction.js';
 import React, { useContext } from 'react';
-import type { SetState } from '@common';
 import { AdvancedModeContext } from '@damage/contexts';
+import type { SetState } from '@utils/typehelpers';
 
 type damagerTableProps = {
   showAdvantageTypes: Record<AdvantageType, boolean>,

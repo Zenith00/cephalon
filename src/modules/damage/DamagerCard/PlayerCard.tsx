@@ -21,7 +21,6 @@ import { useDebouncedValue, useToggle } from '@mantine/hooks';
 import {
   CaretDown, CaretRight, Notes, Plus,
 } from 'tabler-icons-react';
-import type { SetState } from '@common';
 
 import type { AdvantageType } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
@@ -32,6 +31,7 @@ import {
   DamageDataContext, DispatchPlayerListContext, PlayerContext,
 } from '@damage/contexts';
 import { useDebouncedCallback } from 'use-debounce';
+import type { SetState } from '@utils/typehelpers';
 import DamagerCard from './DamagerCard';
 
 const MemoDamagerCard = React.memo(DamagerCard);
