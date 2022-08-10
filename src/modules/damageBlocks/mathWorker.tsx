@@ -20,7 +20,7 @@ const cumSumHits = (pmf: PMF) => {
   let acc = new Fraction(0);
   return new Map(
     // eslint-disable-next-line no-return-assign
-    [...pmf.entries()].sort((x) => x[0]).map(([val, p]) => [val + 1, (acc = acc.add(p))]),
+    [...pmf.entries()].sort(([lk, lv], [rk, rv]) => lk - rk).map(([val, p]) => [val + 1, (acc = acc.add(p))]),
   );
 };
 

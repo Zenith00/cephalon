@@ -1,16 +1,19 @@
-import React, { useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import {
+  Button,
   Divider,
   NumberInput, Paper, Text, TextInput,
 } from '@mantine/core';
-import type { NodeProps, Node } from 'react-flow-renderer';
+import type { NodeProps, Node, Edge } from 'react-flow-renderer';
 import {
   useEdges, useNodes, Handle, Position,
 } from 'react-flow-renderer';
 import type { PlayerNodeData } from '@damageBlocks/nodes/PlayerNode.component';
 import LabeledHandler from '@damageBlocks/LabeledHandler/handler';
-import { EdgeContext, NodeIdContext } from '@damageBlocks/contexts';
-import { Damager } from '@damage/types';
+import {
+  EdgeContext, NodeIdContext, UpdateNodeContext,
+} from '@damageBlocks/contexts';
+import type { Damager } from '@damage/types';
 import type { PMF } from '@utils/math';
 import { weighted_mean_pmf, isSimpleProcessable } from '@utils/math';
 import produce from 'immer';
@@ -18,8 +21,10 @@ import produce from 'immer';
 import type { Promise } from 'workerpool';
 import workerpool from 'workerpool';
 import type {
-  AC, BlockPlayer, DamagePMFByAC, DamagerDatum, HitPMF, MetadatumType,
-  NodeType, PlayerDatum,
+  AC, BlockPlayer, DamagePMFByAC, DamagerMetadatum, HitPMF,
+  PlayerMetadatum,
+  NodeKeyType, PlayerKey,
+  EnrichedNodeProps, NodeMetadatum, DamagerKey, NodeType,
 } from '@damageBlocks/types';
 import { BlockDamager } from '@damageBlocks/types';
 import type { computeDamageInfo } from '@damageBlocks/mathWorker';
@@ -29,30 +34,41 @@ import { getNode } from '@damageBlocks/utils';
 const pool = workerpool.pool('/mathWorker.js');
 
 export interface DamagerNodeData {
-  data: MetadatumType & {type: 'damager'}
+  data: DamagerMetadatum & {type: 'damager'}
+  id: DamagerKey
 }
-const DamagerNode = ({ data, id } : DamagerNodeData & NodeProps) => {
+const DamagerNode = ({ data, id } : DamagerNodeData & EnrichedNodeProps) => {
+  // const metadataDispatchContext = useContext(DispatchMetadatumUpdateContext);
+  const updateNode = useContext(UpdateNodeContext);
   const s = 2;
   const [damager, setDamager] = useState(new BlockDamager(id));
   const [damageData, setDamageData] = useState<DamagePMFByAC>();
   const [toHitData, setToHitData] = useState<PMF[]>();
-  const [sourcePlayer, setSourcePlayer] = useState<BlockPlayer>();
+  // const [sourcePlayer, setSourcePlayer] = useState<BlockPlayer>();
   const [sourceOnHitPMFs, setSourceOnHitPMFs] = useState<HitPMF[]>([]);
   const workerRef = React.useRef<Promise<Map<AC, PMF>>>();
   const Edges = useEdges();
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-type-assertion
-  const Nodes = useNodes() as NodeType<MetadatumType>[];
+  const Nodes = useNodes() as NodeType<NodeMetadatum>[];
 
   React.useEffect(() => {
-    console.log({ sourcePlayer });
-    if (!sourcePlayer && sourceOnHitPMFs.length === 0) { return; }
+    if (!data && sourceOnHitPMFs.length === 0) { return; }
     pool.proxy()
       .then((worker) => {
+        if (!data.damager.sourcePlayer) {
+          return;
+        }
+        const playerNode = getNode(Nodes, data.damager.sourcePlayer);
+
+        if (!playerNode) {
+          return;
+        }
         workerRef.current?.cancel().catch(() => {});
         console.log('Computing');
         console.log(sourceOnHitPMFs);
-        const p = worker.computeDamageInfo(damager, 'normal', sourcePlayer, sourceOnHitPMFs);
+        const p = worker.computeDamageInfo(damager, 'normal', playerNode.data, sourceOnHitPMFs);
         workerRef.current = p;
+        // eslint-disable-next-line consistent-return
         return p;
       })
       .then((res) => {
@@ -65,23 +81,34 @@ const DamagerNode = ({ data, id } : DamagerNodeData & NodeProps) => {
       .catch((err) => {
         console.log(err);
       });
-  }, [damager, sourcePlayer, sourceOnHitPMFs]);
+  }, [damager, sourceOnHitPMFs]);
 
-  useEffect(() => {
-    setDamager(produce((draft) => { draft.sourcePlayer = sourcePlayer; }));
-  }, [sourcePlayer]);
+  // useEffect(() => {
+  //   setDamager(produce((draft) => { draft.sourcePlayer = sourcePlayer; }));
+  // }, [sourcePlayer]);
+
+  const updatePlayerEdges = (ontoEdges: Edge[]) => {
+    const playerEdge = ontoEdges.find((edge) => edge.source.startsWith('player|'));
+    const playerNode = playerEdge && getNode(Nodes, playerEdge.source as `player|${number}`) as NodeType<PlayerMetadatum>;
+    if (!playerNode) {
+      return;
+    }
+    const player = getNode(Nodes, playerEdge.source as PlayerKey) as NodeType<PlayerMetadatum>;
+    updateNode(id, { ...data, damager: { ...data.damager, sourcePlayer: player.id as PlayerKey } });
+
+    // const playerMetadata = metadataContext[player.id as PlayerKey] as PlayerMetadatum;
+    // const currentMetadata = metadataContext[id as PlayerKey] as Damager;
+    // metadataDispatchContext([id, { ...currentMetadata, sourcePlayer: playerMetadata }]);
+  };
 
   useEffect(() => {
     const ontoEdges = Edges.filter((edge) => edge.target === id);
-    const playerEdge = ontoEdges.find((edge) => edge.source.startsWith('player|'));
-    const playerNode = playerEdge && getNode(Nodes, playerEdge.source as `player|${number}`) as NodeType<PlayerDatum>;
-
-    if (playerNode && playerNode.type === 'player') { setSourcePlayer(playerNode.data.player); }
 
     const damagerOnHitEdges = ontoEdges.filter((edge) => edge.source.startsWith('damager|'));
-    const sourceOnHitDamagerNodes = damagerOnHitEdges.map((damagerOnHitEdge) => getNode(Nodes, damagerOnHitEdge.source as `damager|${number}`)) as NodeType<DamagerDatum>[];
-    const inheritedSourcePlayer = sourceOnHitDamagerNodes[0]?.data.damager.sourcePlayer;
-    if (sourceOnHitDamagerNodes && inheritedSourcePlayer) { setSourceOnHitPMFs(sourceOnHitDamagerNodes.map((x) => x.data.hitPMF)); setSourcePlayer((inheritedSourcePlayer)); }
+    const sourceOnHitDamagerNodes = damagerOnHitEdges.map((damagerOnHitEdge) => getNode(Nodes, damagerOnHitEdge.source as `damager|${number}`)) as NodeType<DamagerMetadatum>[];
+    // console.log({ sourceOnHitDamagerNodes });
+    // const inheritedSourcePlayer = sourceOnHitDamagerNodes[0]?.data.damager.sourcePlayer;
+    // if (sourceOnHitDamagerNodes && inheritedSourcePlayer) { setSourceOnHitPMFs(sourceOnHitDamagerNodes.map((x) => x.data.hitPMF)); setSourcePlayer((inheritedSourcePlayer)); }
   }, [Edges, id]);
 
   useEffect(() => {
@@ -97,7 +124,7 @@ const DamagerNode = ({ data, id } : DamagerNodeData & NodeProps) => {
 
       <div style={{ alignItems: 'center', height: '100%', display: 'flex' }}>
         <Paper shadow="xs" p="xs" mt="sm" style={{ marginLeft: '0px', marginRight: '0px' }} withBorder>
-
+          <Button onClick={() => console.log(damager)}>Debug</Button>
           <Text>Damager</Text>
 
           <div
@@ -133,6 +160,7 @@ const DamagerNode = ({ data, id } : DamagerNodeData & NodeProps) => {
           <LabeledHandler type="source" position={Position.Right} id="damagerOut" labelType="damager" />
           <LabeledHandler type="source" position={Position.Right} id="hitOut" labelType="onHit" />
           <LabeledHandler type="target" position={Position.Left} id="hitIn" labelType="onHit" />
+
         </Paper>
         <div style={{ width: '20%' }} />
 

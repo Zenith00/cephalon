@@ -20,13 +20,14 @@ import {
   convolve_pmfs_sum_2, PMF, weighted_mean_pmf, zero_pmf,
 } from '@utils/math';
 import { NodeIdContext } from '@damageBlocks/contexts';
+import type { EnrichedNodeProps } from '@damageBlocks/types';
 
 const handleStyle = { left: 10 };
 
 export interface TargetNodeData {
 data: any
 }
-const TargetNode = ({ data, id } : TargetNodeData & NodeProps) => (
+const TargetNode = ({ data, id } : TargetNodeData & EnrichedNodeProps) => (
   <Paper shadow="xs" p="xs" mt="sm" sx={{ width: '100%' }} withBorder>
     <NodeIdContext.Provider value={id}>
 

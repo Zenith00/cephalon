@@ -1,4 +1,4 @@
-import type { AdvantageType } from '@damage/types';
+import type { AdvantageType, Damager, Player } from '@damage/types';
 import type { NodeLabelTypes } from '@damageBlocks/constants';
 
 import type { Flavor } from '@utils/typehelpers';
@@ -7,14 +7,16 @@ import { defaultModifierOptions } from '@damage/constants';
 import type { PMF } from '@utils/math';
 import type Fraction from 'fraction.js';
 import { immerable } from 'immer';
-import type { Node } from 'react-flow-renderer';
+import type { Node, NodeProps } from 'react-flow-renderer';
 
-export type NodeIDType = `${NodeLabelTypes}|${number}`
 export type HitPMF = Flavor<PMF, 'HitPMF'>;
 export type DamagePMF = Flavor<PMF, 'DamagePMF'>
 // type Key<T> = T
 export type DamagerKey = Flavor<string, 'DamagerKey'>;
 export type PlayerKey = Flavor<`player|${number}`, 'PlayerKey'>;
+export type TargetKey = Flavor<`target|${number}`, 'TargetKey'>;
+export type NodeKeyType = DamagerKey | PlayerKey | TargetKey
+
 export type AC = Flavor<number, 'AC'>
 export class BlockDamager {
   [immerable] = true;
@@ -42,7 +44,7 @@ export class BlockDamager {
   key: DamagerKey;
 
   // eslint-disable-next-line no-use-before-define
-  sourcePlayer?: BlockPlayer;
+  sourcePlayer?: PlayerKey;
 
   flags: {
     'pam':boolean,
@@ -134,19 +136,33 @@ export type DamageInfo = {'pmf':DamagePMF, 'mean':Fraction, 'bestType': BlockDam
 
 // export type MetadatumType = BlockDamager | BlockPlayer
 
-export type DamagerDatum = {
+export type DamagerMetadatum = {
   damager: BlockDamager
   hitPMF: HitPMF
 }
-export type PlayerDatum = {
+export type PlayerMetadatum = {
   player: BlockPlayer
 }
 
-export type MetadatumType = DamagerDatum | PlayerDatum
-export type Metadata = Record<NodeIDType, MetadatumType>
+export type NodeMetadatum = DamagerMetadatum | PlayerMetadatum
+
+// export type Metadata = Record<NodeIDType, DamagerMetadatum & PlayerMetadatum>
 
 export type DamagePMFByAC = Map<AC, DamagePMF>
 
-export interface NodeType<T> extends Node<T> {
-  id: NodeIDType;
+export interface NodeType<T extends NodeMetadatum> extends Node<T> {
+  id: NodeKeyType;
 }
+
+// export type NodeType= T extends DamagerMetadatum
+//   ? {id: DamagerKey;}
+//   : T extends PlayerMetadatum ? {id: PlayerKey} : never
+// : T extends false ? 'object' : 'object'
+
+// export type NodeType<T> = Node<PlayerMetadatum> | Node<DamagerMetadatum>
+
+export interface _EnrichedNodeProps extends NodeProps {
+  id: NodeKeyType | string
+}
+
+export type EnrichedNodeProps = Omit<_EnrichedNodeProps, 'data'>

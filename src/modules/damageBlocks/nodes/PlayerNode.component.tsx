@@ -22,14 +22,14 @@ import {
 } from '@utils/math';
 import LabeledHandler from '@damageBlocks/LabeledHandler/handler';
 import { NodeIdContext } from '@damageBlocks/contexts';
-import type { BlockPlayer } from '@damageBlocks/types';
+import type { BlockPlayer, EnrichedNodeProps } from '@damageBlocks/types';
 
 const handleStyle = { left: 10 };
 
 export interface PlayerNodeData {
-  data: BlockPlayer
+  data: BlockPlayer & {type: 'player'}
 }
-const PlayerNode = ({ data, id } : PlayerNodeData & NodeProps) => (
+const PlayerNode = ({ data, id } : PlayerNodeData & EnrichedNodeProps) => (
   <NodeIdContext.Provider value={id}>
     <Paper shadow="xs" p="xs" mt="sm" sx={{ width: '100%' }} withBorder>
 
