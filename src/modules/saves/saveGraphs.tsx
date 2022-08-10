@@ -20,6 +20,9 @@ import { withTooltip, Tooltip, defaultStyles as defaultTooltipStyles } from '@vi
 import type { WithTooltipProvidedProps } from '@visx/tooltip/lib/enhancers/withTooltip';
 import { Axis, AxisBottom, AxisLeft } from '@visx/axis';
 import { PatternLines } from '@visx/pattern';
+// import Pluralize from 'pluralize';
+import pluralize from 'pluralize';
+import { Line } from '@visx/shape';
 
 interface TooltipData {
   name?: string;
@@ -59,56 +62,26 @@ const SaveGraphs = withTooltip<SaveGraphProps, TooltipData>(({
   // const allValues: number[] = [];
 
   const MARGIN = {
-    BOTTOM: 11,
+    BOTTOM: 30,
     TOP: 20,
     LEFT: 60,
   };
   const values = Object.values(datapack.saveData).map((d) => Object.values(d.boxplot).map((boxdata) => [boxdata.min, boxdata.max])).flat(2);
   const domain = saveGraphOptions.globalYAxis ? datapack.saveRange : [Math.min(...values), Math.max(...values)];
   const yScale = scaleLinear<number>({
-    range: [height - MARGIN.BOTTOM - MARGIN.TOP - 40, 0],
+    range: [height - MARGIN.BOTTOM - MARGIN.TOP - 40, MARGIN.TOP + 10],
     round: true,
     domain,
   });
 
   const xScale = scaleBand<string>({
-    range: [MARGIN.LEFT, width],
+    range: [MARGIN.LEFT + 30, width],
     round: true,
     domain: Object.keys(datapack.saveData.STR.binData),
-    padding: 0.4,
+    padding: 0.3,
   });
-  console.log(datapack);
 
   const constrainedWidth = Math.min(40, xScale.bandwidth());
-
-  //
-  // const [xScale, setXScale] = useState<ReturnType<typeof scaleBand<string>>>();
-  //
-  // const throttled = useThrottledCallback(() => {
-  //   fetch(
-  //     queryString.stringifyUrl(
-  //       {
-  //         url: 'https://arcane.cephalon.xyz/saves',
-  //         query: filters,
-  //       },
-  //       { arrayFormat: 'comma' },
-  //     ),
-  //   )
-  //     .then((res) => res.json())
-  //     .then((d) => {
-  //       setDatapack(d as Datapack);
-  //       setXScale(scaleBand<string>({
-  //         range: [0, width],
-  //         round: true,
-  //         domain: data.map((x) => x.boxPlot.x),
-  //         padding: 0.4,
-  //       }));
-  //     }).catch((e) => console.error(e));
-  // }, 500);
-
-  // useEffect(() => {
-  //   throttled();
-  // }, [filters]);
 
   return (
     <>
@@ -128,9 +101,9 @@ const SaveGraphs = withTooltip<SaveGraphProps, TooltipData>(({
         />
         <Text verticalAnchor="start" textAnchor="middle" x={(width + MARGIN.LEFT) / 2 - 10} fontSize={20} fill="orangered">
 
-          {`${selectedSave} Saving Throws of ${filters.creatureType[0].toUpperCase() + filters.creatureType.slice(1)}s by CR`}
+          {`${selectedSave} Saving Throws of ${filters.creatureType === 'all' ? 'All Creatures' : pluralize(filters.creatureType[0].toUpperCase() + filters.creatureType.slice(1), datapack.typeCount, true)} by CR`}
         </Text>
-        <Group top={0}>
+        <Group top={0} left={1}>
           {Object.keys(datapack.saveData[selectedSave].binData).map((binLabel) => (
             <>
               {saveGraphOptions.showViolin && (
@@ -159,7 +132,7 @@ const SaveGraphs = withTooltip<SaveGraphProps, TooltipData>(({
                 fill="#FFFFFF"
                 fillOpacity={0.7}
                 stroke="#FFFFFF"
-                strokeWidth={2}
+                strokeWidth={5}
                 valueScale={yScale}
                   // outliers={outliers(d)}
                 minProps={{
@@ -229,21 +202,70 @@ const SaveGraphs = withTooltip<SaveGraphProps, TooltipData>(({
             </>
 
           ))}
-
+          <AxisBottom
+            scale={xScale}
+            label="CR Buckets"
+            labelProps={{ fontSize: 17, fill: 'white', textAnchor: 'middle' }}
+            stroke="#FFFFFF"
+            tickFormat={(tick: string) => `${tick.replaceAll('.0', '')} (${datapack.saveData[selectedSave].boxplot[tick].count})`}
+            top={height - MARGIN.TOP - MARGIN.BOTTOM - 20}
+            numTicks={Object.keys(datapack.saveData[selectedSave].boxplot).length}
+          >
+            {(props) => {
+              const tickLabelSize = 15;
+              const tickRotate = -28;
+              const tickColor = '#FFFFFF';
+              const axisCenter = (props.axisToPoint.x - props.axisFromPoint.x) / 2;
+              return (
+                <g className="my-custom-bottom-axis">
+                  <Line stroke="#FFFFFF" from={{ x: props.axisFromPoint.x - MARGIN.LEFT / 2, y: props.axisFromPoint.y }} to={props.axisToPoint} />
+                  {props.ticks.map((tick) => {
+                    const computedX = (xScale(tick.value) || 0) + constrainedWidth * 0.5;
+                    tick.to.x = computedX;
+                    tick.from.x = computedX;
+                    const tickX = tick.to.x;
+                    const tickY = tick.to.y + tickLabelSize + (props.tickLength ?? 10);
+                    return (
+                      <Group
+                        key={`vx-tick-${tick.value}-${tick.index}`}
+                        className="vx-axis-tick"
+                        left={0}
+                      >
+                        <Line
+                          from={tick.from}
+                          to={tick.to}
+                          stroke={tickColor}
+                        />
+                        <Line
+                          to={tick.from}
+                          from={{ x: tickX, y: -(height - MARGIN.TOP - MARGIN.BOTTOM - 50) }}
+                          stroke="#AAAAAA"
+                          opacity={0.5}
+                        />
+                        <text
+                          transform={`translate(${tickX}, ${tickY}) rotate(${tickRotate})`}
+                          fontSize={tickLabelSize}
+                          textAnchor="middle"
+                          fill={tickColor}
+                        >
+                          {tick.formattedValue}
+                        </text>
+                      </Group>
+                    );
+                  })}
+                  <text
+                    textAnchor="middle"
+                    transform={`translate(${axisCenter}, 70)`}
+                    fill="white"
+                    fontSize="19"
+                  >
+                    {props.label}
+                  </text>
+                </g>
+              );
+            }}
+          </AxisBottom>
         </Group>
-        <AxisBottom
-          scale={xScale}
-          label="CR Buckets"
-          labelProps={{ fontSize: 17, fill: 'white', textAnchor: 'middle' }}
-          stroke="#FFFFFF"
-          tickFormat={(tick: string) => tick.replaceAll('.0', '')}
-          top={height - MARGIN.TOP - MARGIN.BOTTOM - 20}
-          left={(0.3 * constrainedWidth) - 18}
-          tickLabelProps={
-            () => ({ fill: 'white', fontSize: 17, textAnchor: 'middle' })
-          }
-          tickLineProps={{ style: { strokeWidth: 2, stroke: 'white' } }}
-        />
 
         <AxisLeft
           left={MARGIN.LEFT}
@@ -268,33 +290,38 @@ const SaveGraphs = withTooltip<SaveGraphProps, TooltipData>(({
           <strong>{tooltipData.name}</strong>
         </div>
         <div style={{ marginTop: '5px', fontSize: '12px' }}>
-          {tooltipData.max && (
+          {tooltipData.max !== undefined && (
           <div>
             max:
+            {' '}
             {tooltipData.max}
           </div>
           )}
-          {tooltipData.thirdQuartile && (
+          {tooltipData.thirdQuartile !== undefined && (
           <div>
             third quartile:
+            {' '}
             {tooltipData.thirdQuartile}
           </div>
           )}
-          {tooltipData.median && (
+          {tooltipData.median !== undefined && (
           <div>
             median:
+            {' '}
             {tooltipData.median}
           </div>
           )}
-          {tooltipData.firstQuartile && (
+          {tooltipData.firstQuartile !== undefined && (
           <div>
             first quartile:
+            {' '}
             {tooltipData.firstQuartile}
           </div>
           )}
-          {tooltipData.min && (
+          {tooltipData.min !== undefined && (
           <div>
             min:
+            {' '}
             {tooltipData.min}
           </div>
           )}
