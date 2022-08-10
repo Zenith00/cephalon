@@ -2,7 +2,7 @@ import React from 'react';
 import {
   Accordion, Aside, ScrollArea, Text,
 } from '@mantine/core';
-import type { CreatureName, SpellName } from '@couatl/types';
+import type { CreatureName, SpellName } from '@shapechange/types';
 import CreatureList from '@condition/CreatureList';
 
 const SpellListAside = ({
