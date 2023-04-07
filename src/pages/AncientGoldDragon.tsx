@@ -6,4 +6,3 @@ const AncientGoldDragon = () => (
 );
 
 export default AncientGoldDragon;
-a;

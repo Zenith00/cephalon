@@ -27,6 +27,10 @@ interface PageInfo {
 const pages: PageInfo[] = [
   { title: 'Condition Immunity', imageURL: '/img/ConditionImmunity.png', targetPageURL: '/ConditionImmunities' },
   { title: 'Damage Calculator', imageURL: 'img/Damage.png', targetPageURL: '/Damage' },
+  { title: 'Couatl Spells', imageURL: 'img/Couatl.png', targetPageURL: '/Couatl' },
+  { title: 'Saves by CR', imageURL: 'img/Saves.png', targetPageURL: '/Saves' },
+  { title: 'Point Buy', imageURL: 'img/PointBuy.png', targetPageURL: '/PointBuy' },
+  { title: 'To-Hits', imageURL: 'img/ToHit.png', targetPageURL: '/ToHits' },
 ];
 
 const Home: NextPage = () => (
@@ -39,9 +43,9 @@ const Home: NextPage = () => (
     padding={20}
   >
     <Container size="xl">
-      <Grid>
+      <Grid justify="center">
         {pages.map((page, index) => (
-          <Grid.Col span={6} key={page.title}>
+          <Grid.Col lg={6} md={8} key={page.title}>
             <Card shadow="sm" p="lg">
               <Text weight={500} align="center">
                 {page.title}

@@ -446,6 +446,7 @@ const Damage = () => {
         JSON.stringify({
           image: dataUrl,
           legend,
+          type: 'Damage',
           datahash: uri.split('Damage?d=')[1],
         }),
       ),

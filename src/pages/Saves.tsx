@@ -1,51 +1,50 @@
 import React, { useEffect, useState } from 'react';
 import {
-  AppShell, ColorSchemeProvider, Footer, Grid, Header, MantineProvider, SegmentedControl,
+  AppShell, Burger, Footer, Grid, Group, Header, MantineProvider, SegmentedControl, Title,
 } from '@mantine/core';
 import { ParentSize } from '@visx/responsive';
-import type { CREATURE_TYPES } from '@condition/constants';
 import { SOURCES } from '@condition/constants';
 import type { scaleBand } from '@visx/scale';
 import { scaleLinear } from '@visx/scale';
-import { getRandomNormal, getSeededRandom } from '@visx/mock-data';
-import type { Stats } from '@visx/mock-data/lib/generators/genStats';
-import genStats from '@visx/mock-data/lib/generators/genStats';
-import { useThrottledCallback } from 'use-debounce';
-import type { StringifiableRecord } from 'query-string';
+import { useDebouncedCallback } from 'use-debounce';
 import queryString from 'query-string';
-import SaveGraphs from '@saves/saveGraphs';
+import SaveGraphs from '@boxplot/saveGraphs';
 import type { Flavor } from '@utils/typehelpers';
-import SavesFilterNavbar from '@saves/filterNavbar.component';
-import produce from 'immer';
+import SavesFilterNavbar from '@boxplot/filterNavbar.component';
+import DiscordLink from '@common/DiscordLink.component';
+import Head from 'next/head';
+import { useViewportSize } from '@mantine/hooks';
+import pluralize from 'pluralize';
+import type { BoxplotFilter, SingleTypeFilter } from '@boxplot/types';
+import Logo from '@common/Logo.component';
 
 export type SaveTypes = 'STR' | 'DEX' | 'CON' | 'WIS' | 'INT' | 'CHA'
+export type SaveFilters = {
+  creatureType: string, 
+  binSize: number
+  binLeft: boolean
+}
 export interface SaveData {
   binData: Record<Flavor<string, 'bin'>, {value: number, count: number}[]>
-  boxplot: Record<Flavor<string, 'bin'>, {x: SaveTypes, min: number, max: number, median: number, firstQuartile: number, thirdQuartile: number}>
+  boxplot: Record<Flavor<string, 'bin'>, {x: SaveTypes, min: number, max: number, median: number, firstQuartile: number, thirdQuartile: number, count: number}>
 }
 
 export type SaveDatapack = {
   saveData: Record<SaveTypes, SaveData>
-  typeCounts: { [key in typeof CREATURE_TYPES[number] | 'all']?: number };
+  typeCount: number;
   saveRange: [number, number]
 }
 
-export interface SaveFilters extends StringifiableRecord {
-  sources: Partial<typeof SOURCES>;
-  creatureType: typeof CREATURE_TYPES[number],
-  binSize: number,
-  binLeft: boolean,
-  crMin: number,
-  crMax: number,
-}
 export interface SaveGraphOptions {
   showViolin: boolean;
   globalYAxis: boolean;
 }
+
+
 const Saves = () => {
   const [datapack, setDatapack] = useState<SaveDatapack>();
   // const [yScale, setYScale] = useState();
-  const [filters, setFilters] = useState<SaveFilters>({
+  const [filters, setFilters] = useState<BoxplotFilter>({
     creatureType: 'dragon',
     sources: SOURCES,
     binSize: 4,
@@ -53,9 +52,6 @@ const Saves = () => {
     crMin: 0,
     crMax: 30,
   });
-  const seededRandom = getSeededRandom(0.1);
-  const randomNormal = getRandomNormal.source(getSeededRandom(0.789))(4, 3);
-  const data: Stats[] = genStats(5, randomNormal, () => 10 * seededRandom());
   const [saveGraphOptions, setSaveGraphOptions] = useState<SaveGraphOptions>({ showViolin: false, globalYAxis: false });
 
   const [hideNavBar, setHideNavBar] = useState(false);
@@ -65,12 +61,12 @@ const Saves = () => {
     round: true,
     domain: [0, 1],
   });
-  console.log('exdata');
-  console.log(data);
+
+  const { height: windowHeight, width: windowWidth } = useViewportSize();
 
   const [xScale, setXScale] = useState<ReturnType<typeof scaleBand<string>>>();
   const [selectedSave, setSelectedSave] = useState<SaveTypes>('STR');
-  const throttled = useThrottledCallback(() => {
+  const throttled = useDebouncedCallback(() => {
     fetch(
       queryString.stringifyUrl(
         {
@@ -87,26 +83,27 @@ const Saves = () => {
   }, 500);
 
   useEffect(() => {
-    console.log('filters changed ');
     throttled();
   }, [filters]);
 
   return (
     <MantineProvider theme={{ colorScheme: 'dark' }} withGlobalStyles>
+      <Head>
+        <title>Saving Throws by CR</title>
+      </Head>
       <AppShell
         fixed
         padding="sm"
         navbar={
-        datapack?.typeCounts
-          && (
-          <SavesFilterNavbar
-            hidden={hideNavBar}
-            setFilters={setFilters}
-            filters={filters}
-            saveGraphOptions={saveGraphOptions}
-            setSaveGraphOptions={setSaveGraphOptions}
-            counts={datapack?.typeCounts}
-          />
+      (
+        <SavesFilterNavbar
+          hidden={datapack?.typeCount === undefined || hideNavBar}
+          setFilters={setFilters}
+          filters={filters}
+          saveGraphOptions={saveGraphOptions}
+          setSaveGraphOptions={setSaveGraphOptions}
+          selectManyCreatures={false}
+        />
           )
       }
         header={(
@@ -116,7 +113,15 @@ const Saves = () => {
                 <div
                   style={{ display: 'flex', alignItems: 'center', height: '100%' }}
                 >
-                  Saving Throws
+                  <Burger
+                    opened={!hideNavBar}
+                    onClick={() => setHideNavBar(!hideNavBar)}
+                    size="sm"
+                    style={windowWidth > 769 ? { display: 'none' } : {}}
+                  />
+
+                  <Logo colorScheme="dark" />
+                  <Title order={2}>Saves</Title>
                 </div>
               </Grid.Col>
               <Grid.Col span={4}>
@@ -136,7 +141,10 @@ const Saves = () => {
     )}
         footer={(
           <Footer height={60} p="md">
-            🔮
+            <Group>
+              🔮
+              <DiscordLink colorScheme="dark" />
+            </Group>
           </Footer>
     )}
         styles={(theme) => ({
@@ -153,7 +161,15 @@ const Saves = () => {
       && (
       <ParentSize>
         {({ width, height }) => (
-          <SaveGraphs width={width} height={height} datapack={datapack} filters={filters} selectedSave={selectedSave} saveGraphOptions={saveGraphOptions} />
+          <SaveGraphs
+            width={width}
+            height={height}
+            saveGraphOptions={saveGraphOptions}
+            binData={datapack.saveData[selectedSave].binData}
+            boxplot={datapack.saveData[selectedSave].boxplot}
+            title={`${selectedSave} Saving Throws of ${filters.creatureType === 'all' ? 'All Creatures' : pluralize((filters as SingleTypeFilter).creatureType[0].toUpperCase() + (filters as SingleTypeFilter).creatureType.slice(1), datapack.typeCount, true)} by CR`}
+            globalRange={datapack.saveRange}
+          />
         )}
       </ParentSize>
       )}

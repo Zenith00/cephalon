@@ -1,3 +1,4 @@
+
 {
   "compilerOptions": {
     "target": "es5",
@@ -22,6 +23,8 @@
     },
     "baseUrl": "."
   },
-  "include": ["next-env.d.ts", "src"],
+  "include": ["next-env.d.ts", "src",
+    "public/mathWorker", "./*.ts"
+  ],
   "exclude": ["**/node_modules", "**/.*/"]
 }

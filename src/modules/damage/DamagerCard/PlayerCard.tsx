@@ -180,14 +180,14 @@ const PlayerCard = ({
         />
       </div>
 
-      <TextInput
-        label="First Hit Extra Damage"
-        value={firstHitDamage}
-        placeholder="3d6"
-        onChange={(val) => setFirstHitDamage(
-          val.currentTarget.value || '',
-        )}
-      />
+      {/* <TextInput */}
+      {/*  label="First Hit Extra Damage" */}
+      {/*  value={firstHitDamage} */}
+      {/*  placeholder="3d6" */}
+      {/*  onChange={(val) => setFirstHitDamage( */}
+      {/*    val.currentTarget.value || '', */}
+      {/*  )} */}
+      {/* /> */}
       {/* <Title order={4} py="sm"> */}
       {/*  /!*Special*!/ */}
       {/* </Title> */}

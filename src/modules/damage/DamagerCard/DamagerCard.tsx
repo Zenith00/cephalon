@@ -135,7 +135,7 @@ const DamagerCard = ({
         disabled,
         advantageShow: new Map(AdvantageTypes.map((advType) => [advType, showAdvantageTypes[advType]])),
         flags: {
-          gwm: factorGWM, pam: factorPAM, powerAttackOptimalOnly, triggersOnHit, advanced: { advantageMode: advancedAdvantageMode },
+          gwm: factorGWM, pam: factorPAM, powerAttackOptimalOnly, triggersOnHit, advanced: { advantageMode: advancedAdvantageMode }, triggersFirstHit: false
         },
       },
     });

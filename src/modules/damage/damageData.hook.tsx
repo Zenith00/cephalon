@@ -97,7 +97,7 @@ function computeFinalPMF2(
     missChance,
   );
   printPMF(finalPMF);
-  console.log(weighted_mean_pmf(finalPMF).toString(6));
+  // console.log(weighted_mean_pmf(finalPMF).toString(6));
   return finalPMF;
 }
 
@@ -160,10 +160,10 @@ const computeDamageInfo = memoize(((player: Player, damager: Damager, advancedMo
       const failRate = d20ToFailRate(
         ADVANTAGE_TO_DICE[advType],
       );
-      console.log('ADV!');
-      console.log(ADVANTAGE_TO_DICE[advType]);
-      console.log(failRate);
-      console.log(critRate);
+      // console.log('ADV!');
+      // console.log(ADVANTAGE_TO_DICE[advType]);
+      // console.log(failRate);
+      // console.log(critRate);
       return [
         advType,
         ACs.reduce((damageMap, ac) => {
@@ -178,7 +178,7 @@ const computeDamageInfo = memoize(((player: Player, damager: Damager, advancedMo
             damageMap.set(ac, firstHitPMF);
           } else {
             const missChance = computeMissChance(attackCumsum, advType, ac, critRate, failRate);
-            console.log(`Miss chance with ac ${ac} ${advType} is ${missChance.toString(4)}`);
+            // console.log(`Miss chance with ac ${ac} ${advType} is ${missChance.toString(4)}`);
 
             let finalDamagePMF = computeFinalPMF(advType, ac, missChance, critRate, failRate, damagerDamage, damager.count);
 

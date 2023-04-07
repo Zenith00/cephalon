@@ -14,6 +14,8 @@ export const CREATURE_TYPES = [
   'plant',
   'undead',
 ] as const;
+
+export const CREATURE_TYPES_WITH_ALL = ['all', ...CREATURE_TYPES];
 export const SOURCES = [
   'AI',
   'AitFR-ISF',

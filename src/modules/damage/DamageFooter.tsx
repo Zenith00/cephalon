@@ -1,9 +1,8 @@
 import {
-  Badge, Button, Container, Footer, Group, Popover, Text,
+  Button, Container, Footer, Group, Popover, Text,
 } from '@mantine/core';
-import Image from 'next/image';
 import React from 'react';
-import { SetState } from '@utils/typehelpers';
+import DiscordLink from '@common/DiscordLink.component';
 
 const DamageFooter = (props: { opened: boolean, onClick: () => void, colorScheme: 'dark' | 'light' }) => {
   const { opened, onClick, colorScheme } = props;
@@ -42,39 +41,7 @@ const DamageFooter = (props: { opened: boolean, onClick: () => void, colorScheme
               <Text size="sm">Copied!</Text>
             </Popover>
           </div>
-          <div style={{ display: 'flex' }}>
-            <div style={{ flexGrow: 1 }} />
-            <Badge
-              mr="sm"
-              style={{
-                cursor: 'pointer',
-                width: 150,
-              }}
-              component="a"
-              href="https://discord.com/invite/dndnext"
-              variant="outline"
-            >
-              <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-                {colorScheme === 'dark' ? (
-                  <Image
-                    src="/img/Discord-Logo-White.svg"
-                    width={18}
-                    height={18}
-                  />
-                ) : (
-                  <Image
-                    src="/img/Discord-Logo-Black.svg"
-                    width={18}
-                    height={18}
-                  />
-                )}
-                <p style={{ paddingLeft: '4px' }}>
-                  Made with 💖
-                </p>
-
-              </div>
-            </Badge>
-          </div>
+          <DiscordLink colorScheme={colorScheme} />
         </Group>
       </Container>
 

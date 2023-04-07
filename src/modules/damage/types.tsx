@@ -51,7 +51,8 @@ export class Damager {
     'triggersOnHit': boolean,
     'advanced': {
       advantageMode: AdvantageType
-    }
+    },
+    'triggersFirstHit': boolean
   };
 
   constructor(
@@ -77,7 +78,7 @@ export class Damager {
       ...(modifierOptions || []),
     );
     this.flags = flags || {
-      pam: false, gwm: false, powerAttackOptimalOnly: false, triggersOnHit: true, advanced: { advantageMode: 'normal' },
+      pam: false, gwm: false, powerAttackOptimalOnly: false, triggersOnHit: true, advanced: { advantageMode: 'normal' }, triggersFirstHit: true
     };
 
     this.modifierRaws = modifiers ?? [];

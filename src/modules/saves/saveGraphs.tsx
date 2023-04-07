@@ -1,28 +1,22 @@
-import React, { useEffect, useState } from 'react';
-import type { Filters } from '@pages/ConditionImmunities';
-import { CREATURE_TYPES, SOURCES } from '@condition/constants';
 import { getRandomNormal, getSeededRandom } from '@visx/mock-data';
-import type { Stats } from '@visx/mock-data/lib/generators/genStats';
 // import genStats from '@visx/mock-data/lib/generators/genStats';
-import { scaleBand, scaleLinear } from '@visx/scale';
-import { useThrottledCallback } from 'use-debounce';
-import queryString from 'query-string';
-import { AppShell, Footer, Header } from '@mantine/core';
-import BestiaryFilterNavbar from '@condition/BestiaryFilter.navbar';
-import { ParentSize } from '@visx/responsive';
-import { Group } from '@visx/group';
-import { Text } from '@visx/text';
-import { BoxPlot, ViolinPlot } from '@visx/stats';
 import type {
-  SaveDatapack, SaveData, SaveTypes, SaveGraphOptions, SaveFilters,
+  SaveDatapack,
+  SaveFilters,
+  SaveGraphOptions,
+  SaveTypes
 } from '@pages/Saves';
-import { withTooltip, Tooltip, defaultStyles as defaultTooltipStyles } from '@visx/tooltip';
-import type { WithTooltipProvidedProps } from '@visx/tooltip/lib/enhancers/withTooltip';
-import { Axis, AxisBottom, AxisLeft } from '@visx/axis';
+import { AxisBottom, AxisLeft } from '@visx/axis';
+import { Group } from '@visx/group';
 import { PatternLines } from '@visx/pattern';
+import { scaleBand, scaleLinear } from '@visx/scale';
+import { BoxPlot, ViolinPlot } from '@visx/stats';
+import { Text } from '@visx/text';
+import { Tooltip, defaultStyles as defaultTooltipStyles, withTooltip } from '@visx/tooltip';
+import type { WithTooltipProvidedProps } from '@visx/tooltip/lib/enhancers/withTooltip';
 // import Pluralize from 'pluralize';
-import pluralize from 'pluralize';
 import { Line } from '@visx/shape';
+import pluralize from 'pluralize';
 
 interface TooltipData {
   name?: string;
@@ -221,7 +215,9 @@ const SaveGraphs = withTooltip<SaveGraphProps, TooltipData>(({
                   <Line stroke="#FFFFFF" from={{ x: props.axisFromPoint.x - MARGIN.LEFT / 2, y: props.axisFromPoint.y }} to={props.axisToPoint} />
                   {props.ticks.map((tick) => {
                     const computedX = (xScale(tick.value) || 0) + constrainedWidth * 0.5;
+                    // eslint-disable-next-line no-param-reassign
                     tick.to.x = computedX;
+                    // eslint-disable-next-line no-param-reassign
                     tick.from.x = computedX;
                     const tickX = tick.to.x;
                     const tickY = tick.to.y + tickLabelSize + (props.tickLength ?? 10);

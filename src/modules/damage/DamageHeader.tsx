@@ -4,19 +4,17 @@ import {
 import { MoonStars, Sun } from 'tabler-icons-react';
 import { NARROW_WIDTH } from '@damage/constants';
 import React from 'react';
+import Logo from '@common/Logo.component';
 
 const DamageHeader = (props: { colorScheme: any, onClick: () => any, hideGraphs: any, onClick1: () => any, width: any }) => (
   <Header height={60} p="xs">
+
     <Grid>
-      <Grid.Col span={4}>
-        {/* <div */}
-        {/*  style={{ */}
-        {/*    display: "flex", */}
-        {/*    alignItems: "center", */}
-        {/*    height: "100%", */}
-        {/*  }} */}
-        {/* > */}
-        <Title>
+      <Grid.Col span={2}>
+        <Logo colorScheme={props.colorScheme} />
+      </Grid.Col>
+      <Grid.Col span={2}>
+        <Title order={2}>
           Damage Calcs :)
         </Title>
       </Grid.Col>
