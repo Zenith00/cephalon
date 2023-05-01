@@ -1,5 +1,6 @@
 import type { SelectItem } from '@mantine/core';
-import type { AC } from '@damage/types';
+import { numberRange } from '@utils/math';
+import type { AC } from './types';
 
 export const ADVANTAGE_TO_DICE = {
   superadvantage: '3d20kh',
@@ -65,4 +66,4 @@ export const PRESET_DAMAGERS = {
 };
 
 export const NARROW_WIDTH = 850;
-export const ACs = [...Array(30).keys()].map((x) => x + 1) as AC[];
+export const ACs = numberRange(1,30+1) as AC[];

@@ -3,9 +3,9 @@ import type { DamageData } from '@pages/Damage';
 import { useContext, useEffect, useState } from 'react';
 import type { PMF } from '@utils/math';
 import {
-  boundProb,
+  boundMissChance,
   convolve_pmfs_prod,
-  convolve_pmfs_sum_2,
+  convolve_pmfs_sum,
   cumSumHits,
   d20ToCritrate,
   d20ToFailRate,
@@ -39,7 +39,7 @@ function computeMissChance(
   critRate: Fraction,
   failRate: Fraction,
 ) {
-  const missChance = boundProb(attackCumsum.get(advType)!.get(ac) || new Fraction(1), critRate, failRate);
+  const missChance = boundMissChance(attackCumsum.get(advType)!.get(ac) || new Fraction(1), critRate, failRate);
   return missChance;
 }
 
@@ -62,7 +62,7 @@ function computeFinalPMF(
     new Map([[0, new Fraction(1).sub(critFactor)], [1, critFactor]]),
   );
 
-  const fullPMF = convolve_pmfs_sum_2(simpleDamagePMF, critBonusPMF, true);
+  const fullPMF = convolve_pmfs_sum(simpleDamagePMF, critBonusPMF, true);
   // if (firstHitOnly) {
   //   const allMissChance = missChance.pow(count);
   //   const anyHitChance = new Fraction(1).sub(allMissChance);
@@ -70,7 +70,7 @@ function computeFinalPMF(
   // }
   const hitChanceAwareDamagePMF = convolve_pmfs_prod(fullPMF, new Map([[0, missChance], [1, hitChance]]));
   return [...Array(count - 1).keys()].reduce(
-    (acc) => convolve_pmfs_sum_2(acc, hitChanceAwareDamagePMF, true),
+    (acc) => convolve_pmfs_sum(acc, hitChanceAwareDamagePMF, true),
     hitChanceAwareDamagePMF,
   );
 }
@@ -89,12 +89,7 @@ function computeFinalPMF2(
   const regularHitChance = new Fraction(1).sub(missChance).sub(critRate);
 
   const finalPMF = one_or_three_pmfs(
-    simpleDamagePMF,
-    simpleCritBonusPMF,
-    new Map([[0, new Fraction(1)]]),
-    regularHitChance,
-    critRate,
-    missChance,
+    { hitDamagePMF: simpleDamagePMF, missDamagePMF: simpleCritBonusPMF, critDamagePMF: new Map([[0, new Fraction(1)]]), hitChance: regularHitChance, missChance: critRate, critChance: missChance },
   );
   printPMF(finalPMF);
   // console.log(weighted_mean_pmf(finalPMF).toString(6));
@@ -192,11 +187,11 @@ const computeDamageInfo = memoize(((player: Player, damager: Damager, advancedMo
 
               const GWM_PAM_PMF = one_or_other_pmfs(PAMPMF, GWMPMF, noneCritsRate, anyCritsRate);
               if (!damager.flags.gwm) {
-                finalDamagePMF = convolve_pmfs_sum_2(finalDamagePMF, PAMPMF, true);
+                finalDamagePMF = convolve_pmfs_sum(finalDamagePMF, PAMPMF, true);
               } else if (!damager.flags.pam) {
-                finalDamagePMF = convolve_pmfs_sum_2(finalDamagePMF, convolve_pmfs_prod(GWMPMF, new Map([[0, noneCritsRate], [1, anyCritsRate]])), true);
+                finalDamagePMF = convolve_pmfs_sum(finalDamagePMF, convolve_pmfs_prod(GWMPMF, new Map([[0, noneCritsRate], [1, anyCritsRate]])), true);
               } else {
-                finalDamagePMF = convolve_pmfs_sum_2(finalDamagePMF, GWM_PAM_PMF, true);
+                finalDamagePMF = convolve_pmfs_sum(finalDamagePMF, GWM_PAM_PMF, true);
               }
             }
 

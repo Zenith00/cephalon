@@ -17,7 +17,7 @@
     "incremental": false,
     "downlevelIteration": true,
     "paths": {
-      "@*": [
+      "@/*": [
         "src/modules/*"
       ],
       "@utils/*": [

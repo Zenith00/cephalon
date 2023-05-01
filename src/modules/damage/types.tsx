@@ -1,6 +1,5 @@
 import type { Flavor } from '@utils/typehelpers';
 import type { SelectItem } from '@mantine/core';
-import { defaultModifierOptions } from '@damage/constants';
 import type { PMF } from '@utils/math';
 import type Fraction from 'fraction.js';
 
@@ -21,110 +20,112 @@ export const AdvantageTypes = [
 export type DamagerKey = Flavor<number, 'DamagerKey'>;
 export type PlayerKey = Flavor<number, 'PlayerKey'>;
 export type AC = Flavor<number, 'AC'>
-export class Damager {
-  damage: string;
 
-  damagerType: 'regular' | 'onHit' | 'powerAttack';
 
-  advantageShow: Map<AdvantageType, boolean>;
+// export class Damager {
+//   damage: string;
 
-  modifiers: string[];
+//   damagerType: 'regular' | 'onHit' | 'powerAttack';
 
-  modifierOptions: SelectItem[];
+//   advantageShow: Map<AdvantageType, boolean>;
 
-  modifierRaws: string[];
+//   modifiers: string[];
 
-  atkBase: string;
+//   modifierOptions: SelectItem[];
 
-  name: string;
+//   modifierRaws: string[];
 
-  disabled?: boolean;
+//   atkBase: string;
 
-  count: number;
+//   name: string;
 
-  key: DamagerKey;
+//   disabled?: boolean;
 
-  flags: {
-    'pam':boolean,
-    'gwm':boolean,
-    'powerAttackOptimalOnly' : boolean,
-    'triggersOnHit': boolean,
-    'advanced': {
-      advantageMode: AdvantageType
-    },
-    'triggersFirstHit': boolean
-  };
+//   count: number;
 
-  constructor(
-    key: Damager['key'],
-    damagerType?: Damager['damagerType'],
-    damage?: Damager['damage'],
-    count?: Damager['count'],
-    name?: Damager['name'],
-    modifierOptions?: Damager['modifierOptions'],
-    modifiers?: Damager['modifiers'],
-    flags?: Damager['flags'],
-  ) {
-    this.damage = damage ?? '';
-    this.damagerType = damagerType || 'regular';
-    this.advantageShow = new Map([['normal', true]]);
-    this.modifiers = [];
-    this.atkBase = '0';
-    this.name = name ?? '';
-    this.disabled = false;
-    this.key = key;
-    this.count = count || 1;
-    this.modifierOptions = (defaultModifierOptions as SelectItem[]).concat(
-      ...(modifierOptions || []),
-    );
-    this.flags = flags || {
-      pam: false, gwm: false, powerAttackOptimalOnly: false, triggersOnHit: true, advanced: { advantageMode: 'normal' }, triggersFirstHit: true
-    };
+//   key: DamagerKey;
 
-    this.modifierRaws = modifiers ?? [];
-  }
-}
+//   flags: {
+//     'pam':boolean,
+//     'gwm':boolean,
+//     'powerAttackOptimalOnly' : boolean,
+//     'triggersOnHit': boolean,
+//     'advanced': {
+//       advantageMode: AdvantageType
+//     },
+//     'triggersFirstHit': boolean
+//   };
 
-export class Player {
-  key: PlayerKey;
+//   constructor(
+//     key: Damager['key'],
+//     damagerType?: Damager['damagerType'],
+//     damage?: Damager['damage'],
+//     count?: Damager['count'],
+//     name?: Damager['name'],
+//     modifierOptions?: Damager['modifierOptions'],
+//     modifiers?: Damager['modifiers'],
+//     flags?: Damager['flags'],
+//   ) {
+//     this.damage = damage ?? '';
+//     this.damagerType = damagerType || 'regular';
+//     this.advantageShow = new Map([['normal', true]]);
+//     this.modifiers = [];
+//     this.atkBase = '0';
+//     this.name = name ?? '';
+//     this.disabled = false;
+//     this.key = key;
+//     this.count = count || 1;
+//     this.modifierOptions = (defaultModifierOptions as SelectItem[]).concat(
+//       ...(modifierOptions || []),
+//     );
+//     this.flags = flags || {
+//       pam: false, gwm: false, powerAttackOptimalOnly: false, triggersOnHit: true, advanced: { advantageMode: 'normal' }, triggersFirstHit: true
+//     };
 
-  name: string;
+//     this.modifierRaws = modifiers ?? [];
+//   }
+// }
 
-  attackBonus: number;
+// export class Player {
+//   key: PlayerKey;
 
-  modifier: number;
+//   name: string;
 
-  spellSaveDC: number;
+//   attackBonus: number;
 
-  elvenAccuracy: boolean;
+//   modifier: number;
 
-  battleMaster: boolean;
+//   spellSaveDC: number;
 
-  damagers: { [key: DamagerKey]: Damager };
+//   elvenAccuracy: boolean;
 
-  critThreshold: number;
+//   battleMaster: boolean;
 
-  constructor(
-    key: PlayerKey,
-    name?: Player['name'],
-    attackBonus?: Player['attackBonus'],
-    modifier?: Player['modifier'],
-    spellSaveDC?: Player['spellSaveDC'],
-    elvenAccuracy?: Player['elvenAccuracy'],
-    battleMaster?: Player['battleMaster'],
-    damagers?: Player['damagers'],
-    critThreshold?: Player['critThreshold'],
-  ) {
-    this.key = key;
-    this.name = name ?? '';
-    this.attackBonus = attackBonus ?? 0;
-    this.modifier = modifier ?? 0;
-    this.spellSaveDC = spellSaveDC ?? 10;
-    this.elvenAccuracy = elvenAccuracy ?? false;
-    this.battleMaster = battleMaster ?? false;
-    this.damagers = damagers ?? {};
-    this.critThreshold = critThreshold ?? 20;
-  }
-}
+//   damagers: { [key: DamagerKey]: Damager };
+
+//   critThreshold: number;
+
+//   constructor(
+//     key: PlayerKey,
+//     name?: Player['name'],
+//     attackBonus?: Player['attackBonus'],
+//     modifier?: Player['modifier'],
+//     spellSaveDC?: Player['spellSaveDC'],
+//     elvenAccuracy?: Player['elvenAccuracy'],
+//     battleMaster?: Player['battleMaster'],
+//     damagers?: Player['damagers'],
+//     critThreshold?: Player['critThreshold'],
+//   ) {
+//     this.key = key;
+//     this.name = name ?? '';
+//     this.attackBonus = attackBonus ?? 0;
+//     this.modifier = modifier ?? 0;
+//     this.spellSaveDC = spellSaveDC ?? 10;
+//     this.elvenAccuracy = elvenAccuracy ?? false;
+//     this.battleMaster = battleMaster ?? false;
+//     this.damagers = damagers ?? {};
+//     this.critThreshold = critThreshold ?? 20;
+//   }
+// }
 // export type DamagerTypes = Damager['damagerType']
-export type DamageInfo = {'pmf':PMF, 'mean':Fraction, 'bestType': Damager['damagerType'], 'metadata'?: {'pamBreakPoint'?: boolean}}
+// export type DamageInfo = {'pmf':PMF, 'mean':Fraction, 'bestType': Damager['damagerType'], 'metadata'?: {'pamBreakPoint'?: boolean}}

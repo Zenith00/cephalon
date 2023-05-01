@@ -16,7 +16,7 @@ import type {
   Datapack,
   Filters,
 } from '@pages/ConditionImmunities';
-import { CREATURE_TYPES, SOURCES } from '@condition/constants';
+import { CREATURE_TYPES, SOURCES } from '@/condition/constants';
 
 const BestiaryFilterNavbar = ({
   hidden,

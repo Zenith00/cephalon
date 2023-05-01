@@ -3,10 +3,10 @@ import type { SaveGraphOptions } from '@pages/Saves';
 import {
   InputWrapper, MultiSelect, Navbar, NumberInput, SegmentedControl, Select, Switch,
 } from '@mantine/core';
-import { CREATURE_TYPES, CREATURE_TYPES_WITH_ALL } from '@condition/constants';
+import { CREATURE_TYPES, CREATURE_TYPES_WITH_ALL } from '@/condition/constants';
 import produce from 'immer';
 import type { SetState } from '@utils/typehelpers';
-import type { MultiTypeFilter, SingleTypeFilter, BoxplotFilter } from '@boxplot/types';
+import type { MultiTypeFilter, SingleTypeFilter, BoxplotFilter } from '@/boxplot/types';
 
 const SavesFilterNavbar = ({
   hidden,

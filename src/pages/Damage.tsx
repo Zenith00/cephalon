@@ -108,10 +108,10 @@ function reviver(key: string, value: any) {
   // eslint-disable-next-line @typescript-eslint/no-unsafe-return
   return value;
 }
-export type DamageData = Map<
-  PlayerKey,
-  Map<DamagerKey, Map<AdvantageType, Map<AC, DamageInfo>>>
->;
+// export type DamageData = Map<
+//   PlayerKey,
+//   Map<DamagerKey, Map<AdvantageType, Map<AC, DamageInfo>>>
+// >;
 // export type DamageDetails = Map<
 //   PlayerKey,
 //   Map<DamagerKey, Map<AdvantageType, Map<AC, PMF>>>

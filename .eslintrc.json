@@ -5,20 +5,16 @@
     "plugin:@typescript-eslint/recommended",
     "plugin:@typescript-eslint/recommended-requiring-type-checking",
     "plugin:import/typescript",
+    "plugin:@next/next/recommended",
     "prettier"
   ],
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
     "project": "./tsconfig.json"
   },
-  "plugins": [
-    "@typescript-eslint"
-  ],
+  "plugins": ["@typescript-eslint"],
   "rules": {
-    "semi": [
-      2,
-      "always"
-    ],
+    "semi": [2, "always"],
     "curly": "error",
     "dot-notation": "error",
     "camelcase": "off",
@@ -31,16 +27,13 @@
     "max-len": [
       "warn",
       {
-        "code": 160
+        "code": 160 
       }
     ],
     "react/jsx-filename-extension": [
       1,
       {
-        "extensions": [
-          ".tsx",
-          ".ts"
-        ]
+        "extensions": [".tsx", ".ts"]
       }
     ],
     "no-plusplus": "off",
@@ -72,9 +65,7 @@
       "error",
       {
         "props": true,
-        "ignorePropertyModificationsForRegex": [
-          "^draft"
-        ]
+        "ignorePropertyModificationsForRegex": ["^draft"]
       }
     ],
     "jsx-a11y/no-static-element-interactions": "off",
@@ -94,9 +85,7 @@
     "@typescript-eslint/no-empty-function": [
       "warn",
       {
-        "allow": [
-          "arrowFunctions"
-        ]
+        "allow": ["arrowFunctions"]
       }
     ],
     "react/function-component-definition": [
@@ -104,7 +93,8 @@
       {
         "namedComponents": "arrow-function"
       }
-    ]
+    ],
+    "react-hooks/exhaustive-deps": ["warn"]
   },
   "settings": {
     "import/resolver": {
@@ -117,4 +107,3 @@
     "node": true
   }
 }
-

@@ -17,7 +17,7 @@ import { CaretDown, CaretRight, Plus } from 'tabler-icons-react';
 import { PRESET_DAMAGERS } from '@damage/constants';
 import { AdvantageTypes } from '@damage/types';
 import {
-  convolve_pmfs_sum_2, PMF, weighted_mean_pmf, zero_pmf,
+  convolve_pmfs_sum, PMF, weighted_mean_pmf, zero_pmf,
 } from '@utils/math';
 import { NodeIdContext } from '@damageBlocks/contexts';
 import type { EnrichedNodeProps } from '@damageBlocks/types';

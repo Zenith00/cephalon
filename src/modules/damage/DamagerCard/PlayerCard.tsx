@@ -25,7 +25,7 @@ import {
 import type { AdvantageType } from '@damage/types';
 import { AdvantageTypes } from '@damage/types';
 import type { PMF } from '@utils/math';
-import { convolve_pmfs_sum_2, weighted_mean_pmf, zero_pmf } from '@utils/math';
+import { convolve_pmfs_sum, weighted_mean_pmf, zero_pmf } from '@utils/math';
 // import PAMGWMCard from '@damage/DamagerCard/PAMGWMCard';
 import {
   DamageDataContext, DispatchPlayerListContext, PlayerContext,
@@ -334,7 +334,7 @@ const PlayerCard = ({
                         .map((damageACMap) => damageACMap?.get(target.ac))
                         .map((x) => x?.pmf)
                         .filter((x):x is PMF => !!x)
-                        .reduce((acc, n) => convolve_pmfs_sum_2(acc, n, true), zero_pmf()),
+                        .reduce((acc, n) => convolve_pmfs_sum(acc, n, true), zero_pmf()),
                     ).toString(3)}
                   </td>
                 </tr>

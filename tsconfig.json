@@ -1,8 +1,11 @@
-
 {
   "compilerOptions": {
-    "target": "es5",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "target": "ESNext",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -17,14 +20,26 @@
     "incremental": true,
     "downlevelIteration": true,
     "paths": {
-      "@*": ["src/modules/*"],
-      "@utils/*": ["src/utils/*"],
-      "@pages/*": ["src/pages/*"],
+      "@/*": [
+        "src/modules/*"
+      ],
+      "@utils/*": [
+        "src/utils/*"
+      ],
+      "@pages/*": [
+        "src/pages/*"
+      ]
     },
     "baseUrl": "."
   },
-  "include": ["next-env.d.ts", "src",
-    "public/mathWorker", "./*.ts"
+  "include": [
+    "next-env.d.ts",
+    "src",
+    "public/mathWorker",
+    "./*.ts"
   ],
-  "exclude": ["**/node_modules", "**/.*/"]
+  "exclude": [
+    "**/node_modules",
+    "**/.*/"
+  ]
 }
