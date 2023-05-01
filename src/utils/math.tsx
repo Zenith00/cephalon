@@ -4,6 +4,8 @@ import Fraction from "fraction.js";
 import memoize from "lodash.memoize";
 import { table } from "table";
 
+
+
 export type critType = "none" | "normal" | "maximized" | "raw";
 
 export type PMF = Map<number, Fraction>;
@@ -31,7 +33,14 @@ export const clean_jpm = (map: Map<string, PMF>) =>
 //   Object.fromEntries(
 //     Object.entries(obj).filter(([k, v]) => Object.keys(v).length !== 0)
 //   );
-
+export const cartesianProduct = <T,>(...allEntries: T[][]): T[][] => allEntries.reduce<T[][]>(
+    (results, entries) =>
+      results
+        .map(result => entries.map(entry => [...result, entry] ))
+        .reduce((subResults, result) => [...subResults, ...result]   , []), 
+    [[]]
+  );
+  
 export type Dice = {
   positive: boolean;
   count: number;
@@ -416,7 +425,6 @@ export type JPM_PMF = {
   chance: Fraction,
   name?: string
 }
-
 export const jointProbPMFs = (jpm_pmfs: JPM_PMF[]) => {
   console.log("Combining damage PMFs");
   const data: [string, string, string][] = [
@@ -425,6 +433,8 @@ export const jointProbPMFs = (jpm_pmfs: JPM_PMF[]) => {
 
   ];
 
+  console.log("SUM:");
+  console.log(jpm_pmfs.reduce((acc, n) => acc.add(n.chance), ZERO));
   console.log(table(data));
 
   const pmf = new Map<number, Fraction>() as PMF;
@@ -437,7 +447,7 @@ export const jointProbPMFs = (jpm_pmfs: JPM_PMF[]) => {
       jpm_pmfs.reduce((acc, n) => acc.add((n.pmf.get(k) || ZERO).mul(n.chance)), ZERO)
     )
   );
-  console.log("REs");
+  console.log("RESULT:");
   printPMF(pmf);
   return pmf;
 };
