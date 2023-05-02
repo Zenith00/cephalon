@@ -18,6 +18,7 @@ import {
   zero_pmf,
   jointProbPMFs,
   cartesianProduct,
+  combine_hit_and_buffs,
 } from "@utils/math";
 import Fraction from "fraction.js";
 
@@ -204,7 +205,7 @@ function computeDamagePmf({
   let finalCritChance: Fraction = ZERO;
   let finalCritMissChance: Fraction = ZERO;
 
-  type chanceTypes = "critHit" | "hit" | "miss" | "critMiss"
+  type chanceTypes = "critHit" | "hit" | "miss" | "critMiss";
   type chance = {
     type: chanceTypes;
     prob: Fraction;
@@ -214,7 +215,7 @@ function computeDamagePmf({
     critHit: ZERO,
     miss: ZERO,
     hit: ZERO,
-    critMiss: ZERO
+    critMiss: ZERO,
   };
 
   const chances: chance[] = [
@@ -226,25 +227,28 @@ function computeDamagePmf({
 
   const rankings: chanceTypes[] = ["critMiss", "miss", "hit", "critHit"];
 
-  const chance_arr: chance[][] = Array(Math.abs(damagerMetadata.advantage) + 1).fill(0).map(_ => chances);
+  const chance_arr: chance[][] = Array(Math.abs(damagerMetadata.advantage) + 1)
+    .fill(0)
+    .map((_) => chances);
 
   const arrs = cartesianProduct<chance>(...chance_arr);
 
   arrs.forEach((cs) => {
     const product = cs.reduce((acc, n) => acc.mul(n.prob), ONE);
     const ranks = cs.map((c) => rankings.indexOf(c.type));
-    const targetRank = rankings[damagerMetadata.advantage > 0 ? Math.max(...ranks) : Math.min(...ranks)];
+    const targetRank =
+      rankings[
+        damagerMetadata.advantage > 0 ? Math.max(...ranks) : Math.min(...ranks)
+      ];
     FinalChances[targetRank] = FinalChances[targetRank].add(product);
   });
 
   console.log({ FinalChances });
 
-
   finalHitChance = FinalChances.hit;
   finalMissChance = FinalChances.miss;
   finalCritChance = FinalChances.critHit;
   finalCritMissChance = FinalChances.critMiss;
-
 
   // finalHitChance = hitChance;
   // finalMissChance = missChance;
@@ -338,66 +342,26 @@ export const computeDamageInfo = (
 
   const attackRollBase = computeDicePMFs({
     positive: true,
-    count: 0,
-    face: 20 - allCritFaceCount,
+    count: Math.abs(damagerMetadata.advantage),
+    face: 20,
     op,
     dice: true,
   });
 
-  // const singleDiceAttackRollBase = computeDicePMFs({
-  //   positive: true,
-  //   count: 1,
-  //   face: 20 - allCritFaceCount,
-  //   op: undefined,
-  //   dice: true,
-  // });
-
-  console.log("attack roll ");
-
-  printPMF(attackRollBase.pmf);
-
   const critChance = computeCritChance({
-    advantage: 0,
+    advantage: damagerMetadata.advantage,
     critFaces: damagerMetadata.critFaceCount,
   });
 
   console.log({ critChance });
   const critFailChance = computeCritChance({
-    advantage: 0,
+    advantage: -(damagerMetadata.advantage),
     critFaces: damagerMetadata.critFailFaceCount,
   });
+
+  
+
   console.log({ critFailChance });
-
-  const noCritsChance = computeCritChance({
-    advantage: damagerMetadata.advantage,
-    critFaces:
-      damagerMetadata.critFailFaceCount + damagerMetadata.critFaceCount,
-  });
-
-  const finalAttackRoll = add_pmfs(
-    shiftPMF(attackRollBase.pmf, damagerMetadata.critFaceCount),
-    attackRoll.pmf,
-    true
-  );
-
-  // const singleDiceFinalAttackRoll = add_pmfs(
-  //   shiftPMF(singleDiceAttackRollBase.pmf, damagerMetadata.critFaceCount),
-  //   attackRoll.pmf,
-  //   true
-  // );
-
-  // numberRange(1, 20).forEach((n) => !finalAttackRoll.has(n) && finalAttackRoll.set(n, ZERO));
-  // finalAttackRoll = clean_zeros(finalAttackRoll);
-
-  console.log("final attack roll pmf...");
-  printPMF(finalAttackRoll);
-
-  const missChanceByACNonCrit = cumSumHits(finalAttackRoll);
-  // const singleHitMissChanceByACNonCrit = cumSumHits(singleDiceFinalAttackRoll);
-
-  console.log("missChanceByACNonCrit.");
-  printPMF(missChanceByACNonCrit);
-
   const hitDamagePMF = combineDice(
     parseDiceStrings({ diceStrings: damagerMetadata.damage })
   ).pmf;
@@ -424,42 +388,65 @@ export const computeDamageInfo = (
     })
   ).pmf;
 
-  console.log({ damageOnFirstHitPMF });
-  console.log(damagerMetadata.damageOnFirstHit);
+  const damagePMFByAC = new Map<number, DamagePMF>() as DamagePMFByAC;
 
-  // console.log({damagePMF});
-  // console.log({critDamagePMF});
+  ACs.forEach((ac) => {
+    console.log(`====================`);
 
-  const damagePMFByAC = ACs.reduce((damageMap, ac) => {
-    console.log(`======= COMPUTING AC ${ac} =======`);
-    const rollUnderChance = missChanceByACNonCrit.get(ac) ?? ONE;
-    console.log(`Roll under: ${rollUnderChance.toString()}`);
-    // const singleRollUnderChance = singleHitMissChanceByACNonCrit.get(ac) ?? ONE;
-    const finalDamagePMF = computeDamagePmf({
-      hitDamagePMF,
-      missDamagePMF,
-      damageOnFirstHitPMF,
-      critDamagePMF,
-      rollUnderChance,
-      critDamageOnFirstHitPMF,
-      critChance,
-      critFailChance,
-      noCritsChance,
-      damagerMetadata,
+    console.log(`====== AC: ${ac} ======`);
+
+    
+    const hit_data_per_count = combine_hit_and_buffs({
+      toHit: attackRollBase.pmf,
+      buffs: attackRoll.pmf,
+      ac,
+      smallestCrit: 21 - damagerMetadata.critFaceCount,
+      biggestCritFail: damagerMetadata.critFailFaceCount,
     });
+    // console.log({ hit_data_per_count });
 
-    damageMap.set(ac, finalDamagePMF);
 
-    return damageMap;
-  }, new Map<number, DamagePMF>()) as DamagePMFByAC;
+    const chanceToHit = [...hit_data_per_count.keys()].reduce(
+      (acc, n) => acc.add(hit_data_per_count.get(n)?.hit ?? ZERO),
+      ZERO
+    );
 
-  // [...damagePMFByAC.entries()].forEach(([ac, damagePMF_]) => {
-  //   console.log(`AC: ${ac}: Damage: ${weighted_mean_pmf(damagePMF_).valueOf()}`);
-  // });
-  // console.log("damage pmf by ac");
-  // console.log(Object.fromEntries([...damagePMFByAC.entries()].map(([ac, pmf]) => [ac, normalizePMF(pmf)])));
-  // console.log({damagePMFByAC});
-  // console.log({damagerMetadata});
+    const chanceToCrit = [...hit_data_per_count.keys()].reduce(
+      (acc, n) => acc.add(hit_data_per_count.get(n)?.crit ?? ZERO),
+      ZERO
+    );
+    const chanceToMiss = [...hit_data_per_count.keys()].reduce(
+      (acc, n) => acc.add(hit_data_per_count.get(n)?.miss ?? ZERO),
+      ZERO
+    );
+
+    const chanceToCritMiss = [...hit_data_per_count.keys()].reduce(
+      (acc, n) => acc.add(hit_data_per_count.get(n)?.critMiss ?? ZERO),
+      ZERO
+    );
+
+    // const chanceToHit = hit_data_per_count.get(ac)?.hit ?? ZERO;
+    // const chanceToCrit = hit_data_per_count.get(ac)?.crit ?? ZERO;
+    // const chanceToMiss = hit_data_per_count.get(ac)?.miss ?? ZERO;
+    // const chanceToCritMiss = hit_data_per_count.get(ac)?.critMiss ?? ZERO;
+
+    const pmfs: JPM_PMF[] = [
+      { name: "Hit", pmf: hitDamagePMF, chance: chanceToHit },
+      { name: "Miss", pmf: missDamagePMF, chance: chanceToMiss },
+      { name: "Crit Miss", pmf: missDamagePMF, chance: chanceToCritMiss },
+      { name: "Crit", pmf: critDamagePMF, chance: chanceToCrit },
+    ];
+
+    const damage_pmf = numberRange(1, damagerMetadata.attackCount + 1).reduce(
+      (acc, n) => {
+        const damagePMF = add_pmfs(acc, jointProbPMFs(pmfs), true);
+        return damagePMF;
+      },
+      zero_pmf()
+    );
+
+    damagePMFByAC.set(ac, damage_pmf);
+  });
   console.log("messy normalized");
   console.log(normalizeDamagePMFByACMess(damagePMFByAC));
 
@@ -469,6 +456,105 @@ export const computeDamageInfo = (
     damagePMFByAC,
     damagerMetadata,
   };
+  // // const singleDiceAttackRollBase = computeDicePMFs({
+  // //   positive: true,
+  // //   count: 1,
+  // //   face: 20 - allCritFaceCount,
+  // //   op: undefined,
+  // //   dice: true,
+  // // });
+
+  // console.log("attack roll ");
+
+  // printPMF(attackRollBase.pmf);
+
+  // const critChance = computeCritChance({
+  //   advantage: 0,
+  //   critFaces: damagerMetadata.critFaceCount,
+  // });
+
+  // console.log({ critChance });
+  // const critFailChance = computeCritChance({
+  //   advantage: 0,
+  //   critFaces: damagerMetadata.critFailFaceCount,
+  // });
+  // console.log({ critFailChance });
+
+  // const noCritsChance = computeCritChance({
+  //   advantage: damagerMetadata.advantage,
+  //   critFaces:
+  //     damagerMetadata.critFailFaceCount + damagerMetadata.critFaceCount,
+  // });
+
+  // const finalAttackRoll = add_pmfs(
+  //   shiftPMF(attackRollBase.pmf, damagerMetadata.critFaceCount),
+  //   attackRoll.pmf,
+  //   true
+  // );
+
+  // // const singleDiceFinalAttackRoll = add_pmfs(
+  // //   shiftPMF(singleDiceAttackRollBase.pmf, damagerMetadata.critFaceCount),
+  // //   attackRoll.pmf,
+  // //   true
+  // // );
+
+  // // numberRange(1, 20).forEach((n) => !finalAttackRoll.has(n) && finalAttackRoll.set(n, ZERO));
+  // // finalAttackRoll = clean_zeros(finalAttackRoll);
+
+  // console.log("final attack roll pmf...");
+  // printPMF(finalAttackRoll);
+
+  // const missChanceByACNonCrit = cumSumHits(finalAttackRoll);
+  // // const singleHitMissChanceByACNonCrit = cumSumHits(singleDiceFinalAttackRoll);
+
+  // console.log("missChanceByACNonCrit.");
+  // printPMF(missChanceByACNonCrit);
+
+  // console.log({ damageOnFirstHitPMF });
+  // console.log(damagerMetadata.damageOnFirstHit);
+
+  // // console.log({damagePMF});
+  // // console.log({critDamagePMF});
+
+  // const damagePMFByAC = ACs.reduce((damageMap, ac) => {
+  //   console.log(`======= COMPUTING AC ${ac} =======`);
+  //   const rollUnderChance = missChanceByACNonCrit.get(ac) ?? ONE;
+  //   console.log(`Roll under: ${rollUnderChance.toString()}`);
+  //   // const singleRollUnderChance = singleHitMissChanceByACNonCrit.get(ac) ?? ONE;
+  //   const finalDamagePMF = computeDamagePmf({
+  //     hitDamagePMF,
+  //     missDamagePMF,
+  //     damageOnFirstHitPMF,
+  //     critDamagePMF,
+  //     rollUnderChance,
+  //     critDamageOnFirstHitPMF,
+  //     critChance,
+  //     critFailChance,
+  //     noCritsChance,
+  //     damagerMetadata,
+  //   });
+
+  //   damageMap.set(ac, finalDamagePMF);
+
+  //   return damageMap;
+  // }, new Map<number, DamagePMF>()) as DamagePMFByAC;
+
+  // // [...damagePMFByAC.entries()].forEach(([ac, damagePMF_]) => {
+  // //   console.log(`AC: ${ac}: Damage: ${weighted_mean_pmf(damagePMF_).valueOf()}`);
+  // // });
+  // // console.log("damage pmf by ac");
+  // // console.log(Object.fromEntries([...damagePMFByAC.entries()].map(([ac, pmf]) => [ac, normalizePMF(pmf)])));
+  // // console.log({damagePMFByAC});
+  // // console.log({damagerMetadata});
+  // console.log("messy normalized");
+  // console.log(normalizeDamagePMFByACMess(damagePMFByAC));
+
+  // console.log("Normalized Damage PMF By AC:");
+  // console.log(normalizeDamagePMFByAC(damagePMFByAC));
+  // return {
+  //   damagePMFByAC,
+  //   damagerMetadata,
+  // };
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unsafe-call,@typescript-eslint/no-unsafe-member-access

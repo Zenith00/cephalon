@@ -58,7 +58,7 @@ const DamageCalculatorInput = ({
             const averageDamageByAC = new Map(
               [...damagePMFByAC.entries()].map(([k, v]) => [
                 k,
-                weighted_mean_pmf(v).round(2).valueOf(),
+                weighted_mean_pmf(v).round(8).valueOf(),
               ])
             );
             draft[damagerMetadata.key] = {
