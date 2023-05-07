@@ -34,6 +34,8 @@ import type { AC } from "@/damage/types";
 import { schemeSet2, schemeTableau10 } from "d3-scale-chromatic";
 import { Menu2 } from "tabler-icons-react";
 import { ACs } from "@/damage/constants";
+import { GradientTealBlue } from "@visx/gradient";
+import { Group } from "@visx/group";
 
 type datum = {
   x: AC;
@@ -83,8 +85,16 @@ const DamageGraphSidebar = ({
 
   const [mode, setMode] = useState<MODE>("graph");
 
+  const [opened, setOpened] = useState<Record<string, boolean>>({});
+
   return (
-    <>
+    <div
+      onClick={() =>
+        setOpened(
+          Object.fromEntries([...Object.keys(opened)].map((k) => [k, false]))
+        )
+      }
+    >
       {graphs.map((graph) => (
         <Paper key={graph.key}>
           <Center>
@@ -102,9 +112,15 @@ const DamageGraphSidebar = ({
           {
             {
               table: (
-                <Table style={{ overflowX: "scroll", display: "inline-block" }} horizontalSpacing="sm" striped highlightOnHover withColumnBorders>
+                <Table
+                  style={{ overflowX: "scroll", display: "inline-block" }}
+                  horizontalSpacing="sm"
+                  striped
+                  highlightOnHover
+                  withColumnBorders
+                >
                   <thead>
-                    <tr>
+                    <tr key="header">
                       <th
                         style={{
                           position: "sticky",
@@ -112,7 +128,8 @@ const DamageGraphSidebar = ({
                           backgroundColor: "white",
                         }}
                       >
-                        <div style={{textAlign:"right"}}> AC </div><div> Name</div>
+                        <div style={{ textAlign: "right" }}> AC </div>
+                        <div> Name</div>
                       </th>
                       {ACs.map((r) => (
                         <th key={r}>{r}</th>
@@ -121,7 +138,7 @@ const DamageGraphSidebar = ({
                   </thead>
                   <tbody>
                     {graph.damagerKeys.map((damagerKey) => (
-                      <tr key={damagerKey}>
+                      <tr key={`row-${damagerKey}`}>
                         <td
                           style={{
                             position: "sticky",
@@ -131,12 +148,12 @@ const DamageGraphSidebar = ({
                         >
                           {
                             form.values.damagers.find(
-                              (d) => d.key === damagerKey
+                              (d) => d.key.toString() === damagerKey
                             )?.label
                           }
                         </td>
                         {ACs.map((r) => (
-                          <td>
+                          <td key={`${damagerKey}-${r}`}>
                             {damageData[damagerKey]?.averageDamageByAC.get(r)}
                           </td>
                         ))}
@@ -222,7 +239,8 @@ const DamageGraphSidebar = ({
                                 {
                                   form.values.damagers.find(
                                     (d) =>
-                                      d.key === tooltipData.nearestDatum?.key
+                                      d.key.toString() ===
+                                      tooltipData.nearestDatum?.key
                                   )?.label
                                 }
                                 :{" "}
@@ -247,19 +265,29 @@ const DamageGraphSidebar = ({
                         }}
                         variant="filled"
                         color="blue"
+                        // setOpened({...opened, [graph.key]: !opened[graph.key]})
                       >
                         <Menu2 />
                       </ActionIcon>
                     </Menu.Target>
                     <Menu.Dropdown>
                       {graph.damagerKeys.map((damagerKey) => (
-                        <Menu.Item>
+                        <Menu.Item
+                          key={`dropdown-${graph.key}-${damagerKey}`}
+
+                        >
                           <Switch
                             label={
                               form.values.damagers.find(
-                                (d) => d.key === damagerKey
+                                (d) => d.key.toString() === damagerKey
                               )?.label || damagerKey
                             }
+                            onClickCapture={(e) => {
+                              console.log("switch!");
+                              e.preventDefault();
+                              e.stopPropagation();
+                              e.nativeEvent.stopImmediatePropagation();
+                            }}
                           />
                         </Menu.Item>
                       ))}
@@ -271,7 +299,7 @@ const DamageGraphSidebar = ({
           }
         </Paper>
       ))}
-    </>
+    </div>
   );
 };
 

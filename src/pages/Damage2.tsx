@@ -41,12 +41,13 @@ type damagerFormValue = {
   attack: string;
   attackCount: number;
   damage: string;
-  key: string;
+  key: number;
   advantage: string;
   damageOnFirstHit: string;
   damageOnMiss: string;
   critFailFaceCount: number;
   critFaceCount: number;
+  gwmSS: boolean;
 };
 
 type globalValues = {
@@ -65,6 +66,20 @@ export type DamageMetadata = {
   label: string;
 };
 
+export const getEmptyDamager  = (damagers: damagerFormValue[]) : damagerFormValue => ({
+  label: "",
+  attack: "",
+  damage: "1d6",
+  damageOnFirstHit: "",
+  damageOnMiss: "",
+  attackCount: 1,
+  key: Math.max(...damagers.map(d => d.key), -1) + 1,
+  critFaceCount: 1,
+  critFailFaceCount: 1,
+  advantage: "0",
+  gwmSS: false
+});
+
 const Damage2 = () => {
   const [opened, setOpened] = useState(false);
 
@@ -75,6 +90,8 @@ const Damage2 = () => {
   const [expandGraph, toggleExpandGraph] = useToggle([false, true]);
   const theme = useMantineTheme();
 
+
+
   const form = useForm<formValue>({
     initialValues: {
       global: {
@@ -82,18 +99,7 @@ const Damage2 = () => {
         attack: "",
       },
       damagers: [
-        {
-          label: "",
-          attack: "",
-          damage: "1d6",
-          damageOnFirstHit: "",
-          damageOnMiss: "",
-          attackCount: 1,
-          key: useId(),
-          critFaceCount: 1,
-          critFailFaceCount: 1,
-          advantage: "0"
-        },
+        getEmptyDamager([]),
       ],
     },
   });

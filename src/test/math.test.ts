@@ -149,22 +149,22 @@ test("compute damage info basic 1d6 crit 19", () => {
 // });
 
 
-// test("compute damage info 1d6 two attacks", () => {
-//   const damageInfo: DamageInfo = {
-//     damage: ["1d6"],
-//     attack: [],
-//     damageOnMiss: "",
-//     damageOnFirstHit: "",
-//     attackCount: 2,
-//     critFaceCount: 1,
-//     critFailFaceCount: 1,
-//     advantage: 0,
-//     key: ":R1cm:",
-//   };
-//   const { damagePMFByAC } = computeDamageInfo(damageInfo);
+test("compute damage info 1d6 two attacks", () => {
+  const damageInfo: DamageInfo = {
+    damage: ["1d6"],
+    attack: [],
+    damageOnMiss: "",
+    damageOnFirstHit: "",
+    attackCount: 2,
+    critFaceCount: 1,
+    critFailFaceCount: 1,
+    advantage: 0,
+    key: ":R1cm:",
+  };
+  const { damagePMFByAC } = computeDamageInfo(damageInfo);
 
-//   expect(normalizeDamagePMFByAC(damagePMFByAC)).toEqual(data.data_1d6_two_attacks);
-// });
+  expect(normalizeDamagePMFByAC(damagePMFByAC)).toEqual(data.data_1d6_two_attacks);
+});
 
 test("compute damage info 1d6 advantage", () => {
   const damageInfo: DamageInfo = {

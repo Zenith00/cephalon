@@ -39,15 +39,15 @@
         };
         function assign(n, s) {
           if (isNaN(n = parseInt(n, 10))) {
-            throw Fraction3["InvalidParameter"];
+            throw Fraction2["InvalidParameter"];
           }
           return n * s;
         }
         function newFraction(n, d) {
           if (d === 0) {
-            throw Fraction3["DivisionByZero"];
+            throw Fraction2["DivisionByZero"];
           }
-          var f = Object.create(Fraction3.prototype);
+          var f = Object.create(Fraction2.prototype);
           f["s"] = n < 0 ? -1 : 1;
           n = n < 0 ? -n : n;
           var a = gcd(n, d);
@@ -88,7 +88,7 @@
             d = p2;
             s = n * d;
             if (n % 1 !== 0 || d % 1 !== 0) {
-              throw Fraction3["NonIntegerParameter"];
+              throw Fraction2["NonIntegerParameter"];
             }
           } else
             switch (typeof p1) {
@@ -103,7 +103,7 @@
                   if (1 in p1)
                     d = p1[1];
                 } else {
-                  throw Fraction3["InvalidParameter"];
+                  throw Fraction2["InvalidParameter"];
                 }
                 s = n * d;
                 break;
@@ -160,7 +160,7 @@
               case "string": {
                 B = p1.match(/\d+|./g);
                 if (B === null)
-                  throw Fraction3["InvalidParameter"];
+                  throw Fraction2["InvalidParameter"];
                 if (B[A] === "-") {
                   s = -1;
                   A++;
@@ -202,10 +202,10 @@
                 }
               }
               default:
-                throw Fraction3["InvalidParameter"];
+                throw Fraction2["InvalidParameter"];
             }
           if (d === 0) {
-            throw Fraction3["DivisionByZero"];
+            throw Fraction2["DivisionByZero"];
           }
           P["s"] = s < 0 ? -1 : 1;
           P["n"] = Math.abs(n);
@@ -262,9 +262,9 @@
           }
         }
         ;
-        function Fraction3(a, b) {
+        function Fraction2(a, b) {
           parse(a, b);
-          if (this instanceof Fraction3) {
+          if (this instanceof Fraction2) {
             a = gcd(P["d"], P["n"]);
             this["s"] = P["s"];
             this["n"] = P["n"] / a;
@@ -273,10 +273,10 @@
             return newFraction(P["s"] * P["n"], P["d"]);
           }
         }
-        Fraction3["DivisionByZero"] = new Error("Division by Zero");
-        Fraction3["InvalidParameter"] = new Error("Invalid argument");
-        Fraction3["NonIntegerParameter"] = new Error("Parameters must be integer");
-        Fraction3.prototype = {
+        Fraction2["DivisionByZero"] = new Error("Division by Zero");
+        Fraction2["InvalidParameter"] = new Error("Invalid argument");
+        Fraction2["NonIntegerParameter"] = new Error("Parameters must be integer");
+        Fraction2.prototype = {
           "s": 1,
           "n": 0,
           "d": 1,
@@ -359,14 +359,14 @@
            **/
           "mod": function(a, b) {
             if (isNaN(this["n"]) || isNaN(this["d"])) {
-              return new Fraction3(NaN);
+              return new Fraction2(NaN);
             }
             if (a === void 0) {
               return newFraction(this["s"] * this["n"] % this["d"], 1);
             }
             parse(a, b);
             if (0 === P["n"] && 0 === this["d"]) {
-              throw Fraction3["DivisionByZero"];
+              throw Fraction2["DivisionByZero"];
             }
             return newFraction(
               this["s"] * (P["d"] * this["n"]) % (P["n"] * this["d"]),
@@ -402,7 +402,7 @@
           "ceil": function(places) {
             places = Math.pow(10, places || 0);
             if (isNaN(this["n"]) || isNaN(this["d"])) {
-              return new Fraction3(NaN);
+              return new Fraction2(NaN);
             }
             return newFraction(Math.ceil(places * this["s"] * this["n"] / this["d"]), places);
           },
@@ -414,7 +414,7 @@
           "floor": function(places) {
             places = Math.pow(10, places || 0);
             if (isNaN(this["n"]) || isNaN(this["d"])) {
-              return new Fraction3(NaN);
+              return new Fraction2(NaN);
             }
             return newFraction(Math.floor(places * this["s"] * this["n"] / this["d"]), places);
           },
@@ -426,7 +426,7 @@
           "round": function(places) {
             places = Math.pow(10, places || 0);
             if (isNaN(this["n"]) || isNaN(this["d"])) {
-              return new Fraction3(NaN);
+              return new Fraction2(NaN);
             }
             return newFraction(Math.round(places * this["s"] * this["n"] / this["d"]), places);
           },
@@ -660,15 +660,15 @@
         };
         if (typeof define === "function" && define["amd"]) {
           define([], function() {
-            return Fraction3;
+            return Fraction2;
           });
         } else if (typeof exports2 === "object") {
-          Object.defineProperty(Fraction3, "__esModule", { "value": true });
-          Fraction3["default"] = Fraction3;
-          Fraction3["Fraction"] = Fraction3;
-          module2["exports"] = Fraction3;
+          Object.defineProperty(Fraction2, "__esModule", { "value": true });
+          Fraction2["default"] = Fraction2;
+          Fraction2["Fraction"] = Fraction2;
+          module2["exports"] = Fraction2;
         } else {
-          root["Fraction"] = Fraction3;
+          root["Fraction"] = Fraction2;
         }
       })(exports2);
     }
@@ -1634,10 +1634,10 @@
       }
       function deriveBFS(fromModel) {
         const graph = buildGraph();
-        const queue = [fromModel];
+        const queue2 = [fromModel];
         graph[fromModel].distance = 0;
-        while (queue.length) {
-          const current = queue.pop();
+        while (queue2.length) {
+          const current = queue2.pop();
           const adjacents = Object.keys(conversions[current]);
           for (let len = adjacents.length, i = 0; i < len; i++) {
             const adjacent = adjacents[i];
@@ -1645,7 +1645,7 @@
             if (node.distance === -1) {
               node.distance = graph[current].distance + 1;
               node.parent = current;
-              queue.unshift(adjacent);
+              queue2.unshift(adjacent);
             }
           }
         }
@@ -5574,7 +5574,7 @@
       var symbolProto = Symbol2 ? Symbol2.prototype : void 0;
       var symbolToString = symbolProto ? symbolProto.toString : void 0;
       function baseIsRegExp(value) {
-        return isObject(value) && objectToString.call(value) == regexpTag;
+        return isObject2(value) && objectToString.call(value) == regexpTag;
       }
       function baseSlice(array, start, end) {
         var index = -1, length = array.length;
@@ -5608,7 +5608,7 @@
         end = end === void 0 ? length : end;
         return !start && end >= length ? array : baseSlice(array, start, end);
       }
-      function isObject(value) {
+      function isObject2(value) {
         var type = typeof value;
         return !!value && (type == "object" || type == "function");
       }
@@ -5641,9 +5641,9 @@
         if (isSymbol(value)) {
           return NAN;
         }
-        if (isObject(value)) {
+        if (isObject2(value)) {
           var other = typeof value.valueOf == "function" ? value.valueOf() : value;
-          value = isObject(other) ? other + "" : other;
+          value = isObject2(other) ? other + "" : other;
         }
         if (typeof value != "string") {
           return value === 0 ? value : +value;
@@ -5657,7 +5657,7 @@
       }
       function truncate(string, options) {
         var length = DEFAULT_TRUNC_LENGTH, omission = DEFAULT_TRUNC_OMISSION;
-        if (isObject(options)) {
+        if (isObject2(options)) {
           var separator = "separator" in options ? options.separator : separator;
           length = "length" in options ? toInteger(options.length) : length;
           omission = "omission" in options ? baseToString(options.omission) : omission;
@@ -7581,6 +7581,474 @@
   // src/utils/math.tsx
   var import_fraction = __toESM(require_fraction());
   var import_table = __toESM(require_src());
+
+  // node_modules/consola/dist/shared/consola.ce5c7a59.mjs
+  var LogLevels = {
+    silent: Number.NEGATIVE_INFINITY,
+    fatal: 0,
+    error: 0,
+    warn: 1,
+    log: 2,
+    info: 3,
+    success: 3,
+    fail: 3,
+    ready: 3,
+    start: 3,
+    debug: 4,
+    trace: 5,
+    verbose: Number.POSITIVE_INFINITY
+  };
+  var LogTypes = {
+    // Silent
+    silent: {
+      level: -1
+    },
+    // Level 0
+    fatal: {
+      level: LogLevels.fatal
+    },
+    error: {
+      level: LogLevels.error
+    },
+    // Level 1
+    warn: {
+      level: LogLevels.warn
+    },
+    // Level 2
+    log: {
+      level: LogLevels.log
+    },
+    // Level 3
+    info: {
+      level: LogLevels.info
+    },
+    success: {
+      level: LogLevels.success
+    },
+    fail: {
+      level: LogLevels.fail
+    },
+    ready: {
+      level: LogLevels.info
+    },
+    start: {
+      level: LogLevels.info
+    },
+    // Level 4
+    debug: {
+      level: LogLevels.debug
+    },
+    // Level 5
+    trace: {
+      level: LogLevels.trace
+    },
+    // Verbose
+    verbose: {
+      level: LogLevels.verbose
+    }
+  };
+  function isObject(value) {
+    return value !== null && typeof value === "object";
+  }
+  function _defu(baseObject, defaults, namespace = ".", merger) {
+    if (!isObject(defaults)) {
+      return _defu(baseObject, {}, namespace, merger);
+    }
+    const object = Object.assign({}, defaults);
+    for (const key in baseObject) {
+      if (key === "__proto__" || key === "constructor") {
+        continue;
+      }
+      const value = baseObject[key];
+      if (value === null || value === void 0) {
+        continue;
+      }
+      if (merger && merger(object, key, value, namespace)) {
+        continue;
+      }
+      if (Array.isArray(value) && Array.isArray(object[key])) {
+        object[key] = [...value, ...object[key]];
+      } else if (isObject(value) && isObject(object[key])) {
+        object[key] = _defu(
+          value,
+          object[key],
+          (namespace ? `${namespace}.` : "") + key.toString(),
+          merger
+        );
+      } else {
+        object[key] = value;
+      }
+    }
+    return object;
+  }
+  function createDefu(merger) {
+    return (...arguments_) => (
+      // eslint-disable-next-line unicorn/no-array-reduce
+      arguments_.reduce((p, c) => _defu(p, c, "", merger), {})
+    );
+  }
+  var defu = createDefu();
+  function isPlainObject(obj) {
+    return Object.prototype.toString.call(obj) === "[object Object]";
+  }
+  function isLogObj(arg) {
+    if (!isPlainObject(arg)) {
+      return false;
+    }
+    if (!arg.message && !arg.args) {
+      return false;
+    }
+    if (arg.stack) {
+      return false;
+    }
+    return true;
+  }
+  var paused = false;
+  var queue = [];
+  var Consola = class {
+    constructor(options = {}) {
+      const types = options.types || LogTypes;
+      this.options = defu(
+        {
+          ...options,
+          defaults: { ...options.defaults },
+          level: _normalizeLogLevel(options.level, types),
+          reporters: [...options.reporters || []]
+        },
+        {
+          types: LogTypes,
+          throttle: 1e3,
+          throttleMin: 5,
+          formatOptions: {
+            date: true,
+            colors: false,
+            compact: true
+          }
+        }
+      );
+      for (const type in types) {
+        const defaults = {
+          type,
+          ...this.options.defaults,
+          ...types[type]
+        };
+        this[type] = this._wrapLogFn(defaults);
+        this[type].raw = this._wrapLogFn(
+          defaults,
+          true
+        );
+      }
+      if (this.options.mockFn) {
+        this.mockTypes();
+      }
+      this._lastLog = {};
+    }
+    get level() {
+      return this.options.level;
+    }
+    set level(level) {
+      this.options.level = _normalizeLogLevel(
+        level,
+        this.options.types,
+        this.options.level
+      );
+    }
+    prompt(message, opts) {
+      if (!this.options.prompt) {
+        throw new Error("prompt is not supported!");
+      }
+      return this.options.prompt(message, opts);
+    }
+    create(options) {
+      return new Consola({
+        ...this.options,
+        ...options
+      });
+    }
+    withDefaults(defaults) {
+      return this.create({
+        ...this.options,
+        defaults: {
+          ...this.options.defaults,
+          ...defaults
+        }
+      });
+    }
+    withTag(tag) {
+      return this.withDefaults({
+        tag: this.options.defaults.tag ? this.options.defaults.tag + ":" + tag : tag
+      });
+    }
+    addReporter(reporter) {
+      this.options.reporters.push(reporter);
+      return this;
+    }
+    removeReporter(reporter) {
+      if (reporter) {
+        const i = this.options.reporters.indexOf(reporter);
+        if (i >= 0) {
+          return this.options.reporters.splice(i, 1);
+        }
+      } else {
+        this.options.reporters.splice(0);
+      }
+      return this;
+    }
+    setReporters(reporters) {
+      this.options.reporters = Array.isArray(reporters) ? reporters : [reporters];
+      return this;
+    }
+    wrapAll() {
+      this.wrapConsole();
+      this.wrapStd();
+    }
+    restoreAll() {
+      this.restoreConsole();
+      this.restoreStd();
+    }
+    wrapConsole() {
+      for (const type in this.options.types) {
+        if (!console["__" + type]) {
+          console["__" + type] = console[type];
+        }
+        console[type] = this[type].raw;
+      }
+    }
+    restoreConsole() {
+      for (const type in this.options.types) {
+        if (console["__" + type]) {
+          console[type] = console["__" + type];
+          delete console["__" + type];
+        }
+      }
+    }
+    wrapStd() {
+      this._wrapStream(this.options.stdout, "log");
+      this._wrapStream(this.options.stderr, "log");
+    }
+    _wrapStream(stream, type) {
+      if (!stream) {
+        return;
+      }
+      if (!stream.__write) {
+        stream.__write = stream.write;
+      }
+      stream.write = (data) => {
+        this[type].raw(String(data).trim());
+      };
+    }
+    restoreStd() {
+      this._restoreStream(this.options.stdout);
+      this._restoreStream(this.options.stderr);
+    }
+    _restoreStream(stream) {
+      if (!stream) {
+        return;
+      }
+      if (stream.__write) {
+        stream.write = stream.__write;
+        delete stream.__write;
+      }
+    }
+    pauseLogs() {
+      paused = true;
+    }
+    resumeLogs() {
+      paused = false;
+      const _queue = queue.splice(0);
+      for (const item of _queue) {
+        item[0]._logFn(item[1], item[2]);
+      }
+    }
+    mockTypes(mockFn) {
+      const _mockFn = mockFn || this.options.mockFn;
+      if (typeof _mockFn !== "function") {
+        return;
+      }
+      for (const type in this.options.types) {
+        this[type] = _mockFn(type, this.options.types[type]) || this[type];
+        this[type].raw = this[type];
+      }
+    }
+    _wrapLogFn(defaults, isRaw) {
+      return (...args) => {
+        if (paused) {
+          queue.push([this, defaults, args, isRaw]);
+          return;
+        }
+        return this._logFn(defaults, args, isRaw);
+      };
+    }
+    _logFn(defaults, args, isRaw) {
+      if ((defaults.level || 0) > this.level) {
+        return false;
+      }
+      const logObj = {
+        date: /* @__PURE__ */ new Date(),
+        args: [],
+        ...defaults,
+        level: _normalizeLogLevel(defaults.level, this.options.types)
+      };
+      if (!isRaw && args.length === 1 && isLogObj(args[0])) {
+        Object.assign(logObj, args[0]);
+      } else {
+        logObj.args = [...args];
+      }
+      if (logObj.message) {
+        logObj.args.unshift(logObj.message);
+        delete logObj.message;
+      }
+      if (logObj.additional) {
+        if (!Array.isArray(logObj.additional)) {
+          logObj.additional = logObj.additional.split("\n");
+        }
+        logObj.args.push("\n" + logObj.additional.join("\n"));
+        delete logObj.additional;
+      }
+      logObj.type = typeof logObj.type === "string" ? logObj.type.toLowerCase() : "log";
+      logObj.tag = typeof logObj.tag === "string" ? logObj.tag.toLowerCase() : "";
+      const resolveLog = (newLog = false) => {
+        const repeated = (this._lastLog.count || 0) - this.options.throttleMin;
+        if (this._lastLog.object && repeated > 0) {
+          const args2 = [...this._lastLog.object.args];
+          if (repeated > 1) {
+            args2.push(`(repeated ${repeated} times)`);
+          }
+          this._log({ ...this._lastLog.object, args: args2 });
+          this._lastLog.count = 1;
+        }
+        if (newLog) {
+          this._lastLog.object = logObj;
+          this._log(logObj);
+        }
+      };
+      clearTimeout(this._lastLog.timeout);
+      const diffTime = this._lastLog.time && logObj.date ? logObj.date.getTime() - this._lastLog.time.getTime() : 0;
+      this._lastLog.time = logObj.date;
+      if (diffTime < this.options.throttle) {
+        try {
+          const serializedLog = JSON.stringify([
+            logObj.type,
+            logObj.tag,
+            logObj.args
+          ]);
+          const isSameLog = this._lastLog.serialized === serializedLog;
+          this._lastLog.serialized = serializedLog;
+          if (isSameLog) {
+            this._lastLog.count = (this._lastLog.count || 0) + 1;
+            if (this._lastLog.count > this.options.throttleMin) {
+              this._lastLog.timeout = setTimeout(
+                resolveLog,
+                this.options.throttle
+              );
+              return;
+            }
+          }
+        } catch {
+        }
+      }
+      resolveLog(true);
+    }
+    _log(logObj) {
+      for (const reporter of this.options.reporters) {
+        reporter.log(logObj, {
+          options: this.options
+        });
+      }
+    }
+  };
+  function _normalizeLogLevel(input, types = {}, defaultLevel = 3) {
+    if (input === void 0) {
+      return defaultLevel;
+    }
+    if (typeof input === "number") {
+      return input;
+    }
+    if (types[input] && types[input].level !== void 0) {
+      return types[input].level;
+    }
+    return defaultLevel;
+  }
+  Consola.prototype.add = Consola.prototype.addReporter;
+  Consola.prototype.remove = Consola.prototype.removeReporter;
+  Consola.prototype.clear = Consola.prototype.removeReporter;
+  Consola.prototype.withScope = Consola.prototype.withTag;
+  Consola.prototype.mock = Consola.prototype.mockTypes;
+  Consola.prototype.pause = Consola.prototype.pauseLogs;
+  Consola.prototype.resume = Consola.prototype.resumeLogs;
+  function createConsola(options = {}) {
+    return new Consola(options);
+  }
+
+  // node_modules/consola/dist/index.browser.mjs
+  var BrowserReporter = class {
+    constructor(options) {
+      this.options = { ...options };
+      this.defaultColor = "#7f8c8d";
+      this.levelColorMap = {
+        0: "#c0392b",
+        // Red
+        1: "#f39c12",
+        // Yellow
+        3: "#00BCD4"
+        // Cyan
+      };
+      this.typeColorMap = {
+        success: "#2ecc71"
+        // Green
+      };
+    }
+    _getLogFn(level) {
+      if (level < 1) {
+        return console.__error || console.error;
+      }
+      if (level === 1) {
+        return console.__warn || console.warn;
+      }
+      return console.__log || console.log;
+    }
+    log(logObj) {
+      const consoleLogFn = this._getLogFn(logObj.level);
+      const type = logObj.type !== "log" ? logObj.type : "";
+      const tag = logObj.tag || "";
+      const color = this.typeColorMap[logObj.type] || this.levelColorMap[logObj.level] || this.defaultColor;
+      const style = `
+      background: ${color};
+      border-radius: 0.5em;
+      color: white;
+      font-weight: bold;
+      padding: 2px 0.5em;
+    `;
+      const badge = `%c${[tag, type].filter(Boolean).join(":")}`;
+      if (typeof logObj.args[0] === "string") {
+        consoleLogFn(
+          `${badge}%c ${logObj.args[0]}`,
+          style,
+          // Empty string as style resets to default console style
+          "",
+          ...logObj.args.slice(1)
+        );
+      } else {
+        consoleLogFn(badge, style, ...logObj.args);
+      }
+    }
+  };
+  function createConsola2(options = {}) {
+    const consola2 = createConsola({
+      reporters: options.reporters || [new BrowserReporter({})],
+      prompt(message, options2 = {}) {
+        if (options2.type === "confirm") {
+          return Promise.resolve(confirm(message));
+        }
+        return Promise.resolve(prompt(message));
+      },
+      ...options
+    });
+    return consola2;
+  }
+  var consola = createConsola2();
+
+  // src/utils/math.tsx
   var ZERO = new import_fraction.default(0);
   var ONE = new import_fraction.default(1);
   var EMPTY_PMF = /* @__PURE__ */ new Map([[0, ONE]]);
@@ -7644,15 +8112,15 @@
         }
       });
     });
-    console.log("====");
+    consola.debug("====");
     [...pmf.entries()].forEach(([n, data]) => {
-      console.log(`	[==${n}==]`);
-      console.log(`	hit: ${data.hit.toString()}`);
-      console.log(`	miss: ${data.miss.toString()}`);
-      console.log(`	crit: ${data.crit.toString()}`);
-      console.log(`	critMiss: ${data.critMiss.toString()}`);
+      consola.debug(`	[==${n}==]`);
+      consola.debug(`	hit: ${data.hit.toString()}`);
+      consola.debug(`	miss: ${data.miss.toString()}`);
+      consola.debug(`	crit: ${data.crit.toString()}`);
+      consola.debug(`	critMiss: ${data.critMiss.toString()}`);
     });
-    console.log("====");
+    consola.debug("====");
     return pmf;
   };
   var add_pmfs = (pmfX_, pmfY_, add) => {
@@ -7706,12 +8174,12 @@
     return basePMF;
   };
   var printPMF = (pmf) => {
-    console.log(
+    consola.debug(
       new Map(
         [...pmf.entries()].sort(([kl, _vl], [kr, _vr]) => kl - kr).map(([k, v]) => [k, new import_fraction.default(v).valueOf().toFixed(6)])
       )
     );
-    console.log(
+    consola.debug(
       `SUM: ${[...pmf.values()].reduce((acc, n) => acc.add(n), ZERO).toString()}`
     );
   };
@@ -7741,16 +8209,16 @@
         () => make_pmf(Number(dice.face), 0, dice.positive)
       );
     }
-    console.log("making dice pmf");
-    console.log(dice);
-    console.log(pmfs);
+    consola.debug("making dice pmf");
+    consola.debug(dice);
+    consola.debug(pmfs);
     return {
       ...dice,
       pmf: pmfs.reduce((acc, n) => add_pmfs(acc, n, true), EMPTY_PMF)
     };
   };
   var combineDice = (formula) => {
-    console.log(`combining ${formula.dice.toString()}`);
+    consola.debug(`combining ${formula.dice.toString()}`);
     const pmf = formula.dice.map(computeDicePMFs).flat().map((x) => x).reduce((acc, n) => add_pmfs(acc, n.pmf, true), EMPTY_PMF);
     return { ...formula, pmf };
   };
@@ -7759,21 +8227,21 @@
     ZERO
   );
   var jointProbPMFs = (jpm_pmfs) => {
-    console.log("Combining damage PMFs");
+    consola.debug("Combining damage PMFs");
     const data = [
       ["Name", "Damage", "Chance"],
       ...jpm_pmfs.map(
         ({ pmf: pmf2, chance, name }) => [name, weighted_mean_pmf(pmf2).toString(), chance.toString()]
       )
     ];
-    console.log("SUM:");
-    console.log(jpm_pmfs.reduce((acc, n) => acc.add(n.chance), ZERO));
-    console.log((0, import_table.table)(data));
+    consola.debug("SUM:");
+    consola.debug(jpm_pmfs.reduce((acc, n) => acc.add(n.chance), ZERO));
+    consola.debug((0, import_table.table)(data));
     const pmf = /* @__PURE__ */ new Map();
     const keySet = /* @__PURE__ */ new Set([
       ...jpm_pmfs.map((jp) => [...jp.pmf.keys()]).flat(2)
     ]);
-    console.log({ keySet });
+    consola.debug({ keySet });
     [...keySet].forEach(
       (k) => pmf.set(
         k,
@@ -7783,7 +8251,7 @@
         )
       )
     );
-    console.log("RESULT:");
+    consola.debug("RESULT:");
     printPMF(pmf);
     return pmf;
   };
@@ -7809,13 +8277,12 @@
   var ACs = numberRange(1, 30 + 1);
 
   // src/modules/damage2/mathWorker.ts
-  var import_fraction2 = __toESM(require_fraction());
   var import_workerpool = __toESM(require_workerpool());
   var normalizePMF = (pmf) => Object.fromEntries(
-    [...pmf.entries()].filter(([num, frac]) => !frac.equals(ZERO)).map(([num, frac]) => [num, frac.toFraction()])
+    [...pmf.entries()].filter(([, frac]) => !frac.equals(ZERO)).map(([num, frac]) => [num, frac.toFraction()])
   );
   var normalizePMFMess = (pmf) => Object.fromEntries(
-    [...pmf.entries()].filter(([num, frac]) => !frac.equals(ZERO)).map(([num, frac]) => [num, frac.toString()])
+    [...pmf.entries()].filter(([, frac]) => !frac.equals(ZERO)).map(([num, frac]) => [num, frac.toString()])
   );
   var normalizeDamagePMFByAC = (damagePMFByAC) => Object.fromEntries(
     [...damagePMFByAC.entries()].map(([ac, pmf]) => [ac, normalizePMF(pmf)])
@@ -7824,19 +8291,18 @@
     [...damagePMFByAC.entries()].map(([ac, pmf]) => [ac, normalizePMFMess(pmf)])
   );
   var computeDamageInfo = (damagerMetadata) => {
-    console.log("cdi");
-    console.log(damagerMetadata);
+    consola.log("cdi");
+    consola.log(damagerMetadata);
     const attackRoll = combineDice(
       parseDiceStrings({ diceStrings: damagerMetadata.attack })
     );
-    const allCritFaceCount = damagerMetadata.critFaceCount + damagerMetadata.critFailFaceCount;
     let op;
     if (damagerMetadata.advantage > 0) {
       op = "kh";
     } else if (damagerMetadata.advantage < 0) {
       op = "kl";
     }
-    console.log({ op });
+    consola.log({ op });
     const attackRollBase = computeDicePMFs({
       positive: true,
       count: Math.abs(damagerMetadata.advantage),
@@ -7848,34 +8314,31 @@
       advantage: damagerMetadata.advantage,
       critFaces: damagerMetadata.critFaceCount
     });
-    console.log({ critChance });
+    consola.log({ critChance });
     const critFailChance = computeCritChance({
       advantage: -damagerMetadata.advantage,
       critFaces: damagerMetadata.critFailFaceCount
     });
-    console.log({ critFailChance });
+    consola.log({ critFailChance });
     const hitDamagePMF = combineDice(
       parseDiceStrings({ diceStrings: damagerMetadata.damage })
     ).pmf;
     const critDamagePMF = combineDice(
       parseDiceStrings({ diceStrings: damagerMetadata.damage, crit: "raw" })
     ).pmf;
+    const firstHitDamagePMF = combineDice(
+      parseDiceStrings({ diceStrings: [damagerMetadata.damageOnFirstHit] })
+    ).pmf;
+    const firstHitCritDamagePMF = combineDice(
+      parseDiceStrings({ diceStrings: [damagerMetadata.damageOnFirstHit], crit: "raw" })
+    ).pmf;
     const missDamagePMF = combineDice(
       parseDiceStrings({ diceStrings: [damagerMetadata.damageOnMiss] })
     ).pmf || zero_pmf();
-    const damageOnFirstHitPMF = combineDice(
-      parseDiceStrings({ diceStrings: [damagerMetadata.damageOnFirstHit] })
-    ).pmf || zero_pmf();
-    const critDamageOnFirstHitPMF = combineDice(
-      parseDiceStrings({
-        diceStrings: [damagerMetadata.damageOnFirstHit],
-        crit: "raw"
-      })
-    ).pmf;
     const damagePMFByAC = /* @__PURE__ */ new Map();
     ACs.forEach((ac) => {
-      console.log(`====================`);
-      console.log(`====== AC: ${ac} ======`);
+      consola.debug(`====================`);
+      consola.debug(`====== AC: ${ac} ======`);
       const hit_data_per_count = combine_hit_and_buffs({
         toHit: attackRollBase.pmf,
         buffs: attackRoll.pmf,
@@ -7905,19 +8368,26 @@
         { name: "Crit Miss", pmf: missDamagePMF, chance: chanceToCritMiss },
         { name: "Crit", pmf: critDamagePMF, chance: chanceToCrit }
       ];
+      const singleHitPmfs = [
+        { name: "Hit", pmf: firstHitDamagePMF, chance: ONE.sub(ONE.sub(chanceToHit).pow(damagerMetadata.attackCount)) },
+        { name: "Miss", pmf: missDamagePMF, chance: chanceToMiss },
+        { name: "Crit Miss", pmf: missDamagePMF, chance: chanceToCritMiss },
+        { name: "Crit", pmf: firstHitCritDamagePMF, chance: chanceToCrit }
+      ];
       const damage_pmf = numberRange(1, damagerMetadata.attackCount + 1).reduce(
-        (acc, n) => {
+        (acc) => {
           const damagePMF = add_pmfs(acc, jointProbPMFs(pmfs), true);
           return damagePMF;
         },
         zero_pmf()
       );
-      damagePMFByAC.set(ac, damage_pmf);
+      const finalPMF = add_pmfs(damage_pmf, jointProbPMFs(singleHitPmfs), true);
+      damagePMFByAC.set(ac, finalPMF);
     });
-    console.log("messy normalized");
-    console.log(normalizeDamagePMFByACMess(damagePMFByAC));
-    console.log("Normalized Damage PMF By AC:");
-    console.log(normalizeDamagePMFByAC(damagePMFByAC));
+    consola.debug("messy normalized");
+    consola.debug(normalizeDamagePMFByACMess(damagePMFByAC));
+    consola.debug("Normalized Damage PMF By AC:");
+    consola.debug(normalizeDamagePMFByAC(damagePMFByAC));
     return {
       damagePMFByAC,
       damagerMetadata

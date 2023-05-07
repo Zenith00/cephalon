@@ -1,6 +1,8 @@
 import {
   Accordion,
+  ActionIcon,
   Box,
+  Button,
   Code,
   Flex,
   Group,
@@ -8,16 +10,18 @@ import {
   Paper,
   SegmentedControl,
   Select,
+  Switch,
   Text,
   TextInput,
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
-import type { DamageMetadata, formValue } from "@pages/Damage2";
-import { IconAdjustmentsCog } from "@tabler/icons-react";
+import { getEmptyDamager, type DamageMetadata, type formValue } from "@pages/Damage2";
+import { IconAdjustmentsCog, IconTrash } from "@tabler/icons-react";
 import React from "react";
 import type { Updater } from "use-immer";
 import workerpool from "workerpool";
 import { parseDiceStrings, weighted_mean_pmf } from "@utils/math";
+import { useId } from "@mantine/hooks";
 import { type DamageInfo } from "./mathWorker";
 import type { DamagePMFByAC } from "./types";
 
@@ -41,6 +45,7 @@ const DamageCalculatorInput = ({
       critFailFaceCount: damager.critFailFaceCount,
       advantage: Number(damager.advantage),
       key: damager.key,
+      gwmSS: damager.gwmSS,
     }));
 
   React.useEffect(() => {
@@ -82,34 +87,50 @@ const DamageCalculatorInput = ({
   return (
     <Box>
       <Paper maw={320} mr="auto" my="sm" p="sm" shadow="sm">
-        <TextInput
-          label="Global Damage Bonus"
-          placeholder="Last name"
-          mt="s"
-          size="s"
-          {...form.getInputProps("global.damage")}
-        />
-        <TextInput
-          label="Global Attack Bonus"
-          placeholder="Last name"
-          mt="s"
-          size="s"
-          {...form.getInputProps("global.attack")}
-        />
+        <Flex>
+          <TextInput
+            label="Global Attack"
+            placeholder="Attack Bonus"
+            mt="s"
+            size="s"
+            {...form.getInputProps("global.attack")}
+          />
+          <TextInput
+            label="Global Damage"
+            placeholder="Damage Bonus"
+            mt="s"
+            size="s"
+            {...form.getInputProps("global.damage")}
+          />
+        </Flex>
+      </Paper>
+      <Paper>
+        <Button compact onClick={() => form.insertListItem("damagers", getEmptyDamager(form.values.damagers) , form.values.damagers.length+1)}>New Damager</Button>
       </Paper>
       {form.values.damagers.map((item, index) => (
         <Group key={item.key} mt="xs">
+
           <Paper maw={320} p="sm" my="sm" mr="auto" shadow="sm">
-            <Accordion defaultValue={["basic"]} multiple>
-              <Accordion.Item value="basic">
-                <Accordion.Control>Basic</Accordion.Control>
-                <Accordion.Panel>
-                  <TextInput
-                    label="Label"
+          <Flex px="md" align="center">
+          <TextInput
                     placeholder="Label"
                     size="s"
                     {...form.getInputProps(`damagers.${index}.label`)}
                   />
+            <ActionIcon style={{marginRight: "0", marginLeft:"auto"}} color="red" >
+              <IconTrash />
+            </ActionIcon>
+          </Flex>
+            <Accordion defaultValue={["basic"]} multiple>
+              <Accordion.Item value="basic">
+                <Accordion.Control>Basic</Accordion.Control>
+                <Accordion.Panel>
+                  {/* <TextInput
+                    label="Label"
+                    placeholder="Label"
+                    size="s"
+                    {...form.getInputProps(`damagers.${index}.label`)}
+                  /> */}
                   <TextInput
                     label="Damage"
                     placeholder="1d12"
@@ -128,13 +149,17 @@ const DamageCalculatorInput = ({
                     label="Attack Count"
                     placeholder="1"
                     {...form.getInputProps(`damagers.${index}.attackCount`)}
-                    styles={{input: {height: "1.75rem", minHeight:"1.75rem"}}}
+                    styles={{
+                      input: { height: "1.75rem", minHeight: "1.75rem" },
+                    }}
                   />
                   <Select
                     size="sm"
                     label="Advantage"
                     defaultValue="0"
-                    styles={{input: {height: "1.75rem", minHeight:"1.75rem"}}}
+                    styles={{
+                      input: { height: "1.75rem", minHeight: "1.75rem" },
+                    }}
                     data={[
                       { label: "Disadv+", value: "-2" },
                       { label: "Disadv", value: "-1" },
@@ -169,7 +194,7 @@ const DamageCalculatorInput = ({
               </Accordion.Item>
 
               <Accordion.Item value="playerstats">
-                <Accordion.Control>Player Stats</Accordion.Control>
+                <Accordion.Control>Player Details</Accordion.Control>
                 <Accordion.Panel>
                   <NumberInput
                     label="Crit Faces"
@@ -182,6 +207,11 @@ const DamageCalculatorInput = ({
                     {...form.getInputProps(
                       `damagers.${index}.critFailFaceCount`
                     )}
+                  />
+
+                  <Switch
+                    label="GWM/SS"
+                    {...form.getInputProps(`damagers.${index}.gwmss`)}
                   />
                 </Accordion.Panel>
               </Accordion.Item>

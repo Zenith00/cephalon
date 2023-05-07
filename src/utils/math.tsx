@@ -4,6 +4,8 @@ import type { AC } from "@/damage/types";
 import Fraction from "fraction.js";
 import memoize from "lodash.memoize";
 import { table } from "table";
+import { consola } from "consola";
+
 
 export type critType = "none" | "normal" | "maximized" | "raw";
 
@@ -22,16 +24,7 @@ export const clean_zeros = (pmf: PMF): PMF =>
 
 export const clean_jpm = (map: Map<string, PMF>) =>
   new Map([...map.entries()].filter(([_, v]) => v.size !== 0));
-// export const clean_zeros = (pmf: Map<AC, Fraction>): PMF =>
-//   new Map([...pmf.entries()].filter(([_, v]) => !v.equals(ZERO)));
 
-// export const clean_probmap = (obj: { [k: string]: Fraction }) =>
-//   Object.fromEntries(Object.entries(obj).filter(([k, v]) => !v.equals(ZERO)));
-
-// export const clean_jpm = (obj: { [k: string]: { [k: string]: Fraction } }) =>
-//   Object.fromEntries(
-//     Object.entries(obj).filter(([k, v]) => Object.keys(v).length !== 0)
-//   );
 export const cartesianProduct = <T,>(...allEntries: T[][]): T[][] =>
   allEntries.reduce<T[][]>(
     (results, entries) =>
@@ -143,7 +136,6 @@ export const combine_hit_and_buffs = ({
     pmf.set(n, { hit: ZERO, crit: ZERO, miss: ZERO, critMiss: ZERO })
   );
 
-
   [...toHit.keys()].forEach((toHitX) => {
     [...buffs.keys()].forEach((buffY) => {
       const result = toHitX + buffY;
@@ -167,16 +159,16 @@ export const combine_hit_and_buffs = ({
       }
     });
   });
-  console.log("====");
+  consola.debug("====");
   [...pmf.entries()].forEach(([n, data]) => {
-    console.log(`\t[==${n}==]`);
-    console.log(`\thit: ${data.hit.toString()}`);
-    console.log(`\tmiss: ${data.miss.toString()}`);
-    console.log(`\tcrit: ${data.crit.toString()}`);
-    console.log(`\tcritMiss: ${data.critMiss.toString()}`);
+    consola.debug(`\t[==${n}==]`);
+    consola.debug(`\thit: ${data.hit.toString()}`);
+    consola.debug(`\tmiss: ${data.miss.toString()}`);
+    consola.debug(`\tcrit: ${data.crit.toString()}`);
+    consola.debug(`\tcritMiss: ${data.critMiss.toString()}`);
 
   });
-  console.log("====");
+  consola.debug("====");
 
   return pmf;
 };
@@ -251,14 +243,14 @@ export const make_pmf = (diceFace: number, advantage = 0, pos = true): PMF => {
 
 export const printPMF = (pmf: PMF) => {
   // eslint-disable-next-line no-console
-  console.log(
+  consola.debug(
     new Map(
       [...pmf.entries()]
         .sort(([kl, _vl], [kr, _vr]) => kl - kr)
         .map(([k, v]) => [k, new Fraction(v).valueOf().toFixed(6)])
     )
   );
-  console.log(
+  consola.debug(
     `SUM: ${[...pmf.values()].reduce((acc, n) => acc.add(n), ZERO).toString()}`
   );
 };
@@ -272,36 +264,6 @@ export const cumSumHits = (pmf: PMF) => {
       .map(([val, p]) => [val + 1, (acc = acc.add(p))])
   );
 };
-
-// export const convolve_pmfs_sum = (pmfX_: PMF, pmfY_: PMF, add: boolean) => {
-//   const pmfX = new Map([...pmfX_.entries()].sort());
-//   const pmfY = new Map([...pmfY_.entries()].sort());
-//   const pmfXMax = Math.max(...pmfX.keys());
-//   const pmfYMax = Math.max(...pmfY.keys());
-//   const jointProb = [...Array(pmfXMax + 1).keys()].map((xDex) =>
-//     [...Array(pmfYMax + 1).keys()].map((yDex) =>
-//       (pmfX.get(xDex) || ZERO).mul(pmfY.get(yDex) || ZERO)
-//     )
-//   );
-
-//   const diagSign = add ? 1 : -1;
-
-//   const diagExtra = add ? 0 : pmfYMax - 1;
-//   const bound = (x: number) => x;
-//   return [...Array(pmfXMax + pmfYMax + 2 - 1).keys()].reduce(
-//     (acc, diagDex) =>
-//       acc.set(
-//         bound(diagDex),
-//         [...Array(pmfXMax + pmfYMax + 2).keys()]
-//           .map(
-//             (i) =>
-//               (jointProb[diagDex - diagExtra - diagSign * i] ?? [])[i] ?? ZERO
-//           )
-//           .reduce((l, r) => l.add(r))
-//       ),
-//     new Map()
-//   ) as PMF;
-// };
 
 export const convolve_pmfs_prod = (pmfX_: PMF, pmfY_: PMF) => {
   const pmfX = new Map([...pmfX_.entries()].sort());
@@ -331,58 +293,6 @@ export const one_or_other_pmfs = (
   return pmf;
 };
 
-// const pmfMax = (pmfX_: PMF, pmfY_: PMF) => {
-//   const pmfX = new Map([...pmfX_.entries()].sort());
-//   const pmfY = new Map([...pmfY_.entries()].sort());
-
-//   const getGT = (pmf: PMF, than: number): Fraction =>
-//     [...pmf.values()]
-//       .slice(0, [...pmf.keys()].indexOf(than))
-//       .reduce((acc, n) => acc.add(n), ZERO);
-//   const pmfResult = new Map<number, Fraction>() as PMF;
-//   const keySet = new Set<number>([...pmfX.keys(), ...pmfY.keys()]);
-//   keySet.forEach((key) => {
-//     // console.log({ key });
-//     // console.log(getGT(pmfX, key).mul(pmfX.get(key) || ONE).toString(3));
-//     // console.log(getGT(pmfY, key).mul(pmfY.get(key) || ONE).toString(3));
-//     const xkey_ykey = (pmfX.get(key) || ZERO).mul(pmfY.get(key) || ZERO);
-//     pmfResult.set(
-//       key,
-//       getGT(pmfX, key)
-//         .mul(pmfX.get(key) || ONE)
-//         .add(getGT(pmfY, key).mul(pmfY.get(key) || ONE))
-//         .add(xkey_ykey)
-//     );
-//   });
-//   return pmfResult;
-// };
-
-// const pmfMin = (pmfX_: PMF, pmfY_: PMF) => {
-//   const pmfX = new Map([...pmfX_.entries()].sort());
-//   const pmfY = new Map([...pmfY_.entries()].sort());
-
-//   const getGT = (pmf: PMF, than: number): Fraction =>
-//     [...pmf.values()]
-//       .slice([...pmf.keys()].indexOf(than) + 1)
-//       .reduce((acc, n) => acc.add(n), ZERO);
-//   // console.log(getGT(pmfX, 2).toString(3));
-//   const pmfResult = new Map<number, Fraction>() as PMF;
-//   const keySet = new Set<number>([...pmfX.keys(), ...pmfY.keys()]);
-//   keySet.forEach((key) => {
-//     // console.log({ key });
-//     // console.log(getGT(pmfX, key).mul(pmfX.get(key) || ONE).toString(3));
-//     // console.log(getGT(pmfY, key).mul(pmfY.get(key) || ONE).toString(3));
-//     const xkey_ykey = (pmfX.get(key) || ZERO).mul(pmfY.get(key) || ZERO);
-//     pmfResult.set(
-//       key,
-//       getGT(pmfX, key)
-//         .mul(pmfX.get(key) || ONE)
-//         .add(getGT(pmfY, key).mul(pmfY.get(key) || ONE))
-//         .add(xkey_ykey)
-//     );
-//   });
-//   return pmfResult;
-// };
 
 export const computeCritChance = ({
   advantage,
@@ -424,7 +334,7 @@ export const d20ToCritrate = (
 };
 
 export const d20ToFailRate = (dice: string) => {
-  // console.log({ dice });
+  // consola.debug({ dice });
   const [countS, fullFace] = dice.split("d");
   const count = Number(countS);
 
@@ -459,9 +369,9 @@ export const computeDicePMFs = (dice: Dice): PMFDice => {
     );
   }
 
-  console.log("making dice pmf");
-  console.log(dice);
-  console.log(pmfs);
+  consola.debug("making dice pmf");
+  consola.debug(dice);
+  consola.debug(pmfs);
 
   return {
     ...dice,
@@ -470,7 +380,7 @@ export const computeDicePMFs = (dice: Dice): PMFDice => {
 };
 
 export const combineDice = (formula: Formula): PMFFormula => {
-  console.log(`combining ${formula.dice.toString()}`);
+  consola.debug(`combining ${formula.dice.toString()}`);
   const pmf = formula.dice
     .map(computeDicePMFs)
     .flat()
@@ -491,7 +401,7 @@ export type JPM_PMF = {
   name?: string;
 };
 export const jointProbPMFs = (jpm_pmfs: JPM_PMF[]) => {
-  console.log("Combining damage PMFs");
+  consola.debug("Combining damage PMFs");
   const data: [string, string, string][] = [
     ["Name", "Damage", "Chance"],
     ...jpm_pmfs.map(
@@ -504,15 +414,15 @@ export const jointProbPMFs = (jpm_pmfs: JPM_PMF[]) => {
     ),
   ];
 
-  console.log("SUM:");
-  console.log(jpm_pmfs.reduce((acc, n) => acc.add(n.chance), ZERO));
-  console.log(table(data));
+  consola.debug("SUM:");
+  consola.debug(jpm_pmfs.reduce((acc, n) => acc.add(n.chance), ZERO));
+  consola.debug(table(data));
 
   const pmf = new Map<number, Fraction>() as PMF;
   const keySet = new Set<number>([
     ...jpm_pmfs.map((jp) => [...jp.pmf.keys()]).flat(2),
   ]);
-  console.log({ keySet });
+  consola.debug({ keySet });
 
   [...keySet].forEach((k) =>
     pmf.set(
@@ -523,7 +433,7 @@ export const jointProbPMFs = (jpm_pmfs: JPM_PMF[]) => {
       )
     )
   );
-  console.log("RESULT:");
+  consola.debug("RESULT:");
   printPMF(pmf);
   return pmf;
 };
@@ -543,7 +453,7 @@ export const one_or_three_pmfs = ({
   missChance: Fraction;
   critChance: Fraction;
 }) => {
-  console.log("Combining damage PMFs");
+  consola.debug("Combining damage PMFs");
   const data: [string, string, string][] = [
     ["Name", "Damage", "Chance"],
     ["Hit", weighted_mean_pmf(hitDamagePMF).toString(), hitChance.toString()],
@@ -558,14 +468,14 @@ export const one_or_three_pmfs = ({
       critChance.toString(),
     ],
   ];
-  console.log(table(data));
+  consola.debug(table(data));
   const pmf = new Map<number, Fraction>() as PMF;
   const keySet = new Set<number>([
     ...hitDamagePMF.keys(),
     ...missDamagePMF.keys(),
     ...critDamagePMF.keys(),
   ]);
-  console.log({ keySet });
+  consola.debug({ keySet });
 
   [...keySet].forEach((k) =>
     pmf.set(
