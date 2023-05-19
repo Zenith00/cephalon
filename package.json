@@ -2,7 +2,7 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
-    "build": "npm build:workers && remix build",
+    "build": "npx esbuild ./app/modules/damage2/mathWorker.ts --bundle --outdir=./public/workers/  && remix build",
     "dev": "npm-run-all -p -r dev:workers dev:web",
     "start": "remix-serve build",
     "typecheck": "tsc",
