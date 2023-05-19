@@ -11,4 +11,16 @@ module.exports = {
     v2_normalizeFormMethod: true,
     v2_routeConvention: true,
   },
+  serverDependenciesToBundle: [
+    'd3',
+    /^d3-*/,
+    /^@visx\/*/,
+    'delaunator',
+    'internmap',
+    "query-string",
+    "decode-uri-component",
+    "split-on-first",
+    "filter-obj",
+    "consola"
+  ],
 };

@@ -1,38 +1,73 @@
-import type { V2_MetaFunction } from "@remix-run/node";
+import {
+  ActionIcon,
+  AppShell,
+  Card,
+  Center,
+  Container,
+  Grid,
+  Header,
+  Image,
+  Text,
+  Title
+} from '@mantine/core';
+import { Link } from "@remix-run/react";
+import { IconArrowRightCircle } from '@tabler/icons-react';
 
-export const meta: V2_MetaFunction = () => {
-  return [{ title: "New Remix App" }];
-};
-
-export default function Index() {
-  return (
-    <div style={{ fontFamily: "system-ui, sans-serif", lineHeight: "1.4" }}>
-      <h1>Welcome to Remix</h1>
-      <ul>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/blog"
-            rel="noreferrer"
-          >
-            15m Quickstart Blog Tutorial
-          </a>
-        </li>
-        <li>
-          <a
-            target="_blank"
-            href="https://remix.run/tutorials/jokes"
-            rel="noreferrer"
-          >
-            Deep Dive Jokes App Tutorial
-          </a>
-        </li>
-        <li>
-          <a target="_blank" href="https://remix.run/docs" rel="noreferrer">
-            Remix Docs
-          </a>
-        </li>
-      </ul>
-    </div>
-  );
+interface PageInfo {
+  title: string;
+  imageURL: string;
+  targetPageURL: string;
 }
+
+const pages: PageInfo[] = [
+  { title: 'Condition Immunity', imageURL: '/img/ConditionImmunity.png', targetPageURL: '/ConditionImmunities' },
+  { title: 'Damage Calculator', imageURL: 'img/Damage.png', targetPageURL: '/Damage' },
+  { title: 'Couatl Spells', imageURL: 'img/Couatl.png', targetPageURL: '/Couatl' },
+  { title: 'Saves by CR', imageURL: 'img/Saves.png', targetPageURL: '/Saves' },
+  { title: 'Point Buy', imageURL: 'img/PointBuy.png', targetPageURL: '/PointBuy' },
+  { title: 'To-Hits', imageURL: 'img/ToHit.png', targetPageURL: '/ToHits' },
+];
+
+const Home = () => (
+  <AppShell
+    header={(
+      <Header height={60} p="sm">
+        <Title order={2}>Cephalon</Title>
+      </Header>
+      )}
+    padding={20}
+  >
+    <Container size="xl">
+      <Grid justify="center">
+        {pages.map((page, index) => (
+          <Grid.Col lg={6} md={8} key={page.title}>
+            <Card shadow="sm" p="lg">
+              <Text weight={500} align="center">
+                {page.title}
+              </Text>
+              <Card.Section>
+                <Image src={page.imageURL} height={260} />
+              </Card.Section>
+              <Center>
+                <Link to={page.targetPageURL}>
+
+                  <ActionIcon
+                    variant="filled"
+                    color="blue"
+                    style={{ width: '50%' }}
+                    mt="md"
+                  >
+                    <IconArrowRightCircle />
+                  </ActionIcon>
+                </Link>
+
+              </Center>
+            </Card>
+          </Grid.Col>
+        ))}
+      </Grid>
+    </Container>
+  </AppShell>
+);
+
+export default Home;
