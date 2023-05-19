@@ -141,7 +141,7 @@ const DamageResults = ({ pmf }: { pmf?: PMF  }) => {
                   dy="1em"
                   textAnchor="middle"
                 >
-                  {v}
+                  {v.toString(7)}
                 </text>
                 <text
                   x={width - 25}
