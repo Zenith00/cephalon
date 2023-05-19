@@ -4,10 +4,10 @@
   "scripts": {
     "build": "npx esbuild ./app/modules/damage2/mathWorker.ts --bundle --outdir=./public/workers/  && remix build",
     "dev": "npm-run-all -p -r dev:workers dev:web",
-    "start": "remix-serve build",
+    "start": "remix-serve build --port 10020",
     "typecheck": "tsc",
     "dev:workers": "npx esbuild ./app/modules/damage2/mathWorker.ts --bundle --outdir=./public/workers/ --watch",
-    "dev:web": "remix dev"
+    "dev:web": "remix dev --port 10020"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",
