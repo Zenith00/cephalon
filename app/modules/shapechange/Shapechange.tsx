@@ -248,15 +248,7 @@ const Shapechange = ({ arcane }: { arcane: string }) => {
   // const [zoomRef, setZoomRef] = useState<(translate: any) => void>();
   return (
     <div>
-      <head>
-        <title>
-          {arcane
-            .split("_")
-            .map((x) => x[0].toUpperCase() + x.slice(1))
-            .join(" ")}{" "}
-          Spells
-        </title>
-      </head>
+
       <AppShell
         fixed
         padding="sm"

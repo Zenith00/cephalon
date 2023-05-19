@@ -1,4 +1,3 @@
-import Head from 'next/head';
 import { ParentSize } from '@visx/responsive';
 import {
   AppShell, Burger, Footer, Header, MediaQuery, Title,
@@ -70,9 +69,7 @@ const ConditionImmunities = () => {
 
   return (
     <div>
-      <head>
-        <title>Condition Immunity by Creature Type</title>
-      </head>
+
       <AppShell
         fixed
         padding="sm"

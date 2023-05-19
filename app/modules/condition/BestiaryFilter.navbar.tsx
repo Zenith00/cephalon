@@ -11,11 +11,9 @@ import {
   ScrollArea,
   Title,
 } from '@mantine/core';
-import type {
-  Datapack,
-  Filters,
-} from '@pages/ConditionImmunities';
+
 import { CREATURE_TYPES, SOURCES } from '@/condition/constants';
+import type { Filters, Datapack } from './ConditionImmunity.graph';
 
 const BestiaryFilterNavbar = ({
   hidden,

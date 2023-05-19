@@ -4,7 +4,23 @@ import React from 'react';
 import { scaleLinear } from '@visx/scale';
 import { interpolateGnBu } from 'd3-scale-chromatic';
 import { AxisBottom, AxisLeft } from '@visx/axis';
-import type { Datapack } from '@pages/ConditionImmunities';
+import type { StringifiableRecord } from 'query-string';
+import type { CREATURE_TYPES, SOURCES } from './constants';
+
+export interface Filters extends StringifiableRecord {
+  crInclude: [number, number];
+  creatureTypeInclude: Partial<typeof CREATURE_TYPES>;
+  sources: Partial<typeof SOURCES>;
+}
+
+export interface Datapack {
+  column_labels: string[];
+  row_labels: string[];
+  data: { bins: any[] }[];
+  typeCounts: { [key in typeof CREATURE_TYPES[number] | 'all']?: number };
+  names: string[][][];
+}
+
 
 const ConditionImmunityGraph = ({
   width,

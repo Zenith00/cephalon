@@ -3,6 +3,7 @@ import { Links, LiveReload, Meta, Outlet, Scripts, ScrollRestoration } from '@re
 import { MantineProvider, createEmotionCache } from '@mantine/core';
 import { StylesPlaceholder } from '@mantine/remix';
 import { theme } from './theme';
+import { BrowserRouter } from 'react-router-dom';
 
 export const meta: V2_MetaFunction = () => ([{
   charset: 'utf-8',
@@ -15,7 +16,9 @@ createEmotionCache({ key: 'mantine' });
 export default function App() {
   return (
     <MantineProvider theme={theme} withGlobalStyles withNormalizeCSS>
+
       <html lang="en">
+
         <head>
           <StylesPlaceholder />
           <Meta />
@@ -27,6 +30,7 @@ export default function App() {
           <Scripts />
           <LiveReload />
         </body>
+
       </html>
     </MantineProvider>
   );
