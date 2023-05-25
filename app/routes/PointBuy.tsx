@@ -14,72 +14,95 @@ import {
   Table,
   Title,
   useMantineTheme,
-} from '@mantine/core';
-import React, { useEffect, useState } from 'react';
-import { useListState, useToggle, useViewportSize } from '@mantine/hooks';
-import WheelNumberInput from '@/common/WheelNumberInput';
-import { useSearchParams  } from "react-router-dom";
+} from "@mantine/core";
+import React, { useEffect, useState } from "react";
+import { useListState, useToggle, useViewportSize } from "@mantine/hooks";
+import WheelNumberInput from "@/common/WheelNumberInput";
 
 import {
-   IconChevronDown,  IconChevronUp, IconMoonStars, IconSun,
-} from '@tabler/icons-react';
+  IconChevronDown,
+  IconChevronUp,
+  IconMoonStars,
+  IconSun,
+} from "@tabler/icons-react";
 // import DamageFooter from '@/damage/DamageFooter';
-import { gzip } from 'pako';
-import { useDebouncedCallback } from 'use-debounce';
-import Logo from '@/common/Logo.component';
-import { useImmer } from 'use-immer';
+import { gzip } from "pako";
+import { useDebouncedCallback } from "use-debounce";
+import Logo from "@/common/Logo.component";
+import { useImmer } from "use-immer";
+import { useSearchParams } from "@remix-run/react";
 
-const ABILITY_SCORES = ['Strength', 'Dexterity', 'Constitution', 'Intelligence', 'Wisdom', 'Charisma'];
+const ABILITY_SCORES = [
+  "Strength",
+  "Dexterity",
+  "Constitution",
+  "Intelligence",
+  "Wisdom",
+  "Charisma",
+];
 
 interface AbilityScore {
-  value: number
-  bonus: number
+  value: number;
+  bonus: number;
 }
 
 interface Rules {
-  minScore: number,
-  maxScore: number,
-  points: number
+  minScore: number;
+  maxScore: number;
+  points: number;
 }
 
-const DEFAULT_ABILITY_SCORE_COSTS = [0, -16, -12, -9, -6, -4, -2, -1, 0, 1, 2, 3, 4, 5, 7, 9, 12, 15, 19, 24, 29];
+const DEFAULT_ABILITY_SCORE_COSTS = [
+  0, -16, -12, -9, -6, -4, -2, -1, 0, 1, 2, 3, 4, 5, 7, 9, 12, 15, 19, 24, 29,
+];
 const DEFAULT_RULES = { minScore: 8, maxScore: 15, points: 27 };
-type AbilityScoreData = Record<typeof ABILITY_SCORES[number], AbilityScore>
+type AbilityScoreData = Record<typeof ABILITY_SCORES[number], AbilityScore>;
 
 const PointBuy = () => {
-  const [points, setPoints] = useImmer<AbilityScoreData>(
-    {
-      Strength: { value: 8, bonus: 0 },
-      Dexterity: { value: 8, bonus: 0 },
-      Constitution: { value: 8, bonus: 0 },
-      Intelligence: { value: 8, bonus: 0 },
-      Wisdom: { value: 8, bonus: 0 },
-      Charisma: { value: 8, bonus: 0 },
-    },
-  );
+  const [points, setPoints] = useImmer<AbilityScoreData>({
+    Strength: { value: 8, bonus: 0 },
+    Dexterity: { value: 8, bonus: 0 },
+    Constitution: { value: 8, bonus: 0 },
+    Intelligence: { value: 8, bonus: 0 },
+    Wisdom: { value: 8, bonus: 0 },
+    Charisma: { value: 8, bonus: 0 },
+  });
   const { height, width } = useViewportSize();
   // const router = useRouter();
-	const [currentQueryParameters, setSearchParams] = useSearchParams();
+  const [currentQueryParameters, setSearchParams] = useSearchParams();
 
-  const [pointCosts, setPointCostHandlers] = useListState(DEFAULT_ABILITY_SCORE_COSTS);
+  const [pointCosts, setPointCostHandlers] = useListState(
+    DEFAULT_ABILITY_SCORE_COSTS
+  );
   const [rules, setRules] = useImmer<Rules>(DEFAULT_RULES);
-  const canSet = (total:number|undefined) => total && (total >= 1) && (total <= 20);
-  const pointTotal = Object.values(points).reduce((acc, n) => acc + pointCosts[n.value], 0);
+  const canSet = (total: number | undefined) =>
+    total && total >= 1 && total <= 20;
+  const pointTotal = Object.values(points).reduce(
+    (acc, n) => acc + pointCosts[n.value],
+    0
+  );
   const [hideNavbar, setHideNavbar] = useState(true);
   const [showCopyPopup, setShowCopyPopup] = useState(false);
-  const [showCustomScores, toggleShowCustomScores] = useToggle( [false, true]);
-  const [themeColor, toggleThemeColor] = useToggle<'dark'|'light'>(['dark', 'light']);
-  function incrementScore(data: AbilityScore, abilityScore: typeof ABILITY_SCORES[number], type: 'bonus'|'value') {
-    const other = type === 'bonus' ? 'value' : 'bonus';
+  const [showCustomScores, toggleShowCustomScores] = useToggle([false, true]);
+  const [themeColor, toggleThemeColor] = useToggle<"dark" | "light">([
+    "dark",
+    "light",
+  ]);
+  function incrementScore(
+    data: AbilityScore,
+    abilityScore: typeof ABILITY_SCORES[number],
+    type: "bonus" | "value"
+  ) {
+    const other = type === "bonus" ? "value" : "bonus";
     return (newValue: number) => {
       if (canSet(data[other] + newValue)) {
-        setPoints(((draft) => {
-          (draft[abilityScore][type] = newValue);
-        }));
+        setPoints((draft) => {
+          draft[abilityScore][type] = newValue;
+        });
       }
     };
   }
-  const [uri, setUri] = useState('');
+  const [uri, setUri] = useState("");
 
   // const deflate = () => {
   //   const ruleString = [rules.minScore, rules.maxScore, rules.points].join(',');
@@ -102,69 +125,105 @@ const PointBuy = () => {
   // };
 
   const debouncedUpdateURI = useDebouncedCallback(() => {
-    setUri(Buffer.from(
-      JSON.stringify([rules, points, pointCosts]),
-    ).toString('base64'));
+    const isBrowser = document !== undefined;
+    if (!isBrowser) {
+      return;
+    }
+    setUri(
+      Buffer.from(JSON.stringify([rules, points, pointCosts])).toString(
+        "base64"
+      )
+    );
   }, 1000);
 
   useEffect(() => {
+    const isBrowser =  document !== undefined;
+    if (!isBrowser){return}
     debouncedUpdateURI();
   }, [rules, points, pointCosts]);
 
   useEffect(() => {
+    const isBrowser = document !== undefined;
+    if (!isBrowser) {
+      return;
+    }
     const shortKey = decodeURIComponent(
-      new URLSearchParams(document.location.search).get('s') || '',
+      new URLSearchParams(document.location.search).get("s") || ""
     );
     if (shortKey) {
       fetch(`https://s.cephalon.xyz/${shortKey}`, {
-        method: 'GET',
-        mode: 'cors',
+        method: "GET",
+        mode: "cors",
       })
         .then((r) => {
-          r.text().then((t) => {
-            const d = Buffer.from(t, 'base64').toString();
-            const [rules_, points_, pointCosts_] = JSON.parse(d) as [typeof rules, typeof points, typeof pointCosts];
-            console.log({ rules_ });
-            console.log({ points_ });
-            console.log({ pointCosts_ });
-            setRules(rules_);
-            setPoints(points_);
-            setPointCostHandlers.setState(pointCosts_);
-          }).catch(() => { /* ignore */ });
+          r.text()
+            .then((t) => {
+              const d = Buffer.from(t, "base64").toString();
+              const [rules_, points_, pointCosts_] = JSON.parse(d) as [
+                typeof rules,
+                typeof points,
+                typeof pointCosts
+              ];
+              console.log({ rules_ });
+              console.log({ points_ });
+              console.log({ pointCosts_ });
+              setRules(rules_);
+              setPoints(points_);
+              setPointCostHandlers.setState(pointCosts_);
+            })
+            .catch(() => {
+              /* ignore */
+            });
         })
         .catch(() => {
-          window.location.assign('/Damage');
+          window.location.assign("/Damage");
         });
     }
   }, []);
 
   const submitURL = () => {
+    const isBrowser = document !== undefined;
+    if (!isBrowser) {
+      return;
+    }
+    const shortKey = decodeURIComponent(
+      new URLSearchParams(document.location.search).get("s") || ""
+    );
     console.log({ uri });
-    fetch('https://s.cephalon.xyz', {
-      method: 'POST',
-      mode: 'cors',
+    fetch("https://s.cephalon.xyz", {
+      method: "POST",
+      mode: "cors",
       headers: {
-        'Content-Encoding': 'gzip',
-        'Content-Type': 'application/json',
+        "Content-Encoding": "gzip",
+        "Content-Type": "application/json",
       },
       body: gzip(
         JSON.stringify({
           image: JSON.stringify(points),
-          type: 'PointBuy',
+          type: "PointBuy",
           datahash: uri,
-        }),
+        })
       ),
-    }).then((r) => r.text().then((shortHash) => {
-      setSearchParams({
-          s: shortHash,
-      })
-      // setUri(`${location.href.replace(location.search, "")}?s=${shortHash}`);
-      navigator.clipboard.writeText(
-        `${window.location.href.replace(window.location.search, '')}?s=${shortHash}`,
-      ).catch((e) => console.error(e));
-      setShowCopyPopup(true);
-      setTimeout(() => setShowCopyPopup(false), 850);
-    })).catch((e) => console.error(e));
+    })
+      .then((r) =>
+        r.text().then((shortHash) => {
+          setSearchParams({
+            s: shortHash,
+          });
+          // setUri(`${location.href.replace(location.search, "")}?s=${shortHash}`);
+          navigator.clipboard
+            .writeText(
+              `${window.location.href.replace(
+                window.location.search,
+                ""
+              )}?s=${shortHash}`
+            )
+            .catch((e) => console.error(e));
+          setShowCopyPopup(true);
+          setTimeout(() => setShowCopyPopup(false), 850);
+        })
+      )
+      .catch((e) => console.error(e));
   };
   const theme = useMantineTheme();
 
@@ -180,17 +239,28 @@ const PointBuy = () => {
       <AppShell
         fixed
         padding="sm"
-        navbar={(
-          <Navbar width={{ sm: 200, md: 300 }} p="xs" hiddenBreakpoint="sm" hidden={hideNavbar}>
+        navbar={
+          <Navbar
+            width={{ sm: 200, md: 300 }}
+            p="xs"
+            hiddenBreakpoint="sm"
+            hidden={hideNavbar}
+          >
             <Navbar.Section>
               <WheelNumberInput
                 label="Available Points"
                 min={1}
                 value={rules.points}
-                onChange={(newValue) => setRules(((draft) => { draft.points = newValue || 1; }))}
+                onChange={(newValue) =>
+                  setRules((draft) => {
+                    draft.points = newValue || 1;
+                  })
+                }
                 onWheel={(ev: React.WheelEvent) => {
                   const newValue = rules.points + (ev.deltaY < 0 ? 1 : -1);
-                  setRules(((draft) => { draft.points = newValue; }));
+                  setRules((draft) => {
+                    draft.points = newValue;
+                  });
                 }}
               />
               <WheelNumberInput
@@ -198,10 +268,17 @@ const PointBuy = () => {
                 value={rules.maxScore}
                 max={20}
                 min={1}
-                onChange={(newValue) => setRules(((draft) => { draft.maxScore = newValue || 20; }))}
+                onChange={(newValue) =>
+                  setRules((draft) => {
+                    draft.maxScore = newValue || 20;
+                  })
+                }
                 onWheel={(ev: React.WheelEvent) => {
                   const newValue = rules.maxScore + (ev.deltaY < 0 ? 1 : -1);
-                  if (newValue <= 20 && newValue >= 1) setRules(((draft) => { draft.maxScore = newValue; }));
+                  if (newValue <= 20 && newValue >= 1)
+                    setRules((draft) => {
+                      draft.maxScore = newValue;
+                    });
                 }}
               />
               <WheelNumberInput
@@ -209,10 +286,17 @@ const PointBuy = () => {
                 value={rules.minScore}
                 max={20}
                 min={1}
-                onChange={(newValue) => setRules(((draft) => { draft.minScore = newValue || 1; }))}
+                onChange={(newValue) =>
+                  setRules((draft) => {
+                    draft.minScore = newValue || 1;
+                  })
+                }
                 onWheel={(ev: React.WheelEvent) => {
                   const newValue = rules.minScore + (ev.deltaY < 0 ? 1 : -1);
-                  if (newValue <= 20 && newValue >= 1) setRules(((draft) => { draft.minScore = newValue; }));
+                  if (newValue <= 20 && newValue >= 1)
+                    setRules((draft) => {
+                      draft.minScore = newValue;
+                    });
                 }}
               />
             </Navbar.Section>
@@ -228,16 +312,29 @@ const PointBuy = () => {
             <Divider my="sm" />
             <Navbar.Section grow component={ScrollArea}>
               <Title order={4}>
-                <Button onClick={() => toggleShowCustomScores()} variant="subtle" mb="md" compact>
+                <Button
+                  onClick={() => toggleShowCustomScores()}
+                  variant="subtle"
+                  mb="md"
+                  compact
+                >
                   <Group align="stretch">
-                    <div style={{ alignItems: 'center', display: 'flex', height: '100%' }}>
-                      {showCustomScores ? <IconChevronUp /> : <IconChevronDown />}
+                    <div
+                      style={{
+                        alignItems: "center",
+                        display: "flex",
+                        height: "100%",
+                      }}
+                    >
+                      {showCustomScores ? (
+                        <IconChevronUp />
+                      ) : (
+                        <IconChevronDown />
+                      )}
                       Point Costs
                     </div>
-
                   </Group>
                 </Button>
-
               </Title>
               <Collapse in={showCustomScores}>
                 <table>
@@ -248,31 +345,45 @@ const PointBuy = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {pointCosts.slice(1).reverse().map((cost, index) => {
-                      const realIndex = pointCosts.length - index - 1;
-                      return (
-                        // eslint-disable-next-line react/no-array-index-key
-                        <tr key={(index.toString())}>
-                          <td>{realIndex}</td>
-                          <td>
-                            <WheelNumberInput
-                              value={pointCosts[realIndex]}
-                              onChange={(val: number) => setPointCostHandlers.setItem(realIndex, val)}
-                              onWheel={(ev: React.WheelEvent) => {
-                                const newBonus = pointCosts[realIndex] + (ev.deltaY < 0 ? 1 : -1);
-                                setPointCostHandlers.setItem(realIndex, newBonus);
-                              }}
-                            />
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {pointCosts
+                      .slice(1)
+                      .reverse()
+                      .map((cost, index) => {
+                        const realIndex = pointCosts.length - index - 1;
+                        return (
+                          // eslint-disable-next-line react/no-array-index-key
+                          <tr key={index.toString()}>
+                            <td>{realIndex}</td>
+                            <td>
+                              <WheelNumberInput
+                                value={pointCosts[realIndex]}
+                                onChange={(val: number) =>
+                                  setPointCostHandlers.setItem(realIndex, val)
+                                }
+                                onWheel={(ev: React.WheelEvent) => {
+                                  const newBonus =
+                                    pointCosts[realIndex] +
+                                    (ev.deltaY < 0 ? 1 : -1);
+                                  setPointCostHandlers.setItem(
+                                    realIndex,
+                                    newBonus
+                                  );
+                                }}
+                              />
+                            </td>
+                          </tr>
+                        );
+                      })}
                     <tr>
                       <td />
                       <td>
                         <Button
                           variant="light"
-                          onClick={() => setPointCostHandlers.setState(DEFAULT_ABILITY_SCORE_COSTS)}
+                          onClick={() =>
+                            setPointCostHandlers.setState(
+                              DEFAULT_ABILITY_SCORE_COSTS
+                            )
+                          }
                         >
                           Reset
                         </Button>
@@ -283,41 +394,43 @@ const PointBuy = () => {
               </Collapse>
             </Navbar.Section>
           </Navbar>
-        )}
-        header={(
+        }
+        header={
           <Header height={60} p="xs">
-
             <div
-              style={{ display: 'flex', alignItems: 'center', height: '100%' }}
+              style={{ display: "flex", alignItems: "center", height: "100%" }}
             >
               <Burger
                 opened={!hideNavbar}
                 onClick={() => setHideNavbar(!hideNavbar)}
                 size="sm"
-                style={width > Number(theme.breakpoints.sm) ? { display: 'none' } : {}}
+                style={
+                  width > Number(theme.breakpoints.sm)
+                    ? { display: "none" }
+                    : {}
+                }
               />
               <Logo colorScheme={themeColor} />
 
               <Title order={2}>Point Buy Calculator</Title>
               <ActionIcon
                 variant="outline"
-                color={themeColor === 'light' ? 'yellow' : 'blue'}
+                color={themeColor === "light" ? "yellow" : "blue"}
                 onClick={() => toggleThemeColor()}
                 title="Toggle color scheme"
                 ml="auto"
                 mr="lg"
                 mx="auto"
               >
-                {themeColor === 'light' ? (
+                {themeColor === "light" ? (
                   <IconSun size={18} />
                 ) : (
                   <IconMoonStars size={18} />
                 )}
               </ActionIcon>
             </div>
-
           </Header>
-)}
+        }
         // footer={<DamageFooter opened={showCopyPopup} onClick={() => submitURL()} colorScheme={themeColor} />}
       >
         <Table id="pointTable">
@@ -340,37 +453,34 @@ const PointBuy = () => {
                 <td>
                   <WheelNumberInput
                     value={data.value}
-                    onChange={incrementScore(data, abilityScore, 'value')}
+                    onChange={incrementScore(data, abilityScore, "value")}
                     max={Math.min(rules.maxScore, 20 - data.bonus)}
                     min={rules.minScore}
                     onWheel={(ev: React.WheelEvent) => {
                       const newValue = data.value + (ev.deltaY < 0 ? 1 : -1);
-                      if ((newValue >= rules.minScore) && (newValue <= rules.maxScore)) {
-                        incrementScore(data, abilityScore, 'value')(newValue);
+                      if (
+                        newValue >= rules.minScore &&
+                        newValue <= rules.maxScore
+                      ) {
+                        incrementScore(data, abilityScore, "value")(newValue);
                       }
                     }}
                   />
                 </td>
-                <td>
-                  +
-                </td>
+                <td>+</td>
                 <td>
                   <WheelNumberInput
                     value={data.bonus}
-                    onChange={incrementScore(data, abilityScore, 'bonus')}
+                    onChange={incrementScore(data, abilityScore, "bonus")}
                     max={20 - data.value}
                     onWheel={(ev: React.WheelEvent) => {
                       const newBonus = data.bonus + (ev.deltaY < 0 ? 1 : -1);
-                      incrementScore(data, abilityScore, 'bonus')(newBonus);
+                      incrementScore(data, abilityScore, "bonus")(newBonus);
                     }}
                   />
                 </td>
-                <td>
-                  =
-                </td>
-                <td>
-                  {data.value + data.bonus}
-                </td>
+                <td>=</td>
+                <td>{data.value + data.bonus}</td>
                 <td>{Math.floor((data.value + data.bonus - 10) / 2)}</td>
                 <td>{pointCosts[data.value]}</td>
               </tr>
@@ -380,9 +490,13 @@ const PointBuy = () => {
               <td>
                 <Button
                   variant="light"
-                  onClick={() => setPoints(
-                    (draft) => { ABILITY_SCORES.forEach((abilityScore) => { draft[abilityScore].value = 8; }); },
-                  )}
+                  onClick={() =>
+                    setPoints((draft) => {
+                      ABILITY_SCORES.forEach((abilityScore) => {
+                        draft[abilityScore].value = 8;
+                      });
+                    })
+                  }
                 >
                   Reset
                 </Button>
@@ -391,9 +505,13 @@ const PointBuy = () => {
               <td>
                 <Button
                   variant="light"
-                  onClick={() => setPoints(
-                    (draft) => { ABILITY_SCORES.forEach((abilityScore) => { draft[abilityScore].bonus = 0; }); },
-                  )}
+                  onClick={() =>
+                    setPoints((draft) => {
+                      ABILITY_SCORES.forEach((abilityScore) => {
+                        draft[abilityScore].bonus = 0;
+                      });
+                    })
+                  }
                 >
                   Reset
                 </Button>
@@ -401,14 +519,13 @@ const PointBuy = () => {
               <td />
               <td />
               <td />
-              <td style={{ color: pointTotal > rules.points ? 'red' : 'green' }}>
-                {pointTotal}
-                /
-                {rules.points}
+              <td
+                style={{ color: pointTotal > rules.points ? "red" : "green" }}
+              >
+                {pointTotal}/{rules.points}
               </td>
             </tr>
           </tbody>
-
         </Table>
       </AppShell>
     </MantineProvider>
