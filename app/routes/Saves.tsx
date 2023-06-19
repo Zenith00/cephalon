@@ -168,7 +168,7 @@ const Saves = () => {
             saveGraphOptions={saveGraphOptions}
             binData={datapack.saveData[selectedSave].binData}
             boxplot={datapack.saveData[selectedSave].boxplot}
-            title={`${selectedSave} Saving Throws of ${filters.creatureType === 'all' ? 'All Creatures' : inflection.inflect((filters as SingleTypeFilter).creatureType[0].toUpperCase() + (filters as SingleTypeFilter).creatureType.slice(1), datapack.typeCount)} by CR`}
+            title={`${selectedSave} Saving Throws of ${filters.creatureType === 'all' ? 'All Creatures' : (filters as SingleTypeFilter).creatureType[0]} by CR`}
             globalRange={datapack.saveRange}
           />
         )}
