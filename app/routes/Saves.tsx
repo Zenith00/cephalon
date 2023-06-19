@@ -168,7 +168,7 @@ const Saves = () => {
             saveGraphOptions={saveGraphOptions}
             binData={datapack.saveData[selectedSave].binData}
             boxplot={datapack.saveData[selectedSave].boxplot}
-            title={`${selectedSave} Saving Throws of ${filters.creatureType === 'all' ? 'All Creatures' : (filters as SingleTypeFilter).creatureType[0]} by CR`}
+            title={`${selectedSave} Saving Throws of ${filters.creatureType === 'all' ? 'All Creatures' : (filters as SingleTypeFilter).creatureType}s by CR`}
             globalRange={datapack.saveRange}
           />
         )}

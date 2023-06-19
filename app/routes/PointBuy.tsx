@@ -30,7 +30,9 @@ import { gzip } from "pako";
 import { useDebouncedCallback } from "use-debounce";
 import Logo from "@/common/Logo.component";
 import { useImmer } from "use-immer";
+import type { V2_MetaFunction } from "@remix-run/react";
 import { useSearchParams } from "@remix-run/react";
+import type { MetaFunction } from "@remix-run/node";
 
 const ABILITY_SCORES = [
   "Strength",
@@ -137,8 +139,10 @@ const PointBuy = () => {
   }, 1000);
 
   useEffect(() => {
-    const isBrowser =  document !== undefined;
-    if (!isBrowser){return}
+    const isBrowser = document !== undefined;
+    if (!isBrowser) {
+      return;
+    }
     debouncedUpdateURI();
   }, [rules, points, pointCosts]);
 
@@ -229,13 +233,6 @@ const PointBuy = () => {
 
   return (
     <MantineProvider theme={{ colorScheme: themeColor }} withGlobalStyles>
-      <head>
-        <meta property="REWRITE_ANCHOR" />
-        <meta property="REWRITE_ANCHOR_URL" />
-        <meta property="twitter:card" content="summary_large_image" />
-        <meta property="og:title" content="Point Buy" />
-        <title>Point Buy Calculator</title>
-      </head>
       <AppShell
         fixed
         padding="sm"
@@ -531,5 +528,13 @@ const PointBuy = () => {
     </MantineProvider>
   );
 };
-
+export const meta: V2_MetaFunction = () => {
+  return [
+    { title: "Point Buy Calculator" },
+    { property: "twitter:card", content: "summary_large_image" },
+    { property: "og:title", content: "Point Buy" },
+    { property: "REWRITE_ANCHOR" },
+    { property: "REWRITE_ANCHOR_URL" },
+  ];
+};
 export default PointBuy;
