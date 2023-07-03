@@ -419,6 +419,7 @@ async def conditions(req: starlette.requests.Request):
         & CONDITION_IMMUNITIES["type"].isin(creature_type_include)
     ]
 
+    print(cr_book_filtered.head())
     
 
     type_counts = (
