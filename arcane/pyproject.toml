@@ -7,9 +7,7 @@ authors = ["Zenith <z@zenith.dev>"]
 [tool.poetry.dependencies]
 python = "^3.10"
 falcon = "^3.1.0"
-pandas = "^1.4.2"
 uvicorn = "^0.17.6"
-pyarrow = "^7.0.0"
 gunicorn = "^20.1.0"
 starlette = "^0.20.0"
 CairoSVG = "^2.5.2"
@@ -18,6 +16,8 @@ svg-stack = "^0.1.0"
 lxml = "^4.8.0"
 weasyprint = "^56.0"
 pyvips = "^2.2.1"
+pandas = "^2.0.3"
+pyarrow = "^12.0.1"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"

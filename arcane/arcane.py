@@ -167,7 +167,7 @@ import typing
 import urllib.parse
 import dbm
 import re
-import cairosvg
+# import cairosvg
 from starlette.applications import Starlette
 from starlette.concurrency import run_in_threadpool
 from starlette.middleware import Middleware
@@ -416,10 +416,10 @@ async def conditions(req: starlette.requests.Request):
         (CONDITION_IMMUNITIES["cr_num"] >= cr_include[0])
         & (CONDITION_IMMUNITIES["cr_num"] <= cr_include[1])
         & CONDITION_IMMUNITIES["source"].isin(books)
-        & CONDITION_IMMUNITIES["type"].isin(creature_type_include)
+        & CONDITION_IMMUNITIES["type"].isin(creature_type_include + ["all"])
     ]
 
-    print(cr_book_filtered.head())
+    print(cr_book_filtered.head(), flush=True)
     
 
     type_counts = (
