@@ -1,4 +1,4 @@
-import { numberRange, ZERO, type PMF, weighted_mean_pmf } from "~/modules/damage2/math";
+import { numberRange, ZERO, type PMF, weighted_mean_pmf } from "@/damage/math";
 import { Bar } from "@visx/shape";
 import { scaleBand, scaleLinear } from "@visx/scale";
 

@@ -10,7 +10,7 @@ import {
 } from "@mantine/core";
 import type { UseFormReturnType } from "@mantine/form";
 
-import { weighted_mean_pmf } from "~/modules/damage2/math";
+import { ACs, weighted_mean_pmf } from "@/damage/math";
 import {
   AnimatedAxis,
   AnimatedGrid,
@@ -21,8 +21,7 @@ import {
 
 import DamageResults from "./damageResults.component";
 import type { AC} from "./types";
-import { ACs } from "./types";
-import type { DamageMetadata, formValue } from "./mathUtils";
+import type { DamageMetadata } from "./math";
 
 type datum = {
   x: AC;

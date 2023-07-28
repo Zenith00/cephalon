@@ -26,9 +26,9 @@
     mod
   ));
 
-  // node_modules/.pnpm/fraction.js@4.2.0/node_modules/fraction.js/fraction.js
+  // node_modules/fraction.js/fraction.js
   var require_fraction = __commonJS({
-    "node_modules/.pnpm/fraction.js@4.2.0/node_modules/fraction.js/fraction.js"(exports2, module2) {
+    "node_modules/fraction.js/fraction.js"(exports2, module2) {
       (function(root) {
         "use strict";
         var MAX_CYCLE_LEN = 2e3;
@@ -674,9 +674,9 @@
     }
   });
 
-  // node_modules/.pnpm/ansi-regex@5.0.1/node_modules/ansi-regex/index.js
+  // node_modules/ansi-regex/index.js
   var require_ansi_regex = __commonJS({
-    "node_modules/.pnpm/ansi-regex@5.0.1/node_modules/ansi-regex/index.js"(exports2, module2) {
+    "node_modules/ansi-regex/index.js"(exports2, module2) {
       "use strict";
       module2.exports = ({ onlyFirst = false } = {}) => {
         const pattern = [
@@ -688,18 +688,18 @@
     }
   });
 
-  // node_modules/.pnpm/strip-ansi@6.0.1/node_modules/strip-ansi/index.js
+  // node_modules/strip-ansi/index.js
   var require_strip_ansi = __commonJS({
-    "node_modules/.pnpm/strip-ansi@6.0.1/node_modules/strip-ansi/index.js"(exports2, module2) {
+    "node_modules/strip-ansi/index.js"(exports2, module2) {
       "use strict";
       var ansiRegex = require_ansi_regex();
       module2.exports = (string) => typeof string === "string" ? string.replace(ansiRegex(), "") : string;
     }
   });
 
-  // node_modules/.pnpm/is-fullwidth-code-point@3.0.0/node_modules/is-fullwidth-code-point/index.js
+  // node_modules/is-fullwidth-code-point/index.js
   var require_is_fullwidth_code_point = __commonJS({
-    "node_modules/.pnpm/is-fullwidth-code-point@3.0.0/node_modules/is-fullwidth-code-point/index.js"(exports2, module2) {
+    "node_modules/is-fullwidth-code-point/index.js"(exports2, module2) {
       "use strict";
       var isFullwidthCodePoint = (codePoint) => {
         if (Number.isNaN(codePoint)) {
@@ -730,9 +730,9 @@
     }
   });
 
-  // node_modules/.pnpm/emoji-regex@8.0.0/node_modules/emoji-regex/index.js
+  // node_modules/string-width/node_modules/emoji-regex/index.js
   var require_emoji_regex = __commonJS({
-    "node_modules/.pnpm/emoji-regex@8.0.0/node_modules/emoji-regex/index.js"(exports2, module2) {
+    "node_modules/string-width/node_modules/emoji-regex/index.js"(exports2, module2) {
       "use strict";
       module2.exports = function() {
         return /\uD83C\uDFF4\uDB40\uDC67\uDB40\uDC62(?:\uDB40\uDC65\uDB40\uDC6E\uDB40\uDC67|\uDB40\uDC73\uDB40\uDC63\uDB40\uDC74|\uDB40\uDC77\uDB40\uDC6C\uDB40\uDC73)\uDB40\uDC7F|\uD83D\uDC68(?:\uD83C\uDFFC\u200D(?:\uD83E\uDD1D\u200D\uD83D\uDC68\uD83C\uDFFB|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|\uD83C\uDFFF\u200D(?:\uD83E\uDD1D\u200D\uD83D\uDC68(?:\uD83C[\uDFFB-\uDFFE])|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|\uD83C\uDFFE\u200D(?:\uD83E\uDD1D\u200D\uD83D\uDC68(?:\uD83C[\uDFFB-\uDFFD])|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|\uD83C\uDFFD\u200D(?:\uD83E\uDD1D\u200D\uD83D\uDC68(?:\uD83C[\uDFFB\uDFFC])|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|\u200D(?:\u2764\uFE0F\u200D(?:\uD83D\uDC8B\u200D)?\uD83D\uDC68|(?:\uD83D[\uDC68\uDC69])\u200D(?:\uD83D\uDC66\u200D\uD83D\uDC66|\uD83D\uDC67\u200D(?:\uD83D[\uDC66\uDC67]))|\uD83D\uDC66\u200D\uD83D\uDC66|\uD83D\uDC67\u200D(?:\uD83D[\uDC66\uDC67])|(?:\uD83D[\uDC68\uDC69])\u200D(?:\uD83D[\uDC66\uDC67])|[\u2695\u2696\u2708]\uFE0F|\uD83D[\uDC66\uDC67]|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|(?:\uD83C\uDFFB\u200D[\u2695\u2696\u2708]|\uD83C\uDFFF\u200D[\u2695\u2696\u2708]|\uD83C\uDFFE\u200D[\u2695\u2696\u2708]|\uD83C\uDFFD\u200D[\u2695\u2696\u2708]|\uD83C\uDFFC\u200D[\u2695\u2696\u2708])\uFE0F|\uD83C\uDFFB\u200D(?:\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|\uD83C[\uDFFB-\uDFFF])|(?:\uD83E\uDDD1\uD83C\uDFFB\u200D\uD83E\uDD1D\u200D\uD83E\uDDD1|\uD83D\uDC69\uD83C\uDFFC\u200D\uD83E\uDD1D\u200D\uD83D\uDC69)\uD83C\uDFFB|\uD83E\uDDD1(?:\uD83C\uDFFF\u200D\uD83E\uDD1D\u200D\uD83E\uDDD1(?:\uD83C[\uDFFB-\uDFFF])|\u200D\uD83E\uDD1D\u200D\uD83E\uDDD1)|(?:\uD83E\uDDD1\uD83C\uDFFE\u200D\uD83E\uDD1D\u200D\uD83E\uDDD1|\uD83D\uDC69\uD83C\uDFFF\u200D\uD83E\uDD1D\u200D(?:\uD83D[\uDC68\uDC69]))(?:\uD83C[\uDFFB-\uDFFE])|(?:\uD83E\uDDD1\uD83C\uDFFC\u200D\uD83E\uDD1D\u200D\uD83E\uDDD1|\uD83D\uDC69\uD83C\uDFFD\u200D\uD83E\uDD1D\u200D\uD83D\uDC69)(?:\uD83C[\uDFFB\uDFFC])|\uD83D\uDC69(?:\uD83C\uDFFE\u200D(?:\uD83E\uDD1D\u200D\uD83D\uDC68(?:\uD83C[\uDFFB-\uDFFD\uDFFF])|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|\uD83C\uDFFC\u200D(?:\uD83E\uDD1D\u200D\uD83D\uDC68(?:\uD83C[\uDFFB\uDFFD-\uDFFF])|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|\uD83C\uDFFB\u200D(?:\uD83E\uDD1D\u200D\uD83D\uDC68(?:\uD83C[\uDFFC-\uDFFF])|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|\uD83C\uDFFD\u200D(?:\uD83E\uDD1D\u200D\uD83D\uDC68(?:\uD83C[\uDFFB\uDFFC\uDFFE\uDFFF])|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|\u200D(?:\u2764\uFE0F\u200D(?:\uD83D\uDC8B\u200D(?:\uD83D[\uDC68\uDC69])|\uD83D[\uDC68\uDC69])|\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD])|\uD83C\uDFFF\u200D(?:\uD83C[\uDF3E\uDF73\uDF93\uDFA4\uDFA8\uDFEB\uDFED]|\uD83D[\uDCBB\uDCBC\uDD27\uDD2C\uDE80\uDE92]|\uD83E[\uDDAF-\uDDB3\uDDBC\uDDBD]))|\uD83D\uDC69\u200D\uD83D\uDC69\u200D(?:\uD83D\uDC66\u200D\uD83D\uDC66|\uD83D\uDC67\u200D(?:\uD83D[\uDC66\uDC67]))|(?:\uD83E\uDDD1\uD83C\uDFFD\u200D\uD83E\uDD1D\u200D\uD83E\uDDD1|\uD83D\uDC69\uD83C\uDFFE\u200D\uD83E\uDD1D\u200D\uD83D\uDC69)(?:\uD83C[\uDFFB-\uDFFD])|\uD83D\uDC69\u200D\uD83D\uDC66\u200D\uD83D\uDC66|\uD83D\uDC69\u200D\uD83D\uDC69\u200D(?:\uD83D[\uDC66\uDC67])|(?:\uD83D\uDC41\uFE0F\u200D\uD83D\uDDE8|\uD83D\uDC69(?:\uD83C\uDFFF\u200D[\u2695\u2696\u2708]|\uD83C\uDFFE\u200D[\u2695\u2696\u2708]|\uD83C\uDFFC\u200D[\u2695\u2696\u2708]|\uD83C\uDFFB\u200D[\u2695\u2696\u2708]|\uD83C\uDFFD\u200D[\u2695\u2696\u2708]|\u200D[\u2695\u2696\u2708])|(?:(?:\u26F9|\uD83C[\uDFCB\uDFCC]|\uD83D\uDD75)\uFE0F|\uD83D\uDC6F|\uD83E[\uDD3C\uDDDE\uDDDF])\u200D[\u2640\u2642]|(?:\u26F9|\uD83C[\uDFCB\uDFCC]|\uD83D\uDD75)(?:\uD83C[\uDFFB-\uDFFF])\u200D[\u2640\u2642]|(?:\uD83C[\uDFC3\uDFC4\uDFCA]|\uD83D[\uDC6E\uDC71\uDC73\uDC77\uDC81\uDC82\uDC86\uDC87\uDE45-\uDE47\uDE4B\uDE4D\uDE4E\uDEA3\uDEB4-\uDEB6]|\uD83E[\uDD26\uDD37-\uDD39\uDD3D\uDD3E\uDDB8\uDDB9\uDDCD-\uDDCF\uDDD6-\uDDDD])(?:(?:\uD83C[\uDFFB-\uDFFF])\u200D[\u2640\u2642]|\u200D[\u2640\u2642])|\uD83C\uDFF4\u200D\u2620)\uFE0F|\uD83D\uDC69\u200D\uD83D\uDC67\u200D(?:\uD83D[\uDC66\uDC67])|\uD83C\uDFF3\uFE0F\u200D\uD83C\uDF08|\uD83D\uDC15\u200D\uD83E\uDDBA|\uD83D\uDC69\u200D\uD83D\uDC66|\uD83D\uDC69\u200D\uD83D\uDC67|\uD83C\uDDFD\uD83C\uDDF0|\uD83C\uDDF4\uD83C\uDDF2|\uD83C\uDDF6\uD83C\uDDE6|[#\*0-9]\uFE0F\u20E3|\uD83C\uDDE7(?:\uD83C[\uDDE6\uDDE7\uDDE9-\uDDEF\uDDF1-\uDDF4\uDDF6-\uDDF9\uDDFB\uDDFC\uDDFE\uDDFF])|\uD83C\uDDF9(?:\uD83C[\uDDE6\uDDE8\uDDE9\uDDEB-\uDDED\uDDEF-\uDDF4\uDDF7\uDDF9\uDDFB\uDDFC\uDDFF])|\uD83C\uDDEA(?:\uD83C[\uDDE6\uDDE8\uDDEA\uDDEC\uDDED\uDDF7-\uDDFA])|\uD83E\uDDD1(?:\uD83C[\uDFFB-\uDFFF])|\uD83C\uDDF7(?:\uD83C[\uDDEA\uDDF4\uDDF8\uDDFA\uDDFC])|\uD83D\uDC69(?:\uD83C[\uDFFB-\uDFFF])|\uD83C\uDDF2(?:\uD83C[\uDDE6\uDDE8-\uDDED\uDDF0-\uDDFF])|\uD83C\uDDE6(?:\uD83C[\uDDE8-\uDDEC\uDDEE\uDDF1\uDDF2\uDDF4\uDDF6-\uDDFA\uDDFC\uDDFD\uDDFF])|\uD83C\uDDF0(?:\uD83C[\uDDEA\uDDEC-\uDDEE\uDDF2\uDDF3\uDDF5\uDDF7\uDDFC\uDDFE\uDDFF])|\uD83C\uDDED(?:\uD83C[\uDDF0\uDDF2\uDDF3\uDDF7\uDDF9\uDDFA])|\uD83C\uDDE9(?:\uD83C[\uDDEA\uDDEC\uDDEF\uDDF0\uDDF2\uDDF4\uDDFF])|\uD83C\uDDFE(?:\uD83C[\uDDEA\uDDF9])|\uD83C\uDDEC(?:\uD83C[\uDDE6\uDDE7\uDDE9-\uDDEE\uDDF1-\uDDF3\uDDF5-\uDDFA\uDDFC\uDDFE])|\uD83C\uDDF8(?:\uD83C[\uDDE6-\uDDEA\uDDEC-\uDDF4\uDDF7-\uDDF9\uDDFB\uDDFD-\uDDFF])|\uD83C\uDDEB(?:\uD83C[\uDDEE-\uDDF0\uDDF2\uDDF4\uDDF7])|\uD83C\uDDF5(?:\uD83C[\uDDE6\uDDEA-\uDDED\uDDF0-\uDDF3\uDDF7-\uDDF9\uDDFC\uDDFE])|\uD83C\uDDFB(?:\uD83C[\uDDE6\uDDE8\uDDEA\uDDEC\uDDEE\uDDF3\uDDFA])|\uD83C\uDDF3(?:\uD83C[\uDDE6\uDDE8\uDDEA-\uDDEC\uDDEE\uDDF1\uDDF4\uDDF5\uDDF7\uDDFA\uDDFF])|\uD83C\uDDE8(?:\uD83C[\uDDE6\uDDE8\uDDE9\uDDEB-\uDDEE\uDDF0-\uDDF5\uDDF7\uDDFA-\uDDFF])|\uD83C\uDDF1(?:\uD83C[\uDDE6-\uDDE8\uDDEE\uDDF0\uDDF7-\uDDFB\uDDFE])|\uD83C\uDDFF(?:\uD83C[\uDDE6\uDDF2\uDDFC])|\uD83C\uDDFC(?:\uD83C[\uDDEB\uDDF8])|\uD83C\uDDFA(?:\uD83C[\uDDE6\uDDEC\uDDF2\uDDF3\uDDF8\uDDFE\uDDFF])|\uD83C\uDDEE(?:\uD83C[\uDDE8-\uDDEA\uDDF1-\uDDF4\uDDF6-\uDDF9])|\uD83C\uDDEF(?:\uD83C[\uDDEA\uDDF2\uDDF4\uDDF5])|(?:\uD83C[\uDFC3\uDFC4\uDFCA]|\uD83D[\uDC6E\uDC71\uDC73\uDC77\uDC81\uDC82\uDC86\uDC87\uDE45-\uDE47\uDE4B\uDE4D\uDE4E\uDEA3\uDEB4-\uDEB6]|\uD83E[\uDD26\uDD37-\uDD39\uDD3D\uDD3E\uDDB8\uDDB9\uDDCD-\uDDCF\uDDD6-\uDDDD])(?:\uD83C[\uDFFB-\uDFFF])|(?:\u26F9|\uD83C[\uDFCB\uDFCC]|\uD83D\uDD75)(?:\uD83C[\uDFFB-\uDFFF])|(?:[\u261D\u270A-\u270D]|\uD83C[\uDF85\uDFC2\uDFC7]|\uD83D[\uDC42\uDC43\uDC46-\uDC50\uDC66\uDC67\uDC6B-\uDC6D\uDC70\uDC72\uDC74-\uDC76\uDC78\uDC7C\uDC83\uDC85\uDCAA\uDD74\uDD7A\uDD90\uDD95\uDD96\uDE4C\uDE4F\uDEC0\uDECC]|\uD83E[\uDD0F\uDD18-\uDD1C\uDD1E\uDD1F\uDD30-\uDD36\uDDB5\uDDB6\uDDBB\uDDD2-\uDDD5])(?:\uD83C[\uDFFB-\uDFFF])|(?:[\u231A\u231B\u23E9-\u23EC\u23F0\u23F3\u25FD\u25FE\u2614\u2615\u2648-\u2653\u267F\u2693\u26A1\u26AA\u26AB\u26BD\u26BE\u26C4\u26C5\u26CE\u26D4\u26EA\u26F2\u26F3\u26F5\u26FA\u26FD\u2705\u270A\u270B\u2728\u274C\u274E\u2753-\u2755\u2757\u2795-\u2797\u27B0\u27BF\u2B1B\u2B1C\u2B50\u2B55]|\uD83C[\uDC04\uDCCF\uDD8E\uDD91-\uDD9A\uDDE6-\uDDFF\uDE01\uDE1A\uDE2F\uDE32-\uDE36\uDE38-\uDE3A\uDE50\uDE51\uDF00-\uDF20\uDF2D-\uDF35\uDF37-\uDF7C\uDF7E-\uDF93\uDFA0-\uDFCA\uDFCF-\uDFD3\uDFE0-\uDFF0\uDFF4\uDFF8-\uDFFF]|\uD83D[\uDC00-\uDC3E\uDC40\uDC42-\uDCFC\uDCFF-\uDD3D\uDD4B-\uDD4E\uDD50-\uDD67\uDD7A\uDD95\uDD96\uDDA4\uDDFB-\uDE4F\uDE80-\uDEC5\uDECC\uDED0-\uDED2\uDED5\uDEEB\uDEEC\uDEF4-\uDEFA\uDFE0-\uDFEB]|\uD83E[\uDD0D-\uDD3A\uDD3C-\uDD45\uDD47-\uDD71\uDD73-\uDD76\uDD7A-\uDDA2\uDDA5-\uDDAA\uDDAE-\uDDCA\uDDCD-\uDDFF\uDE70-\uDE73\uDE78-\uDE7A\uDE80-\uDE82\uDE90-\uDE95])|(?:[#\*0-9\xA9\xAE\u203C\u2049\u2122\u2139\u2194-\u2199\u21A9\u21AA\u231A\u231B\u2328\u23CF\u23E9-\u23F3\u23F8-\u23FA\u24C2\u25AA\u25AB\u25B6\u25C0\u25FB-\u25FE\u2600-\u2604\u260E\u2611\u2614\u2615\u2618\u261D\u2620\u2622\u2623\u2626\u262A\u262E\u262F\u2638-\u263A\u2640\u2642\u2648-\u2653\u265F\u2660\u2663\u2665\u2666\u2668\u267B\u267E\u267F\u2692-\u2697\u2699\u269B\u269C\u26A0\u26A1\u26AA\u26AB\u26B0\u26B1\u26BD\u26BE\u26C4\u26C5\u26C8\u26CE\u26CF\u26D1\u26D3\u26D4\u26E9\u26EA\u26F0-\u26F5\u26F7-\u26FA\u26FD\u2702\u2705\u2708-\u270D\u270F\u2712\u2714\u2716\u271D\u2721\u2728\u2733\u2734\u2744\u2747\u274C\u274E\u2753-\u2755\u2757\u2763\u2764\u2795-\u2797\u27A1\u27B0\u27BF\u2934\u2935\u2B05-\u2B07\u2B1B\u2B1C\u2B50\u2B55\u3030\u303D\u3297\u3299]|\uD83C[\uDC04\uDCCF\uDD70\uDD71\uDD7E\uDD7F\uDD8E\uDD91-\uDD9A\uDDE6-\uDDFF\uDE01\uDE02\uDE1A\uDE2F\uDE32-\uDE3A\uDE50\uDE51\uDF00-\uDF21\uDF24-\uDF93\uDF96\uDF97\uDF99-\uDF9B\uDF9E-\uDFF0\uDFF3-\uDFF5\uDFF7-\uDFFF]|\uD83D[\uDC00-\uDCFD\uDCFF-\uDD3D\uDD49-\uDD4E\uDD50-\uDD67\uDD6F\uDD70\uDD73-\uDD7A\uDD87\uDD8A-\uDD8D\uDD90\uDD95\uDD96\uDDA4\uDDA5\uDDA8\uDDB1\uDDB2\uDDBC\uDDC2-\uDDC4\uDDD1-\uDDD3\uDDDC-\uDDDE\uDDE1\uDDE3\uDDE8\uDDEF\uDDF3\uDDFA-\uDE4F\uDE80-\uDEC5\uDECB-\uDED2\uDED5\uDEE0-\uDEE5\uDEE9\uDEEB\uDEEC\uDEF0\uDEF3-\uDEFA\uDFE0-\uDFEB]|\uD83E[\uDD0D-\uDD3A\uDD3C-\uDD45\uDD47-\uDD71\uDD73-\uDD76\uDD7A-\uDDA2\uDDA5-\uDDAA\uDDAE-\uDDCA\uDDCD-\uDDFF\uDE70-\uDE73\uDE78-\uDE7A\uDE80-\uDE82\uDE90-\uDE95])\uFE0F|(?:[\u261D\u26F9\u270A-\u270D]|\uD83C[\uDF85\uDFC2-\uDFC4\uDFC7\uDFCA-\uDFCC]|\uD83D[\uDC42\uDC43\uDC46-\uDC50\uDC66-\uDC78\uDC7C\uDC81-\uDC83\uDC85-\uDC87\uDC8F\uDC91\uDCAA\uDD74\uDD75\uDD7A\uDD90\uDD95\uDD96\uDE45-\uDE47\uDE4B-\uDE4F\uDEA3\uDEB4-\uDEB6\uDEC0\uDECC]|\uD83E[\uDD0F\uDD18-\uDD1F\uDD26\uDD30-\uDD39\uDD3C-\uDD3E\uDDB5\uDDB6\uDDB8\uDDB9\uDDBB\uDDCD-\uDDCF\uDDD1-\uDDDD])/g;
@@ -740,9 +740,9 @@
     }
   });
 
-  // node_modules/.pnpm/string-width@4.2.3/node_modules/string-width/index.js
+  // node_modules/string-width/index.js
   var require_string_width = __commonJS({
-    "node_modules/.pnpm/string-width@4.2.3/node_modules/string-width/index.js"(exports2, module2) {
+    "node_modules/string-width/index.js"(exports2, module2) {
       "use strict";
       var stripAnsi = require_strip_ansi();
       var isFullwidthCodePoint = require_is_fullwidth_code_point();
@@ -777,9 +777,9 @@
     }
   });
 
-  // node_modules/.pnpm/astral-regex@2.0.0/node_modules/astral-regex/index.js
+  // node_modules/astral-regex/index.js
   var require_astral_regex = __commonJS({
-    "node_modules/.pnpm/astral-regex@2.0.0/node_modules/astral-regex/index.js"(exports2, module2) {
+    "node_modules/astral-regex/index.js"(exports2, module2) {
       "use strict";
       var regex = "[\uD800-\uDBFF][\uDC00-\uDFFF]";
       var astralRegex = (options) => options && options.exact ? new RegExp(`^${regex}$`) : new RegExp(regex, "g");
@@ -787,9 +787,9 @@
     }
   });
 
-  // node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js
+  // node_modules/color-name/index.js
   var require_color_name = __commonJS({
-    "node_modules/.pnpm/color-name@1.1.4/node_modules/color-name/index.js"(exports2, module2) {
+    "node_modules/color-name/index.js"(exports2, module2) {
       "use strict";
       module2.exports = {
         "aliceblue": [240, 248, 255],
@@ -944,9 +944,9 @@
     }
   });
 
-  // node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js
+  // node_modules/color-convert/conversions.js
   var require_conversions = __commonJS({
-    "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/conversions.js"(exports2, module2) {
+    "node_modules/color-convert/conversions.js"(exports2, module2) {
       var cssKeywords = require_color_name();
       var reverseKeywords = {};
       for (const key of Object.keys(cssKeywords)) {
@@ -1615,9 +1615,9 @@
     }
   });
 
-  // node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js
+  // node_modules/color-convert/route.js
   var require_route = __commonJS({
-    "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/route.js"(exports2, module2) {
+    "node_modules/color-convert/route.js"(exports2, module2) {
       var conversions = require_conversions();
       function buildGraph() {
         const graph = {};
@@ -1685,9 +1685,9 @@
     }
   });
 
-  // node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js
+  // node_modules/color-convert/index.js
   var require_color_convert = __commonJS({
-    "node_modules/.pnpm/color-convert@2.0.1/node_modules/color-convert/index.js"(exports2, module2) {
+    "node_modules/color-convert/index.js"(exports2, module2) {
       var conversions = require_conversions();
       var route = require_route();
       var convert = {};
@@ -1746,9 +1746,9 @@
     }
   });
 
-  // node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js
+  // node_modules/ansi-styles/index.js
   var require_ansi_styles = __commonJS({
-    "node_modules/.pnpm/ansi-styles@4.3.0/node_modules/ansi-styles/index.js"(exports2, module2) {
+    "node_modules/ansi-styles/index.js"(exports2, module2) {
       "use strict";
       var wrapAnsi16 = (fn, offset) => (...args) => {
         const code = fn(...args);
@@ -1888,9 +1888,9 @@
     }
   });
 
-  // node_modules/.pnpm/slice-ansi@4.0.0/node_modules/slice-ansi/index.js
+  // node_modules/slice-ansi/index.js
   var require_slice_ansi = __commonJS({
-    "node_modules/.pnpm/slice-ansi@4.0.0/node_modules/slice-ansi/index.js"(exports2, module2) {
+    "node_modules/slice-ansi/index.js"(exports2, module2) {
       "use strict";
       var isFullwidthCodePoint = require_is_fullwidth_code_point();
       var astralRegex = require_astral_regex();
@@ -1978,9 +1978,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/getBorderCharacters.js
+  // node_modules/table/dist/src/getBorderCharacters.js
   var require_getBorderCharacters = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/getBorderCharacters.js"(exports2) {
+    "node_modules/table/dist/src/getBorderCharacters.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.getBorderCharacters = void 0;
@@ -2087,9 +2087,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/utils.js
+  // node_modules/table/dist/src/utils.js
   var require_utils = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/utils.js"(exports2) {
+    "node_modules/table/dist/src/utils.js"(exports2) {
       "use strict";
       var __importDefault = exports2 && exports2.__importDefault || function(mod) {
         return mod && mod.__esModule ? mod : { "default": mod };
@@ -2199,9 +2199,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/alignString.js
+  // node_modules/table/dist/src/alignString.js
   var require_alignString = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/alignString.js"(exports2) {
+    "node_modules/table/dist/src/alignString.js"(exports2) {
       "use strict";
       var __importDefault = exports2 && exports2.__importDefault || function(mod) {
         return mod && mod.__esModule ? mod : { "default": mod };
@@ -2260,9 +2260,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/alignTableData.js
+  // node_modules/table/dist/src/alignTableData.js
   var require_alignTableData = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/alignTableData.js"(exports2) {
+    "node_modules/table/dist/src/alignTableData.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.alignTableData = void 0;
@@ -2287,9 +2287,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/wrapString.js
+  // node_modules/table/dist/src/wrapString.js
   var require_wrapString = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/wrapString.js"(exports2) {
+    "node_modules/table/dist/src/wrapString.js"(exports2) {
       "use strict";
       var __importDefault = exports2 && exports2.__importDefault || function(mod) {
         return mod && mod.__esModule ? mod : { "default": mod };
@@ -2311,9 +2311,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/wrapWord.js
+  // node_modules/table/dist/src/wrapWord.js
   var require_wrapWord = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/wrapWord.js"(exports2) {
+    "node_modules/table/dist/src/wrapWord.js"(exports2) {
       "use strict";
       var __importDefault = exports2 && exports2.__importDefault || function(mod) {
         return mod && mod.__esModule ? mod : { "default": mod };
@@ -2356,9 +2356,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/wrapCell.js
+  // node_modules/table/dist/src/wrapCell.js
   var require_wrapCell = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/wrapCell.js"(exports2) {
+    "node_modules/table/dist/src/wrapCell.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.wrapCell = void 0;
@@ -2383,9 +2383,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/calculateCellHeight.js
+  // node_modules/table/dist/src/calculateCellHeight.js
   var require_calculateCellHeight = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/calculateCellHeight.js"(exports2) {
+    "node_modules/table/dist/src/calculateCellHeight.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.calculateCellHeight = void 0;
@@ -2397,9 +2397,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/calculateRowHeights.js
+  // node_modules/table/dist/src/calculateRowHeights.js
   var require_calculateRowHeights = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/calculateRowHeights.js"(exports2) {
+    "node_modules/table/dist/src/calculateRowHeights.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.calculateRowHeights = void 0;
@@ -2440,9 +2440,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/drawContent.js
+  // node_modules/table/dist/src/drawContent.js
   var require_drawContent = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/drawContent.js"(exports2) {
+    "node_modules/table/dist/src/drawContent.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.drawContent = void 0;
@@ -2494,9 +2494,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/drawBorder.js
+  // node_modules/table/dist/src/drawBorder.js
   var require_drawBorder = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/drawBorder.js"(exports2) {
+    "node_modules/table/dist/src/drawBorder.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.createTableBorderGetter = exports2.drawBorderBottom = exports2.drawBorderJoin = exports2.drawBorderTop = exports2.drawBorder = exports2.createSeparatorGetter = exports2.drawBorderSegments = void 0;
@@ -2699,9 +2699,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/drawRow.js
+  // node_modules/table/dist/src/drawRow.js
   var require_drawRow = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/drawRow.js"(exports2) {
+    "node_modules/table/dist/src/drawRow.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.drawRow = void 0;
@@ -2729,9 +2729,9 @@
     }
   });
 
-  // node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js
+  // node_modules/fast-deep-equal/index.js
   var require_fast_deep_equal = __commonJS({
-    "node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js"(exports2, module2) {
+    "node_modules/fast-deep-equal/index.js"(exports2, module2) {
       "use strict";
       module2.exports = function equal(a, b) {
         if (a === b)
@@ -2774,9 +2774,9 @@
     }
   });
 
-  // node_modules/.pnpm/ajv@8.12.0/node_modules/ajv/dist/runtime/equal.js
+  // node_modules/table/node_modules/ajv/dist/runtime/equal.js
   var require_equal = __commonJS({
-    "node_modules/.pnpm/ajv@8.12.0/node_modules/ajv/dist/runtime/equal.js"(exports2) {
+    "node_modules/table/node_modules/ajv/dist/runtime/equal.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       var equal = require_fast_deep_equal();
@@ -2785,9 +2785,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/generated/validators.js
+  // node_modules/table/dist/src/generated/validators.js
   var require_validators = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/generated/validators.js"(exports2) {
+    "node_modules/table/dist/src/generated/validators.js"(exports2) {
       "use strict";
       exports2["config.json"] = validate43;
       var schema13 = {
@@ -5310,9 +5310,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/validateConfig.js
+  // node_modules/table/dist/src/validateConfig.js
   var require_validateConfig = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/validateConfig.js"(exports2) {
+    "node_modules/table/dist/src/validateConfig.js"(exports2) {
       "use strict";
       var __importDefault = exports2 && exports2.__importDefault || function(mod) {
         return mod && mod.__esModule ? mod : { "default": mod };
@@ -5339,9 +5339,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/makeStreamConfig.js
+  // node_modules/table/dist/src/makeStreamConfig.js
   var require_makeStreamConfig = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/makeStreamConfig.js"(exports2) {
+    "node_modules/table/dist/src/makeStreamConfig.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.makeStreamConfig = void 0;
@@ -5379,9 +5379,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/mapDataUsingRowHeights.js
+  // node_modules/table/dist/src/mapDataUsingRowHeights.js
   var require_mapDataUsingRowHeights = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/mapDataUsingRowHeights.js"(exports2) {
+    "node_modules/table/dist/src/mapDataUsingRowHeights.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.mapDataUsingRowHeights = exports2.padCellVertically = void 0;
@@ -5438,9 +5438,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/padTableData.js
+  // node_modules/table/dist/src/padTableData.js
   var require_padTableData = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/padTableData.js"(exports2) {
+    "node_modules/table/dist/src/padTableData.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.padTableData = exports2.padString = void 0;
@@ -5468,9 +5468,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/stringifyTableData.js
+  // node_modules/table/dist/src/stringifyTableData.js
   var require_stringifyTableData = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/stringifyTableData.js"(exports2) {
+    "node_modules/table/dist/src/stringifyTableData.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.stringifyTableData = void 0;
@@ -5486,9 +5486,9 @@
     }
   });
 
-  // node_modules/.pnpm/lodash.truncate@4.4.2/node_modules/lodash.truncate/index.js
+  // node_modules/lodash.truncate/index.js
   var require_lodash = __commonJS({
-    "node_modules/.pnpm/lodash.truncate@4.4.2/node_modules/lodash.truncate/index.js"(exports2, module2) {
+    "node_modules/lodash.truncate/index.js"(exports2, module2) {
       var DEFAULT_TRUNC_LENGTH = 30;
       var DEFAULT_TRUNC_OMISSION = "...";
       var INFINITY = 1 / 0;
@@ -5706,9 +5706,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/truncateTableData.js
+  // node_modules/table/dist/src/truncateTableData.js
   var require_truncateTableData = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/truncateTableData.js"(exports2) {
+    "node_modules/table/dist/src/truncateTableData.js"(exports2) {
       "use strict";
       var __importDefault = exports2 && exports2.__importDefault || function(mod) {
         return mod && mod.__esModule ? mod : { "default": mod };
@@ -5734,9 +5734,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/createStream.js
+  // node_modules/table/dist/src/createStream.js
   var require_createStream = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/createStream.js"(exports2) {
+    "node_modules/table/dist/src/createStream.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.createStream = void 0;
@@ -5812,9 +5812,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/calculateOutputColumnWidths.js
+  // node_modules/table/dist/src/calculateOutputColumnWidths.js
   var require_calculateOutputColumnWidths = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/calculateOutputColumnWidths.js"(exports2) {
+    "node_modules/table/dist/src/calculateOutputColumnWidths.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.calculateOutputColumnWidths = void 0;
@@ -5827,9 +5827,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/drawTable.js
+  // node_modules/table/dist/src/drawTable.js
   var require_drawTable = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/drawTable.js"(exports2) {
+    "node_modules/table/dist/src/drawTable.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.drawTable = void 0;
@@ -5868,9 +5868,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/injectHeaderConfig.js
+  // node_modules/table/dist/src/injectHeaderConfig.js
   var require_injectHeaderConfig = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/injectHeaderConfig.js"(exports2) {
+    "node_modules/table/dist/src/injectHeaderConfig.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.injectHeaderConfig = void 0;
@@ -5908,9 +5908,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/calculateMaximumColumnWidths.js
+  // node_modules/table/dist/src/calculateMaximumColumnWidths.js
   var require_calculateMaximumColumnWidths = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/calculateMaximumColumnWidths.js"(exports2) {
+    "node_modules/table/dist/src/calculateMaximumColumnWidths.js"(exports2) {
       "use strict";
       var __importDefault = exports2 && exports2.__importDefault || function(mod) {
         return mod && mod.__esModule ? mod : { "default": mod };
@@ -5948,9 +5948,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/alignSpanningCell.js
+  // node_modules/table/dist/src/alignSpanningCell.js
   var require_alignSpanningCell = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/alignSpanningCell.js"(exports2) {
+    "node_modules/table/dist/src/alignSpanningCell.js"(exports2) {
       "use strict";
       var __importDefault = exports2 && exports2.__importDefault || function(mod) {
         return mod && mod.__esModule ? mod : { "default": mod };
@@ -5997,9 +5997,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/calculateSpanningCellWidth.js
+  // node_modules/table/dist/src/calculateSpanningCellWidth.js
   var require_calculateSpanningCellWidth = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/calculateSpanningCellWidth.js"(exports2) {
+    "node_modules/table/dist/src/calculateSpanningCellWidth.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.calculateSpanningCellWidth = void 0;
@@ -6023,9 +6023,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/makeRangeConfig.js
+  // node_modules/table/dist/src/makeRangeConfig.js
   var require_makeRangeConfig = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/makeRangeConfig.js"(exports2) {
+    "node_modules/table/dist/src/makeRangeConfig.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.makeRangeConfig = void 0;
@@ -6048,9 +6048,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/spanningCellManager.js
+  // node_modules/table/dist/src/spanningCellManager.js
   var require_spanningCellManager = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/spanningCellManager.js"(exports2) {
+    "node_modules/table/dist/src/spanningCellManager.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.createSpanningCellManager = void 0;
@@ -6146,9 +6146,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/validateSpanningCellConfig.js
+  // node_modules/table/dist/src/validateSpanningCellConfig.js
   var require_validateSpanningCellConfig = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/validateSpanningCellConfig.js"(exports2) {
+    "node_modules/table/dist/src/validateSpanningCellConfig.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.validateSpanningCellConfig = void 0;
@@ -6194,9 +6194,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/makeTableConfig.js
+  // node_modules/table/dist/src/makeTableConfig.js
   var require_makeTableConfig = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/makeTableConfig.js"(exports2) {
+    "node_modules/table/dist/src/makeTableConfig.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.makeTableConfig = void 0;
@@ -6253,9 +6253,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/validateTableData.js
+  // node_modules/table/dist/src/validateTableData.js
   var require_validateTableData = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/validateTableData.js"(exports2) {
+    "node_modules/table/dist/src/validateTableData.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.validateTableData = void 0;
@@ -6289,9 +6289,9 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/table.js
+  // node_modules/table/dist/src/table.js
   var require_table = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/table.js"(exports2) {
+    "node_modules/table/dist/src/table.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
       exports2.table = void 0;
@@ -6325,17 +6325,17 @@
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/types/api.js
+  // node_modules/table/dist/src/types/api.js
   var require_api = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/types/api.js"(exports2) {
+    "node_modules/table/dist/src/types/api.js"(exports2) {
       "use strict";
       Object.defineProperty(exports2, "__esModule", { value: true });
     }
   });
 
-  // node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/index.js
+  // node_modules/table/dist/src/index.js
   var require_src = __commonJS({
-    "node_modules/.pnpm/table@6.8.1/node_modules/table/dist/src/index.js"(exports2) {
+    "node_modules/table/dist/src/index.js"(exports2) {
       "use strict";
       var __createBinding = exports2 && exports2.__createBinding || (Object.create ? function(o, m, k, k2) {
         if (k2 === void 0)
@@ -6371,9 +6371,9 @@
     }
   });
 
-  // node_modules/.pnpm/workerpool@6.4.0/node_modules/workerpool/dist/workerpool.js
+  // node_modules/workerpool/dist/workerpool.js
   var require_workerpool = __commonJS({
-    "node_modules/.pnpm/workerpool@6.4.0/node_modules/workerpool/dist/workerpool.js"(exports, module) {
+    "node_modules/workerpool/dist/workerpool.js"(exports, module) {
       (function webpackUniversalModuleDefinition(root, factory) {
         if (typeof exports === "object" && typeof module === "object")
           module.exports = factory();
@@ -7578,7 +7578,7 @@
     }
   });
 
-  // node_modules/.pnpm/consola@3.1.0/node_modules/consola/dist/shared/consola.ce5c7a59.mjs
+  // node_modules/consola/dist/core.mjs
   var LogLevels = {
     silent: Number.NEGATIVE_INFINITY,
     fatal: 0,
@@ -7590,6 +7590,7 @@
     fail: 3,
     ready: 3,
     start: 3,
+    box: 3,
     debug: 4,
     trace: 5,
     verbose: Number.POSITIVE_INFINITY
@@ -7628,6 +7629,9 @@
       level: LogLevels.info
     },
     start: {
+      level: LogLevels.info
+    },
+    box: {
       level: LogLevels.info
     },
     // Level 4
@@ -7756,10 +7760,14 @@
       return this.options.prompt(message, opts);
     }
     create(options) {
-      return new Consola({
+      const instance = new Consola({
         ...this.options,
         ...options
       });
+      if (this._mockFn) {
+        instance.mockTypes(this._mockFn);
+      }
+      return instance;
     }
     withDefaults(defaults) {
       return this.create({
@@ -7858,6 +7866,7 @@
     }
     mockTypes(mockFn) {
       const _mockFn = mockFn || this.options.mockFn;
+      this._mockFn = _mockFn;
       if (typeof _mockFn !== "function") {
         return;
       }
@@ -7902,7 +7911,7 @@
         delete logObj.additional;
       }
       logObj.type = typeof logObj.type === "string" ? logObj.type.toLowerCase() : "log";
-      logObj.tag = typeof logObj.tag === "string" ? logObj.tag.toLowerCase() : "";
+      logObj.tag = typeof logObj.tag === "string" ? logObj.tag : "";
       const resolveLog = (newLog = false) => {
         const repeated = (this._lastLog.count || 0) - this.options.throttleMin;
         if (this._lastLog.object && repeated > 0) {
@@ -7976,7 +7985,7 @@
     return new Consola(options);
   }
 
-  // node_modules/.pnpm/consola@3.1.0/node_modules/consola/dist/index.browser.mjs
+  // node_modules/consola/dist/browser.mjs
   var BrowserReporter = class {
     constructor(options) {
       this.options = { ...options };
@@ -8005,7 +8014,7 @@
     }
     log(logObj) {
       const consoleLogFn = this._getLogFn(logObj.level);
-      const type = logObj.type !== "log" ? logObj.type : "";
+      const type = logObj.type === "log" ? "" : logObj.type;
       const tag = logObj.tag || "";
       const color = this.typeColorMap[logObj.type] || this.levelColorMap[logObj.level] || this.defaultColor;
       const style = `
@@ -8044,7 +8053,7 @@
   }
   var consola = createConsola2();
 
-  // app/modules/damage2/math.tsx
+  // app/modules/damage/math.tsx
   var import_fraction = __toESM(require_fraction());
   var import_table = __toESM(require_src());
   var ZERO = new import_fraction.default(0);
@@ -8053,6 +8062,8 @@
   var zero_pmf = () => /* @__PURE__ */ new Map([[0, ONE]]);
   var clean_zeros = (pmf) => new Map([...pmf.entries()].filter(([_, v]) => !v.equals(ZERO)));
   var clean_jpm = (map) => new Map([...map.entries()].filter(([_, v]) => v.size !== 0));
+  var numberRange = (start, end) => new Array(end - start).fill(void 0).map((d, i) => i + start);
+  var ACs = numberRange(1, 30 + 1);
   var parseDiceStrings = ({
     diceStrings,
     crit
@@ -8080,7 +8091,6 @@
     });
     return { dice };
   };
-  var numberRange = (start, end) => new Array(end - start).fill(void 0).map((d, i) => i + start);
   var combine_hit_and_buffs = ({
     toHit,
     buffs,
@@ -8100,13 +8110,21 @@
         const result = toHitX + buffY;
         const old = pmf.get(result);
         if (toHitX <= biggestCritFail) {
-          old.critMiss = old?.critMiss.add((toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO));
+          old.critMiss = old?.critMiss.add(
+            (toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO)
+          );
         } else if (toHitX >= smallestCrit) {
-          old.crit = old?.crit.add((toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO));
+          old.crit = old?.crit.add(
+            (toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO)
+          );
         } else if (result >= ac) {
-          old.hit = old?.hit.add((toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO));
+          old.hit = old?.hit.add(
+            (toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO)
+          );
         } else {
-          old.miss = old?.miss.add((toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO));
+          old.miss = old?.miss.add(
+            (toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO)
+          );
         }
       });
     });
@@ -8172,12 +8190,12 @@
     return basePMF;
   };
   var printPMF = (pmf) => {
-    consola.debug(
+    consola.log(
       new Map(
         [...pmf.entries()].sort(([kl, _vl], [kr, _vr]) => kl - kr).map(([k, v]) => [k, new import_fraction.default(v).valueOf().toFixed(6)])
       )
     );
-    consola.debug(
+    consola.log(
       `SUM: ${[...pmf.values()].reduce((acc, n) => acc.add(n), ZERO).toString()}`
     );
   };
@@ -8254,13 +8272,8 @@
     return pmf;
   };
 
-  // app/modules/damage2/mathWorker.ts
+  // app/modules/damage/mathWorker.ts
   var import_workerpool = __toESM(require_workerpool());
-
-  // app/modules/damage2/types.tsx
-  var ACs = numberRange(1, 30 + 1);
-
-  // app/modules/damage2/mathWorker.ts
   var normalizePMF = (pmf) => Object.fromEntries(
     [...pmf.entries()].filter(([, frac]) => !frac.equals(ZERO)).map(([num, frac]) => [num, frac.toFraction()])
   );
@@ -8349,21 +8362,40 @@
         { name: "Crit Miss", pmf: missDamagePMF, chance: chanceToCritMiss },
         { name: "Crit", pmf: critDamagePMF, chance: chanceToCrit }
       ];
+      const chance_any_crit = ONE.sub(ONE.sub(chanceToCrit).pow(damageInfo.attackCount));
+      const chance_all_miss = chanceToMiss.pow(damageInfo.attackCount);
+      const chance_all_crit_miss = chanceToCritMiss.pow(damageInfo.attackCount);
+      const chance_any_hit_and_no_crit = ONE.sub(chance_any_crit).sub(chance_all_miss).sub(chance_all_crit_miss);
       const singleHitPmfs = [
-        { name: "Hit", pmf: firstHitDamagePMF, chance: ONE.sub(ONE.sub(chanceToHit).pow(damageInfo.attackCount)) },
-        { name: "Miss", pmf: missDamagePMF, chance: chanceToMiss },
-        { name: "Crit Miss", pmf: missDamagePMF, chance: chanceToCritMiss },
-        { name: "Crit", pmf: firstHitCritDamagePMF, chance: chanceToCrit }
+        { name: "Hit", pmf: firstHitDamagePMF, chance: chance_any_hit_and_no_crit },
+        { name: "Miss", pmf: missDamagePMF, chance: chance_all_miss },
+        { name: "Crit Miss", pmf: missDamagePMF, chance: chance_all_crit_miss },
+        { name: "Crit", pmf: firstHitCritDamagePMF, chance: chance_any_crit }
       ];
+      consola.log("shpmfs");
+      consola.log(singleHitPmfs);
+      const joint_prob = jointProbPMFs(pmfs);
+      consola.log({ joint_prob });
+      printPMF(joint_prob);
+      consola.log(numberRange(1, damageInfo.attackCount + 1));
       const damage_pmf = numberRange(1, damageInfo.attackCount + 1).reduce(
         (acc) => {
-          const damagePMF = add_pmfs(acc, jointProbPMFs(pmfs), true);
+          const damagePMF = add_pmfs(acc, joint_prob, true);
+          consola.log("PMF after adding:");
+          printPMF(damagePMF);
           return damagePMF;
         },
         zero_pmf()
       );
-      const finalPMF = add_pmfs(damage_pmf, jointProbPMFs(singleHitPmfs), true);
+      const single_hits = jointProbPMFs(singleHitPmfs);
+      consola.log("single hit pmfs");
+      printPMF(single_hits);
+      const finalPMF = add_pmfs(damage_pmf, single_hits, true);
+      consola.log("final");
       damagePMFByAC.set(ac, finalPMF);
+      printPMF(finalPMF);
+      consola.log("weightedpmf:");
+      consola.log(weighted_mean_pmf(finalPMF).valueOf());
     });
     consola.debug("messy normalized");
     consola.debug(normalizeDamagePMFByACMess(damagePMFByAC));

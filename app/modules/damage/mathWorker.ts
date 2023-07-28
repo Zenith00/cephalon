@@ -1,7 +1,8 @@
-import type { Dice, JPM_PMF, PMF } from "~/modules/damage2/math";
+import type { Dice, JPM_PMF, PMF } from "@/damage/math";
 import { consola } from "consola";
 
 import {
+  ACs,
   ONE,
   ZERO,
   add_pmfs,
@@ -12,11 +13,13 @@ import {
   jointProbPMFs,
   numberRange,
   parseDiceStrings,
+  printPMF,
+  weighted_mean_pmf,
   zero_pmf
-} from "~/modules/damage2/math";
+} from "@/damage/math";
 
 import workerpool from "workerpool";
-import { ACs, type AC, type DamagePMF, type DamagePMFByAC } from "./types";
+import {  type AC, type DamagePMF, type DamagePMFByAC } from "./types";
 
 export type DamageInfo = {
   damage: string[];
@@ -28,7 +31,7 @@ export type DamageInfo = {
   critFailFaceCount: number;
   advantage: number;
   key: string;
-  label: string;
+  label?: string;
 };
 
 export type DamagerFormulae = {
@@ -134,7 +137,9 @@ export const computeDamageInfo = (
     consola.debug(`====================`);
     consola.debug(`====== AC: ${ac} ======`);
 
-
+    // if (ac !== 1 ){
+    //   return;
+    // }
     const hit_data_per_count = combine_hit_and_buffs({
       toHit: attackRollBase.pmf,
       buffs: attackRoll.pmf,
@@ -173,30 +178,49 @@ export const computeDamageInfo = (
       { name: "Crit Miss", pmf: missDamagePMF, chance: chanceToCritMiss },
       { name: "Crit", pmf: critDamagePMF, chance: chanceToCrit },
     ];
-  
-    const singleHitPmfs: JPM_PMF[] = [
-      { name: "Hit", pmf: firstHitDamagePMF, chance: ONE.sub(ONE.sub(chanceToHit).pow(damageInfo.attackCount)) },
-      { name: "Miss", pmf: missDamagePMF, chance: chanceToMiss },
-      { name: "Crit Miss", pmf: missDamagePMF, chance: chanceToCritMiss },
-      { name: "Crit", pmf: firstHitCritDamagePMF, chance: chanceToCrit },
-    ];
-    
-  
 
+    const chance_any_crit = ONE.sub(ONE.sub(chanceToCrit).pow(damageInfo.attackCount));
+    const chance_all_miss = chanceToMiss.pow(damageInfo.attackCount);
+    const chance_all_crit_miss = chanceToCritMiss.pow(damageInfo.attackCount)
+    const chance_any_hit_and_no_crit = ONE.sub(chance_any_crit).sub(chance_all_miss).sub(chance_all_crit_miss)
+    const singleHitPmfs: JPM_PMF[] = [
+      { name: "Hit", pmf: firstHitDamagePMF, chance: chance_any_hit_and_no_crit },
+      { name: "Miss", pmf: missDamagePMF, chance: chance_all_miss },
+      { name: "Crit Miss", pmf: missDamagePMF, chance: chance_all_crit_miss },
+      { name: "Crit", pmf: firstHitCritDamagePMF, chance: chance_any_crit },
+    ];
+    consola.log("shpmfs")
+    consola.log(singleHitPmfs)
+  
+    const joint_prob = jointProbPMFs(pmfs);
+
+    consola.log({joint_prob})
+    printPMF(joint_prob)
+    
+    consola.log(numberRange(1, damageInfo.attackCount+1))
     const damage_pmf = numberRange(1, damageInfo.attackCount + 1).reduce(
       (acc) => {
-        const damagePMF = add_pmfs(acc, jointProbPMFs(pmfs), true);
+        const damagePMF = add_pmfs(acc, joint_prob, true);
+        consola.log("PMF after adding:")
+        printPMF(damagePMF)
         return damagePMF;
       },
       zero_pmf()
     );
 
-
-    const finalPMF = add_pmfs(damage_pmf, jointProbPMFs(singleHitPmfs), true);
+    const single_hits = jointProbPMFs(singleHitPmfs);
+    consola.log("single hit pmfs")
+    printPMF(single_hits)
+    const finalPMF = add_pmfs(damage_pmf,single_hits , true);
 
     
-
+    consola.log("final")
+      
     damagePMFByAC.set(ac, finalPMF);
+    printPMF(finalPMF)
+    consola.log("weightedpmf:")
+    consola.log(weighted_mean_pmf(finalPMF).valueOf())
+
   });
   consola.debug("messy normalized");
   consola.debug(normalizeDamagePMFByACMess(damagePMFByAC));

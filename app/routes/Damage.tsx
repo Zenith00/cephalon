@@ -1,5 +1,5 @@
-import DamageCalculatorInput from "@/damage2/damageCalculator.component";
-import DamageGraphSidebar from "@/damage2/graph.component";
+import DamageCalculatorInput from "@/damage/damageCalculator.component";
+import DamageGraphSidebar from "@/damage/graph.component";
 import {
   ActionIcon,
   AppShell,
@@ -19,8 +19,8 @@ import {
 import { useForm } from "@mantine/form";
 import { useEffect, useState } from "react";
 
-import type { DamageMetadata, formValue } from "@/damage2/math";
-import { getEmptyDamager } from "@/damage2/math";
+import type { DamageMetadata, formValue } from "@/damage/math";
+import { getEmptyDamager } from "@/damage/math";
 import { useToggle } from "@mantine/hooks";
 import {
   IconLayoutSidebarRightCollapse,
@@ -33,7 +33,7 @@ import { useImmer } from "use-immer";
 enableMapSet();
 
 export const FOOTER_HEIGHT = 60;
-const Damage2 = () => {
+const damage = () => {
 
   const [damageData, setDamageData] = useImmer<Record<string, DamageMetadata>>(
     {}
@@ -187,4 +187,4 @@ const Damage2 = () => {
   );
 };
 
-export default Damage2;
+export default damage;

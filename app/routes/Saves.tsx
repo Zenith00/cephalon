@@ -9,7 +9,7 @@ import { scaleLinear } from '@visx/scale';
 import { useDebouncedCallback } from 'use-debounce';
 import queryString from 'query-string';
 import SaveGraphs from '@/boxplot/saveGraphs';
-import type { Flavor } from '@utils/typehelpers';
+import type { Flavor } from '@/utils/typehelpers';
 import SavesFilterNavbar from '@/boxplot/filterNavbar.component';
 import DiscordLink from '@/common/DiscordLink.component';
 import { useViewportSize } from '@mantine/hooks';

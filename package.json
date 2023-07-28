@@ -2,12 +2,13 @@
   "private": true,
   "sideEffects": false,
   "scripts": {
-    "build": "npx esbuild ./app/modules/damage2/mathWorker.ts --bundle --outdir=./public/workers/  && remix build",
+    "build": "npx esbuild ./app/modules/damage/mathWorker.ts --bundle --outdir=./public/workers/  && remix build",
     "dev": "npm-run-all -p -r dev:workers dev:web",
     "start": "remix-serve build",
     "typecheck": "tsc",
-    "dev:workers": "npx esbuild ./app/modules/damage2/mathWorker.ts --bundle --outdir=./public/workers/ --watch",
-    "dev:web": "remix dev --port 10020"
+    "dev:workers": "npx esbuild ./app/modules/damage/mathWorker.ts --bundle --outdir=./public/workers/ --watch",
+    "dev:web": "remix dev --port 10020",
+    "test": "jest"
   },
   "dependencies": {
     "@emotion/react": "^11.10.6",
@@ -44,6 +45,7 @@
     "immer": "^10.0.1",
     "inflection": "^2.0.1",
     "isbot": "^3.6.8",
+    "jest": "^29.6.2",
     "npm-run-all": "^4.1.5",
     "pako": "^2.1.0",
     "pluralize": "^8.0.0",
@@ -60,14 +62,17 @@
   "devDependencies": {
     "@remix-run/dev": "^1.15.0",
     "@remix-run/eslint-config": "^1.15.0",
+    "@types/jest": "^29.5.3",
     "@types/node": "20.3.1",
+    "@types/pluralize": "^0.0.30",
     "@types/react": "^18.0.35",
     "@types/react-dom": "^18.0.11",
     "@types/workerpool": "^6.4.0",
     "eslint": "^8.38.0",
+    "ts-jest": "^29.1.1",
     "typescript": "^4.9.5"
   },
   "engines": {
-    "node": ">=14"
+    "node": ">=16"
   }
 }

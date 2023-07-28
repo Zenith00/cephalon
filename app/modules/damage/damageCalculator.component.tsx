@@ -19,7 +19,7 @@ import { IconAdjustmentsCog, IconTrash } from "@tabler/icons-react";
 import React from "react";
 import type { Updater } from "use-immer";
 import workerpool from "workerpool";
-import { parseDiceStrings, weighted_mean_pmf } from "~/modules/damage2/math";
+import { parseDiceStrings, weighted_mean_pmf } from "@/damage/math";
 import { useId } from "@mantine/hooks";
 import { type DamageInfo } from "./mathWorker";
 import type { DamagePMFByAC } from "./types";

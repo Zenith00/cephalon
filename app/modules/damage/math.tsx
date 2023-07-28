@@ -5,8 +5,8 @@ import { consola } from "consola";
 import Fraction from "fraction.js";
 import { table } from "table";
 import type { DamagePMFByAC, AC } from "./types";
-
-
+import type { DamageInfo } from "./mathWorker";
+import { computeDamageInfo, normalizeDamagePMFByAC } from "./mathWorker";
 
 export type critType = "none" | "normal" | "maximized" | "raw";
 
@@ -26,6 +26,9 @@ export const clean_zeros = (pmf: PMF): PMF =>
 export const clean_jpm = (map: Map<string, PMF>) =>
   new Map([...map.entries()].filter(([_, v]) => v.size !== 0));
 
+export const numberRange = (start: number, end: number): number[] =>
+  new Array(end - start).fill(undefined).map((d, i) => i + start);
+
 export const cartesianProduct = <T,>(...allEntries: T[][]): T[][] =>
   allEntries.reduce<T[][]>(
     (results, entries) =>
@@ -34,57 +37,54 @@ export const cartesianProduct = <T,>(...allEntries: T[][]): T[][] =>
         .reduce((subResults, result) => [...subResults, ...result], []),
     [[]]
   );
+  export const ACs = numberRange(1,30+1) as AC[];
+type damagerFormValue = {
+  label: string;
+  attack: string;
+  attackCount: number;
+  damage: string;
+  key: string;
+  advantage: string;
+  damageOnFirstHit: string;
+  damageOnMiss: string;
+  critFailFaceCount: number;
+  critFaceCount: number;
+  gwmSS: boolean;
+};
 
+type globalValues = {
+  damage: string;
+  attack: string;
+};
 
-  type damagerFormValue = {
-    label: string;
-    attack: string;
-    attackCount: number;
-    damage: string;
-    key: string;
-    advantage: string;
-    damageOnFirstHit: string;
-    damageOnMiss: string;
-    critFailFaceCount: number;
-    critFaceCount: number;
-    gwmSS: boolean;
-  };
-  
-  type globalValues = {
-    damage: string;
-    attack: string;
-  };
-  
-  export type formValue = {
-    global: globalValues;
-    damagers: damagerFormValue[];
-  };
-  
-  export type DamageMetadata = {
-    damagePMFByAC: DamagePMFByAC;
-    averageDamageByAC: Map<AC, number>;
-    label: string;
-  };
-  
+export type formValue = {
+  global: globalValues;
+  damagers: damagerFormValue[];
+};
 
-  // eslint-disable-next-line import/prefer-default-export
+export type DamageMetadata = {
+  damagePMFByAC: DamagePMFByAC;
+  averageDamageByAC: Map<AC, number>;
+  label: string;
+};
+
+// eslint-disable-next-line import/prefer-default-export
 export const getEmptyDamager = (
-    damagers: damagerFormValue[]
-  ): damagerFormValue => ({
-    label: "Example Attack",
-    attack: "",
-    damage: "1d6",
-    damageOnFirstHit: "",
-    damageOnMiss: "",
-    attackCount: 1,
-    key: (Math.max(...damagers.map((d) => Number(d.key)), -1) + 1).toString(),
-    critFaceCount: 1,
-    critFailFaceCount: 1,
-    advantage: "0",
-    gwmSS: false,
-  });
+  damagers: damagerFormValue[]
+): damagerFormValue => ({
+  label: "Example Attack",
+  attack: "",
+  damage: "1d6",
+  damageOnFirstHit: "",
+  damageOnMiss: "",
+  attackCount: 1,
+  key: (Math.max(...damagers.map((d) => Number(d.key)), -1) + 1).toString(),
+  critFaceCount: 1,
+  critFailFaceCount: 1,
+  advantage: "0",
+  gwmSS: false,
+});
 
-  
 export type Dice = {
   positive: boolean;
   count: number;
@@ -152,9 +152,6 @@ export const parseDiceStrings = ({
   return { dice };
 };
 
-export const numberRange = (start: number, end: number): number[] =>
-  new Array(end - start).fill(undefined).map((d, i) => i + start);
-
 type HitData = {
   hit: Fraction;
   crit: Fraction;
@@ -192,21 +189,21 @@ export const combine_hit_and_buffs = ({
       const result = toHitX + buffY;
       const old = pmf.get(result)!;
       if (toHitX <= biggestCritFail) {
-        old.critMiss = old?.critMiss
-          .add((toHit.get(toHitX) ?? ZERO)
-          .mul(buffs.get(buffY) ?? ZERO));
+        old.critMiss = old?.critMiss.add(
+          (toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO)
+        );
       } else if (toHitX >= smallestCrit) {
-        old.crit = old?.crit
-          .add((toHit.get(toHitX) ?? ZERO)
-          .mul(buffs.get(buffY) ?? ZERO));
+        old.crit = old?.crit.add(
+          (toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO)
+        );
       } else if (result >= ac) {
-        old.hit = old?.hit
-          .add((toHit.get(toHitX) ?? ZERO)
-          .mul(buffs.get(buffY) ?? ZERO));
+        old.hit = old?.hit.add(
+          (toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO)
+        );
       } else {
-        old.miss = old?.miss
-          .add((toHit.get(toHitX) ?? ZERO)
-          .mul(buffs.get(buffY) ?? ZERO));
+        old.miss = old?.miss.add(
+          (toHit.get(toHitX) ?? ZERO).mul(buffs.get(buffY) ?? ZERO)
+        );
       }
     });
   });
@@ -217,7 +214,6 @@ export const combine_hit_and_buffs = ({
     consola.debug(`\tmiss: ${data.miss.toString()}`);
     consola.debug(`\tcrit: ${data.crit.toString()}`);
     consola.debug(`\tcritMiss: ${data.critMiss.toString()}`);
-
   });
   consola.debug("====");
 
@@ -294,14 +290,14 @@ export const make_pmf = (diceFace: number, advantage = 0, pos = true): PMF => {
 
 export const printPMF = (pmf: PMF) => {
   // eslint-disable-next-line no-console
-  consola.debug(
+  consola.log(
     new Map(
       [...pmf.entries()]
         .sort(([kl, _vl], [kr, _vr]) => kl - kr)
         .map(([k, v]) => [k, new Fraction(v).valueOf().toFixed(6)])
     )
   );
-  consola.debug(
+  consola.log(
     `SUM: ${[...pmf.values()].reduce((acc, n) => acc.add(n), ZERO).toString()}`
   );
 };
@@ -343,7 +339,6 @@ export const one_or_other_pmfs = (
 
   return pmf;
 };
-
 
 export const computeCritChance = ({
   advantage,
@@ -540,3 +535,20 @@ export const one_or_three_pmfs = ({
   printPMF(pmf);
   return pmf;
 };
+
+// const damageInfo: DamageInfo = {
+//   damage: ["1d6"],
+//   attack: [],
+//   damageOnMiss: "",
+//   damageOnFirstHit: "",
+//   attackCount: 2,
+//   critFaceCount: 1,
+//   critFailFaceCount: 1,
+//   advantage: 0,
+//   key: ":R1cm:",
+// };
+// const { damagePMFByAC } = computeDamageInfo(damageInfo);
+
+// const r = normalizeDamagePMFByAC(damagePMFByAC);
+
+// console.log(r);

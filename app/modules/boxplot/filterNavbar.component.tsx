@@ -3,7 +3,7 @@ import {
   Input,
   MultiSelect, Navbar, NumberInput, SegmentedControl, Select, Switch,
 } from '@mantine/core';
-import type { SaveGraphOptions } from '@pages/Saves';
+import type { SaveGraphOptions } from '@/pages/Saves';
 import React, { useRef } from 'react';
 // import produce from 'immer';
 import type { BoxplotFilter, MultiTypeFilter, SingleTypeFilter } from '@/boxplot/types';
